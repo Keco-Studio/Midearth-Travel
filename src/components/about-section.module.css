@@ -1,0 +1,109 @@
+.section {
+  --about-bg-dark: #163530;
+  --about-text: #f5efe3;
+  --about-amber: #e8a838;
+  --about-container: 1240px;
+  --about-pad-section: clamp(64px, 9vw, 128px);
+  --about-font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  padding: var(--about-pad-section) 0;
+  background: var(--about-bg-dark);
+  color: var(--about-text);
+  font-family: var(--about-font-sans);
+}
+
+.container {
+  max-width: var(--about-container);
+  margin: 0 auto;
+  padding: 0 clamp(20px, 4vw, 48px);
+}
+
+.header {
+  max-width: 48rem;
+  margin: 0 auto 3.5rem;
+  text-align: center;
+}
+
+@media (min-width: 1024px) {
+  .header {
+    margin-bottom: 5rem;
+  }
+}
+
+.eyebrow {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--about-amber);
+  margin-bottom: 14px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.title {
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+  margin: 0 0 1.5rem;
+  font-size: clamp(36px, 5vw, 60px);
+  font-weight: 600;
+  line-height: 1.05;
+  color: var(--about-text);
+}
+
+.titleLight {
+  font-weight: 300;
+}
+
+.deck {
+  opacity: 0.8;
+  text-wrap: pretty;
+  max-width: 44ch;
+  margin: 0 auto;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.card {
+  text-align: center;
+}
+
+.iconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  margin-bottom: 0.5rem;
+  border-radius: 1rem;
+  background: rgba(253, 250, 244, 0.1);
+  color: var(--about-amber);
+}
+
+.cardTitle {
+  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.cardDesc {
+  opacity: 0.75;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}

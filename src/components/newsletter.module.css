@@ -1,0 +1,138 @@
+.section {
+  --quote-bg: #f5efe3;
+  --quote-forest: #163530;
+  --quote-forest-light: #1f4d3f;
+  --quote-amber: #e8a838;
+  --quote-ink: #1a1a17;
+  --quote-muted: #8a857c;
+  --quote-font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  padding: clamp(3.5rem, 7vw, 8rem) 0;
+  background: var(--quote-bg);
+  font-family: var(--quote-font-sans);
+}
+
+.container {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  text-align: center;
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding: 0 2rem;
+  }
+}
+
+.eyebrow {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--quote-forest-light);
+  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.title {
+  margin: 0 0 1rem;
+  font-size: clamp(2.25rem, 5vw, 3rem);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--quote-ink);
+  text-wrap: balance;
+}
+
+.titleBold {
+  font-weight: 600;
+  color: var(--quote-forest);
+}
+
+.deck {
+  max-width: 42rem;
+  margin: 0 auto 2rem;
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: var(--quote-muted);
+  text-wrap: balance;
+}
+
+.form {
+  max-width: 28rem;
+  margin: 0 auto 1.25rem;
+}
+
+.formRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.input {
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  height: 48px;
+  padding: 0 1.5rem;
+  border: 2px solid var(--quote-forest);
+  border-radius: 999px;
+  background: rgba(22, 53, 48, 0.04);
+  color: var(--quote-ink);
+  font-size: 0.875rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.input::placeholder {
+  color: var(--quote-muted);
+}
+
+.input:focus {
+  border-color: var(--quote-forest-light);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(22, 53, 48, 0.15);
+}
+
+.submitBtn {
+  box-sizing: border-box;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 2px solid var(--quote-forest);
+  border-radius: 999px;
+  background: var(--quote-forest);
+  color: #fdfaf4;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.submitBtn:hover {
+  background: var(--quote-forest-light);
+  border-color: var(--quote-forest-light);
+}
+
+.submitBtn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(22, 53, 48, 0.25);
+}
+
+.contact {
+  font-size: 0.75rem;
+  color: var(--quote-muted);
+}
+
+.contact a {
+  color: var(--quote-forest);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.contact a:hover {
+  color: var(--quote-forest-light);
+  text-decoration: underline;
+}

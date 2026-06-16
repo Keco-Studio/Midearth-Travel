@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Midearth Travel
 
-## Getting Started
+可开发的 Next.js 旅游网站项目，基于 [midearth.web.app](https://midearth.web.app/) 重建。
 
-First, run the development server:
+## 技术栈
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Next.js 15 (App Router)
+- TypeScript
+- Tailwind CSS v4
+- lucide-react
+
+## 项目结构
+
+```
+src/
+├── app/
+│   ├── page.tsx              # 首页
+│   ├── layout.tsx
+│   └── tours/[slug]/page.tsx # 各 tour 详情页
+├── components/               # UI 组件（可读可改）
+├── data/tours.ts             # 所有 tour 数据（改内容在这里）
+public/                       # 图片资源
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 开发
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cd midearth-travel
+npm install
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+打开 http://localhost:3000
 
-## Learn More
+## 修改内容
 
-To learn more about Next.js, take a look at the following resources:
+- **Tour 列表/详情**：编辑 `src/data/tours.ts`
+- **首页区块**：`src/components/` 下各组件
+- **样式主题**：`src/app/globals.css` 中的 CSS 变量
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 与原版区别
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- 每个 tour 有独立 slug 和详情页（不再全部指向同一页）
+- 已移除 "Demo page" 提示
+- 除 Maritime Provinces 外，其他 tour 行程为占位，可在 `tours.ts` 补充
