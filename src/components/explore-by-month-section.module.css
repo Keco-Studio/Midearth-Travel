@@ -1,0 +1,5 @@
+.section {
+  background-color: #fdfaf4;
+  padding-top: calc(var(--browse-pad-section, clamp(48px, 7vw, 96px)) * 0.6);
+  padding-bottom: calc(var(--browse-pad-section, clamp(48px, 7vw, 96px)) * 1.2);
+}

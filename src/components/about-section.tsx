@@ -1,32 +1,7 @@
-import { Award, Globe, Headphones, Shield } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { services } from "@/data/services";
 import styles from "./about-section.module.css";
-
-const features = [
-  {
-    icon: Globe,
-    title: "TICO Certified",
-    description:
-      "Member of the Travel Industry Council of Ontario, meeting the highest industry standards for reliability and service",
-  },
-  {
-    icon: Shield,
-    title: "Award Winning",
-    description:
-      "Named Ottawa's Best Travel Agency in the 2024 Ottawa Awards and Best Bus Tour Services in Ottawa",
-  },
-  {
-    icon: Headphones,
-    title: "Expert Guides",
-    description:
-      "Experienced, knowledgeable tour guides like Rico Yan providing exceptional service on every trip",
-  },
-  {
-    icon: Award,
-    title: "Competitive Prices",
-    description:
-      "Affordable vacation packages with best-deal air tickets, hotels, and comprehensive travel insurance",
-  },
-];
 
 export function AboutSection() {
   return (
@@ -44,16 +19,42 @@ export function AboutSection() {
           </p>
         </div>
 
-        <div className={styles.grid}>
-          {features.map((feature) => (
-            <div key={feature.title} className={styles.card}>
-              <div className={styles.iconWrap}>
-                <feature.icon className="h-8 w-8" />
-              </div>
-              <h3 className={styles.cardTitle}>{feature.title}</h3>
-              <p className={styles.cardDesc}>{feature.description}</p>
+        <div className={styles.servicesBlock}>
+          <div className={styles.servicesHead}>
+            <div>
+              <div className={styles.eyebrow}>— Beyond tours</div>
+              <h2 className={styles.servicesTitle}>Everything else, handled.</h2>
             </div>
-          ))}
+            <p className={styles.servicesDeck}>
+              Flights, hotels, charter coaches, travel insurance, visa paperwork.
+              The unglamorous half of any trip — done by people who&apos;ve done it
+              ten thousand times.
+            </p>
+          </div>
+          <div className={styles.svcGrid}>
+            {services.map((svc) => (
+              <Link
+                key={svc.id}
+                className={styles.svcCard}
+                href="/#contact"
+              >
+                <div className={styles.svcCardImg}>
+                  <Image
+                    src={svc.image}
+                    alt=""
+                    fill
+                    sizes="(max-width: 768px) 100vw, 280px"
+                    className={styles.svcCardImgEl}
+                  />
+                </div>
+                <div className={styles.svcCardBody}>
+                  <div className={styles.svcCardTitle}>{svc.title}</div>
+                  <div className={styles.svcCardSum}>{svc.summary}</div>
+                  <div className={styles.svcCardArrow}>→</div>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </section>

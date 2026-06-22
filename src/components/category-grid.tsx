@@ -1,10 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { browseCategories, getCategoryHref } from "@/data/categories";
+import styles from "./category-grid.module.css";
 
 export function CategoryGrid() {
   return (
-    <section className="browse-section">
+    <section className={`browse-section ${styles.section}`}>
       <div className="browse-container">
         <div className="browse-section-head">
           <div>

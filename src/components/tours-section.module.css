@@ -1,0 +1,10 @@
+.section {
+  background-color: #fdfaf4;
+  margin-top: -1px;
+  padding: clamp(2.8rem, 5.6vw, 4.9rem) 0 clamp(64px, 9vw, 128px);
+}
+
+.seeAllLink {
+  justify-self: stretch;
+  text-align: center;
+}
