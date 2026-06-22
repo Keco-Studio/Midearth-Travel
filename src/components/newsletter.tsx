@@ -1,6 +1,7 @@
 "use client";
 
 import { Send } from "lucide-react";
+import Image from "next/image";
 import { FormEvent, useState } from "react";
 import styles from "./newsletter.module.css";
 
@@ -50,6 +51,29 @@ export function Newsletter() {
           <a href="tel:6132362323">613-236-2323</a> or email{" "}
           <a href="mailto:info@midearth.ca">info@midearth.ca</a>
         </p>
+
+        <div className={styles.qrSection}>
+          <div className={styles.qrItem}>
+            <p className={styles.qrLabel}>微信扫码咨询</p>
+            <Image
+              src="/contact/wechat-qr.jpg"
+              alt="WeChat QR code"
+              width={140}
+              height={140}
+              className={styles.qrImage}
+            />
+          </div>
+          <div className={styles.qrItem}>
+            <p className={styles.qrLabel}>WhatsApp us</p>
+            <Image
+              src="/contact/whatsapp-qr.jpg"
+              alt="WhatsApp QR code"
+              width={140}
+              height={140}
+              className={styles.qrImage}
+            />
+          </div>
+        </div>
       </div>
     </section>
   );

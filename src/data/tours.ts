@@ -44,7 +44,25 @@ export type Tour = {
   fares?: TourFare[];
   featured?: boolean;
   hotSale?: boolean;
+  gallery?: string[];
+  included?: string[];
+  notIncluded?: string[];
 };
+
+export const defaultTourIncluded = [
+  "Coach transportation throughout",
+  "Hotel accommodation (3–4★)",
+  "Bilingual tour leader",
+  "Selected meals (see itinerary)",
+  "Major attraction admissions",
+];
+
+export const defaultTourNotIncluded = [
+  "International flights",
+  "Travel insurance",
+  "Optional excursions",
+  "Gratuities",
+];
 
 export const tours: Tour[] = [
   {
@@ -57,6 +75,12 @@ export const tours: Tour[] = [
     description:
       "Coastal icons, island charm, and the world's highest tides — from Ottawa by coach.",
     image: "/maritime-provinces-gaspe-peggys-cove.jpg",
+    gallery: [
+      "/maritime-provinces-gaspe-peggys-cove.jpg",
+      "/hero/hero-coast.jpg",
+      "/vancouver-rockies-lake-louise.jpg",
+      "/southern-france-italy-venice.jpg",
+    ],
     tags: ["Gaspé", "Bay of Fundy", "Charlottetown", "Peggy's Cove", "Halifax"],
     tourType: "Bus Tour",
     rating: 5.0,
@@ -146,6 +170,7 @@ export const tours: Tour[] = [
   },
   {
     slug: "toronto-niagara-falls",
+    code: "NE01",
     title: "Toronto & Niagara Falls",
     region: "Canada",
     duration: "2-3 Days",
@@ -156,9 +181,11 @@ export const tours: Tour[] = [
     tourType: "Bus Tour",
     departureCity: "Ottawa",
     featured: true,
+    fares: [{ label: "Adult", price: "$289" }],
   },
   {
     slug: "vancouver-rockies",
+    code: "NW04",
     title: "Vancouver & The Rockies",
     region: "Canada",
     duration: "6-7 Days",
@@ -210,6 +237,7 @@ export const tours: Tour[] = [
   },
   {
     slug: "across-canada-10-day",
+    code: "NE06",
     title: "Across Canada 10-Day",
     region: "Canada",
     duration: "10 Days",
@@ -229,8 +257,35 @@ export function getTourBySlug(slug: string): Tour | undefined {
   return tours.find((t) => t.slug === slug);
 }
 
+const FEATURED_SLUGS = [
+  "maritime-provinces-and-gaspe",
+  "across-canada-10-day",
+  "toronto-niagara-falls",
+  "vancouver-rockies",
+] as const;
+
 export function getFeaturedTours(): Tour[] {
-  return tours.filter((t) => t.featured);
+  return FEATURED_SLUGS.map((slug) => tours.find((t) => t.slug === slug)).filter(
+    (t): t is Tour => t != null,
+  );
+}
+
+export function getTourCategoryLabel(tour: Tour): string {
+  if (tour.tourType === "Bus Tour") return "Bus Tours";
+  if (tour.tourType === "Group Tour") return "Vacation Packages";
+  return tour.tourType;
+}
+
+export function getTourDisplayPrice(tour: Tour): string {
+  if (tour.fares?.length) {
+    const lowest = tour.fares.reduce((min, fare) => {
+      const amount = Number.parseFloat(fare.price.replace(/[^0-9.]/g, ""));
+      const minAmount = Number.parseFloat(min.price.replace(/[^0-9.]/g, ""));
+      return amount < minAmount ? fare : min;
+    });
+    return `from ${lowest.price}`;
+  }
+  return "Contact for price";
 }
 
 export function getHotSaleTours(): Tour[] {

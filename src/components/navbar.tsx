@@ -4,16 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BrandLogo } from "@/components/shared/brand-logo";
-import { TravelButton } from "@/components/ui/travel-button";
+import { useLang } from "@/context/lang-context";
 import { regions } from "@/data/regions";
-import { services } from "@/data/services";
 import { site } from "@/data/site";
-import {
-  getTourCategoryImage,
-  getTourCategorySlug,
-  getToursForCategoryName,
-  tourCategories,
-} from "@/data/tours";
 
 function MegaRoutes() {
   return (
@@ -35,54 +28,16 @@ function MegaRoutes() {
   );
 }
 
-function MegaTours() {
-  return (
-    <div className="mega">
-      <div className="mega-grid mega-grid-3">
-        {tourCategories.map((cat) => (
-          <Link
-            key={cat}
-            className="mega-card"
-            href={`/tours/category/${getTourCategorySlug(cat)}`}
-          >
-            <img src={getTourCategoryImage(cat)} alt="" />
-            <div className="mega-card-body">
-              <div className="mega-card-title">{cat}</div>
-              <div className="mega-card-sub">
-                {getToursForCategoryName(cat).length} trips
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function MegaServices() {
-  return (
-    <div className="mega">
-      <div className="mega-list">
-        {services.map((s) => (
-          <Link key={s.id} className="mega-list-item" href="/#contact">
-            <span className="mega-list-title">{s.title}</span>
-            <span className="mega-list-sub">{s.summary}</span>
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export function Navbar() {
   const pathname = usePathname();
+  const { lang, setLang } = useLang();
   const [scrolled, setScrolled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [mega, setMega] = useState<"routes" | "tours" | "services" | null>(
-    null,
-  );
+  const [mega, setMega] = useState<"routes" | null>(null);
 
-  const transparent = pathname === "/" && !scrolled;
+  const hasHeroOverlay =
+    pathname === "/" || /^\/tours\/[^/]+$/.test(pathname);
+  const transparent = hasHeroOverlay && !scrolled;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -104,20 +59,11 @@ export function Navbar() {
       mega: "routes" as const,
       href: "/routes/north-america",
     },
-    { key: "tours", label: "Tours", mega: "tours" as const, href: "/tours" },
-    {
-      key: "services",
-      label: "Services",
-      mega: "services" as const,
-      href: "/#contact",
-    },
+    { key: "services", label: "Services", href: "/#about" },
     { key: "contact", label: "Contact", href: "/#contact" },
   ];
 
   const isActive = (item: (typeof nav)[number]) => {
-    if (item.key === "tours") {
-      return pathname === item.href || pathname.startsWith("/tours");
-    }
     if (item.key === "routes") {
       return pathname.startsWith("/routes");
     }
@@ -129,7 +75,7 @@ export function Navbar() {
       <div className="header-inner">
         <Link className="brand" href="/">
           <span className="brand-mark">
-            <BrandLogo />
+            <BrandLogo size={28} />
           </span>
           <span className="brand-text">
             <span className="brand-name">{site.name}</span>
@@ -153,10 +99,6 @@ export function Navbar() {
                 {item.mega && <span className="nav-caret">▾</span>}
               </Link>
               {item.mega === "routes" && mega === "routes" && <MegaRoutes />}
-              {item.mega === "tours" && mega === "tours" && <MegaTours />}
-              {item.mega === "services" && mega === "services" && (
-                <MegaServices />
-              )}
             </div>
           ))}
         </nav>
@@ -165,15 +107,18 @@ export function Navbar() {
           <div className="header-contact">
             <a href={`tel:${site.phoneTel}`}>{site.phone}</a>
           </div>
-          <Link className="lang-switcher" href="/">
-            <span className="active">EN</span>
+          <button
+            className="header-pill"
+            type="button"
+            onClick={() => setLang(lang === "en" ? "zh" : "en")}
+            aria-label="Switch language"
+          >
+            <span className={lang === "en" ? "active" : ""}>EN</span>
             <span className="lang-divider">/</span>
-            <span>中文</span>
-          </Link>
-          <Link href={`tel:${site.phoneTel}`}>
-            <TravelButton variant="primary" size="sm">
-              Book Now
-            </TravelButton>
+            <span className={lang === "zh" ? "active" : ""}>中文</span>
+          </button>
+          <Link href={`tel:${site.phoneTel}`} className="header-pill">
+            Book Now
           </Link>
           <button
             className="hamburger"
@@ -224,28 +169,13 @@ export function Navbar() {
                   {r.title}
                 </Link>
               ))}
-              <div className="drawer-section">Tours</div>
-              {tourCategories.map((cat) => (
-                <Link
-                  key={cat}
-                  className="drawer-sublink"
-                  href={`/tours/category/${getTourCategorySlug(cat)}`}
-                  onClick={() => setDrawerOpen(false)}
-                >
-                  {cat}
-                </Link>
-              ))}
-              <div className="drawer-section">Services</div>
-              {services.map((s) => (
-                <Link
-                  key={s.id}
-                  className="drawer-sublink"
-                  href="/#contact"
-                  onClick={() => setDrawerOpen(false)}
-                >
-                  {s.title}
-                </Link>
-              ))}
+              <Link
+                className="drawer-link"
+                href="/#about"
+                onClick={() => setDrawerOpen(false)}
+              >
+                Services
+              </Link>
               <Link
                 className="drawer-link"
                 href="/#contact"
@@ -255,11 +185,21 @@ export function Navbar() {
               </Link>
             </div>
             <div className="drawer-foot">
+              <button
+                className="header-pill header-pill-drawer"
+                type="button"
+                onClick={() => setLang(lang === "en" ? "zh" : "en")}
+              >
+                <span className={lang === "en" ? "active" : ""}>EN</span>
+                <span className="lang-divider">/</span>
+                <span className={lang === "zh" ? "active" : ""}>中文</span>
+              </button>
               <Link
                 href={`tel:${site.phoneTel}`}
+                className="header-pill header-pill-drawer"
                 onClick={() => setDrawerOpen(false)}
               >
-                <TravelButton variant="primary">Book Now</TravelButton>
+                Book Now
               </Link>
               <div className="drawer-contact">
                 <div>{site.phone}</div>

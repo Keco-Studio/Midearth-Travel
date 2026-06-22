@@ -61,49 +61,113 @@
   line-height: 1.6;
 }
 
-.grid {
+.servicesBlock {
+  margin-top: 0;
+  padding-top: clamp(3rem, 6vw, 4.5rem);
+  border-top: 1px solid rgba(253, 250, 244, 0.12);
+}
+
+.servicesHead {
   display: grid;
-  gap: 1.5rem;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: end;
+  margin-bottom: 56px;
 }
 
-@media (min-width: 768px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 2rem;
+@media (max-width: 760px) {
+  .servicesHead {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 36px;
   }
 }
 
-@media (min-width: 1024px) {
-  .grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-.card {
-  text-align: center;
-}
-
-.iconWrap {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 4rem;
-  height: 4rem;
-  margin-bottom: 0.5rem;
-  border-radius: 1rem;
-  background: rgba(253, 250, 244, 0.1);
-  color: var(--about-amber);
-}
-
-.cardTitle {
-  margin-bottom: 0.5rem;
-  font-size: 1.25rem;
+.servicesTitle {
+  margin: 0;
+  font-size: clamp(36px, 5vw, 60px);
   font-weight: 600;
-  letter-spacing: -0.01em;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+  color: var(--about-text);
 }
 
-.cardDesc {
-  opacity: 0.75;
-  font-size: 0.875rem;
+.servicesDeck {
+  margin: 0;
+  max-width: 52ch;
+  font-size: 17px;
   line-height: 1.6;
+  text-wrap: pretty;
+  opacity: 0.8;
+}
+
+.svcGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.svcCard {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-align: left;
+  text-decoration: none;
+  color: #1a1a17;
+  background: #fdfaf4;
+  border: 1px solid #efe9dc;
+  border-radius: 20px;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.svcCard:hover {
+  border-color: #c5481f;
+  transform: translateY(-3px);
+}
+
+.svcCardImg {
+  position: relative;
+  aspect-ratio: 5 / 3;
+  overflow: hidden;
+}
+
+.svcCardImgEl {
+  object-fit: cover;
+  transition: transform 0.5s;
+}
+
+.svcCard:hover .svcCardImgEl {
+  transform: scale(1.05);
+}
+
+.svcCardBody {
+  position: relative;
+  padding: 18px 20px 22px;
+}
+
+.svcCardTitle {
+  margin-bottom: 6px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.svcCardSum {
+  font-size: 13.5px;
+  color: #4a4a45;
+}
+
+.svcCardArrow {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  color: #c5481f;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: all 0.2s;
+}
+
+.svcCard:hover .svcCardArrow {
+  opacity: 1;
+  transform: translateX(0);
 }

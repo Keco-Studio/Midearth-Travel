@@ -1,0 +1,169 @@
+.heroGalleryBg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.heroGalleryControls {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.heroGalleryImage {
+  object-fit: cover;
+  animation: tourGalleryFadeIn 0.3s ease;
+}
+
+@keyframes tourGalleryFadeIn {
+  from {
+    opacity: 0.7;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.galleryArrow {
+  position: absolute;
+  top: 50%;
+  z-index: 21;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(253, 250, 244, 0.95);
+  color: #1a1a17;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+  transform: translateY(-50%);
+  transition: transform 0.15s, background 0.15s;
+}
+
+.galleryArrow:hover {
+  transform: translateY(-50%) scale(1.05);
+}
+
+.galleryPrev {
+  left: 16px;
+}
+
+.galleryNext {
+  right: 16px;
+}
+
+.galleryCounter {
+  position: absolute;
+  top: 100px;
+  right: 16px;
+  z-index: 2;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(20, 16, 8, 0.7);
+  color: #fdfaf4;
+  font-size: 12px;
+  font-weight: 500;
+  pointer-events: none;
+}
+
+.tourBody {
+  background: #f5efe3;
+}
+
+.dayByDaySection {
+  padding: 2.5rem 1.5rem;
+  background: #fdfaf4;
+  border: 1px solid #e8e2d4;
+  border-radius: 20px;
+}
+
+@media (min-width: 1024px) {
+  .dayByDaySection {
+    padding: 3rem;
+  }
+}
+
+.includedCard,
+.notIncludedCard {
+  overflow: hidden;
+  border-radius: 20px;
+  padding: 24px;
+}
+
+.includedCard {
+  border: 1px solid #e8e2d4;
+  background: #fdfaf4;
+}
+
+.notIncludedCard {
+  background: #f5efe3;
+}
+
+.includedHead,
+.notIncludedHead {
+  margin-bottom: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.includedHead {
+  color: #c5481f;
+}
+
+.notIncludedHead {
+  color: #8a857c;
+}
+
+.includedList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #4a4a45;
+}
+
+.includedList li::before {
+  content: "✓ ";
+  color: #163530;
+  font-weight: 600;
+}
+
+.notIncludedList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #4a4a45;
+}
+
+.notIncludedList li::before {
+  content: "– ";
+  color: #8a857c;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .galleryCounter {
+    top: auto;
+    bottom: 12px;
+    right: 12px;
+  }
+}

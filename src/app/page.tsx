@@ -1,5 +1,7 @@
 import { AboutSection } from "@/components/about-section";
 import { CategoryGrid } from "@/components/category-grid";
+import { ExploreByMonthSection } from "@/components/explore-by-month-section";
+import { FinalCta } from "@/components/final-cta";
 import { Footer } from "@/components/footer";
 import { Hero } from "@/components/hero";
 import { Navbar } from "@/components/navbar";
@@ -12,10 +14,12 @@ export default function Home() {
     <main className="min-h-screen">
       <Navbar />
       <Hero />
-      <CategoryGrid />
       <ToursSection />
+      <CategoryGrid />
+      <ExploreByMonthSection />
       <AboutSection />
       <TestimonialsSection />
+      <FinalCta />
       <Newsletter />
       <Footer />
     </main>

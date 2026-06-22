@@ -9,7 +9,6 @@ import {
   Ticket,
   Users,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
@@ -18,9 +17,13 @@ import { cn } from "@/lib/utils";
 import {
   getBookingMailto,
   getTourDisplayTitle,
+  defaultTourIncluded,
+  defaultTourNotIncluded,
   type Tour,
   type TourPolicy,
 } from "@/data/tours";
+import { TourDetailHeader } from "@/components/tour/tour-detail-header";
+import styles from "@/components/tour/tour-detail.module.css";
 
 function PolicyIcon({ icon }: { icon?: TourPolicy["icon"] }) {
   if (icon === "ticket") return <Ticket className="h-5 w-5" aria-hidden />;
@@ -34,22 +37,15 @@ export function TourDetail({ tour }: { tour: Tour }) {
   const departuresLine = tour.departures?.join(" · ");
   const departuresComma = tour.departures?.join(", ");
   const bookingMailto = getBookingMailto(tour);
+  const gallery = tour.gallery?.length ? tour.gallery : [tour.image];
+  const included = tour.included ?? defaultTourIncluded;
+  const notIncluded = tour.notIncluded ?? defaultTourNotIncluded;
 
   return (
     <main className="min-h-screen bg-background">
       <Navbar />
 
-      <header className="relative h-[min(72vh,640px)] w-full overflow-hidden">
-        <Image
-          src={tour.image}
-          alt={displayTitle}
-          fill
-          priority
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/25" />
-
-        <div className="relative z-10 flex h-full flex-col justify-end px-6 pb-12 pt-28 md:px-8 lg:px-12">
+      <TourDetailHeader images={gallery} alt={displayTitle}>
           <div className="mx-auto w-full max-w-7xl">
             <Link
               href="/#packages"
@@ -102,14 +98,14 @@ export function TourDetail({ tour }: { tour: Tour }) {
               </div>
             </dl>
           </div>
-        </div>
-      </header>
+      </TourDetailHeader>
 
+      <div className={styles.tourBody}>
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
         <div className="grid gap-12 lg:grid-cols-12 lg:gap-10">
           <div className="space-y-14 lg:col-span-8">
             {tour.itinerary && tour.itinerary.length > 0 && (
-              <section>
+              <section className={styles.dayByDaySection}>
                 <h2 className="text-3xl font-light tracking-tight md:text-4xl">
                   Day by <span className="font-semibold">day</span>
                 </h2>
@@ -136,7 +132,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
                         )}
                       </div>
                       <div className="min-w-0 flex-1 pb-10 last:pb-0">
-                        <div className="rounded-xl border border-border bg-card p-6 shadow-sm transition-shadow hover:shadow-md md:p-8">
+                        <div className="rounded-xl border border-border bg-card p-6 shadow-sm md:p-8">
                           <h3 className="text-lg font-semibold md:text-xl">
                             <span className="text-muted-foreground">
                               Day {day.day}:
@@ -188,6 +184,24 @@ export function TourDetail({ tour }: { tour: Tour }) {
 
           <aside className="lg:col-span-4">
             <div className="space-y-6 lg:sticky lg:top-28">
+              <div className={styles.includedCard}>
+                <div className={styles.includedHead}>Included</div>
+                <ul className={styles.includedList}>
+                  {included.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className={styles.notIncludedCard}>
+                <div className={styles.notIncludedHead}>Not included</div>
+                <ul className={styles.notIncludedList}>
+                  {notIncluded.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+
               {tour.essentials && (
                 <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card py-0 shadow-lg">
                   <div className="border-b border-border bg-muted/40 px-6 py-5">
@@ -320,6 +334,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
             </div>
           </aside>
         </div>
+      </div>
       </div>
 
       <section
