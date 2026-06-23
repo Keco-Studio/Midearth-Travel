@@ -19,7 +19,7 @@ export function AboutSection() {
           </p>
         </div>
 
-        <div className={styles.servicesBlock}>
+        <div id="services" className={styles.servicesBlock}>
           <div className={styles.servicesHead}>
             <div>
               <div className={styles.eyebrow}>— Beyond tours</div>

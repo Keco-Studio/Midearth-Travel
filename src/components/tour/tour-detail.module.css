@@ -96,15 +96,8 @@
   overflow: hidden;
   border-radius: 20px;
   padding: 24px;
-}
-
-.includedCard {
   border: 1px solid #e8e2d4;
   background: #fdfaf4;
-}
-
-.notIncludedCard {
-  background: #f5efe3;
 }
 
 .includedHead,

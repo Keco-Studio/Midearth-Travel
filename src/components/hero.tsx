@@ -16,7 +16,7 @@ const featureCards = [
     descLines: ["Best Airfares", "Worldwide"],
     icon: Plane,
     tone: "navy" as const,
-    href: "/#contact",
+    href: "/#services",
   },
   {
     title: "Bus Services",
@@ -37,7 +37,7 @@ const featureCards = [
     descLines: ["Worldwide Cruise", "Packages"],
     icon: Ship,
     tone: "gold" as const,
-    href: "/routes/sun-destinations",
+    href: "/#services",
   },
 ];
 
