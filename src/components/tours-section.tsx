@@ -12,7 +12,7 @@ export function ToursSection() {
         <div className="section-head">
           <div>
             <div className="eyebrow">— Featured</div>
-            <h2 className="section-title">Popular Tours</h2>
+            <h2 className="section-title">Our Top Picks</h2>
           </div>
           <Link className={`link-arrow ${styles.seeAllLink}`} href="/tours">
             See all {tours.length} tours →

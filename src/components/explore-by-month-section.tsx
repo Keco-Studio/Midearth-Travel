@@ -11,18 +11,9 @@ export function ExploreByMonthSection() {
     <section id="explore-by-month" className={styles.section}>
       <div className="browse-container">
         <PopularByMonth
-          eyebrow={lang === "zh" ? "按月份浏览" : "— Explore"}
-          title={
-            lang === "zh" ? (
-              "按月份浏览"
-            ) : (
-              <>
-                Explore
-                <br />
-                by Month
-              </>
-            )
-          }
+          eyebrow={lang === "zh" ? "按月份浏览" : "— Explore by Month"}
+          title={lang === "zh" ? "按月份浏览" : "When to Go"}
+          subtitle={lang === "zh" ? "Explore by Month" : "Explore by Month"}
         />
       </div>
     </section>

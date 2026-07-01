@@ -17,11 +17,19 @@
 
 .secTitle {
   margin: 0;
-  font-size: clamp(34px, 3.5vw, 48px);
-  font-weight: 500;
-  line-height: 1.12;
-  letter-spacing: -0.02em;
+  font-size: clamp(36px, 5vw, 60px);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
   color: #1b1916;
+}
+
+.secSubtitle {
+  margin: 0.55rem 0 0;
+  color: #c5481f;
+  font-size: clamp(18px, 2.2vw, 26px);
+  font-weight: 500;
+  line-height: 1.2;
 }
 
 .monthTabs {
@@ -117,6 +125,49 @@
   font-size: 13px;
   line-height: 1.55;
   color: #6d6a64;
+}
+
+@media (max-width: 640px) {
+  .browseBlock {
+    margin-bottom: 48px;
+  }
+
+  .secHead {
+    margin-bottom: 28px;
+  }
+
+  .monthTabs {
+    margin-bottom: 24px;
+  }
+
+  .destGrid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .destCard {
+    overflow: visible;
+  }
+
+  .destCardImg {
+    height: 168px;
+  }
+
+  .destCardBody {
+    padding: 16px 16px 20px;
+  }
+
+  .destCardTag,
+  .destCardName,
+  .destCardDesc {
+    overflow: visible;
+    white-space: normal;
+    text-overflow: clip;
+  }
+
+  .destCardDesc {
+    font-size: 13.5px;
+  }
 }
 
 .regionStack {

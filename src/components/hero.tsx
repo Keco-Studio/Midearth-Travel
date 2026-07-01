@@ -15,28 +15,24 @@ const featureCards = [
     title: "Flight Booking",
     descLines: ["Best Airfares", "Worldwide"],
     icon: Plane,
-    tone: "navy" as const,
     href: "/#services",
   },
   {
-    title: "Bus Services",
+    title: "Bus Tours",
     descLines: ["Charter & Group", "Transportation"],
     icon: Bus,
-    tone: "gold" as const,
     href: "/tours",
   },
   {
-    title: "Tours",
+    title: "Worldwide Travel",
     descLines: ["Canada & International", "Tours"],
     icon: Globe,
-    tone: "navy" as const,
     href: "/tours",
   },
   {
-    title: "Cruises",
+    title: "Other Services",
     descLines: ["Worldwide Cruise", "Packages"],
     icon: Ship,
-    tone: "gold" as const,
     href: "/#services",
   },
 ];
@@ -58,12 +54,11 @@ export function Hero() {
 
       <div className={styles.inner}>
         <div className={styles.headline}>
-          <p className={styles.eyebrow}>Midearth Travel</p>
-
           <h1 className={styles.title}>
-            <span className={styles.titleLead}>Your One-Stop</span>
-            <span className={styles.titleBold}>Travel Solution</span>
+            <span className={styles.titleMain}>Midearth Travel</span>
           </h1>
+
+          <p className={styles.subtitle}>Your One-Stop Travel Solution</p>
 
           <HeroBroadcast />
         </div>
@@ -71,13 +66,7 @@ export function Hero() {
         <div className={styles.cards}>
           {featureCards.map((card) => (
             <Link key={card.title} href={card.href} className={styles.card}>
-              <div
-                className={`${styles.cardIcon} ${
-                  card.tone === "navy"
-                    ? styles.cardIconNavy
-                    : styles.cardIconGold
-                }`}
-              >
+              <div className={styles.cardIcon}>
                 <card.icon size={26} aria-hidden />
               </div>
               <h2 className={styles.cardTitle}>{card.title}</h2>

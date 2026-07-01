@@ -7,23 +7,14 @@ export function AboutSection() {
   return (
     <section id="about" className={styles.section}>
       <div className={styles.container}>
-        <div className={styles.header}>
-          <div className={styles.eyebrow}>— Why Midearth Travel</div>
-          <h2 className={styles.title}>
-            <span className={styles.titleLight}>Why Choose </span>
-            Midearth Travel
-          </h2>
-          <p className={styles.deck}>
-            Serving the Ottawa community with uncompromising professionalism,
-            competitive prices, and an unwavering local focus
-          </p>
-        </div>
-
         <div id="services" className={styles.servicesBlock}>
           <div className={styles.servicesHead}>
             <div>
               <div className={styles.eyebrow}>— Beyond tours</div>
-              <h2 className={styles.servicesTitle}>Everything else, handled.</h2>
+              <h2 className={styles.servicesTitle}>Travel Service</h2>
+              <p className={styles.servicesSubtitle}>
+                Everything else, handled.
+              </p>
             </div>
             <p className={styles.servicesDeck}>
               Flights, hotels, charter coaches, travel insurance, visa paperwork.

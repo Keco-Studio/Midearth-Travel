@@ -5,12 +5,13 @@ import styles from "./category-grid.module.css";
 
 export function CategoryGrid() {
   return (
-    <section className={`browse-section ${styles.section}`}>
+    <section id="destinations" className={`browse-section ${styles.section}`}>
       <div className="browse-container">
         <div className="browse-section-head">
           <div>
-            <div className="browse-eyebrow">— Browse</div>
-            <h2 className="browse-section-title">Where do you want to go?</h2>
+            <div className="browse-eyebrow">— Explore Destinations</div>
+            <h2 className="browse-section-title">Where to Go</h2>
+            <p className="browse-section-subtitle">Explore Destinations</p>
           </div>
           <p className="browse-section-deck">
             Six broad strokes — pick one and we&apos;ll narrow it down. From a weekend in

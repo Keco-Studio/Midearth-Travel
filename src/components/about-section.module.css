@@ -17,18 +17,6 @@
   padding: 0 clamp(20px, 4vw, 48px);
 }
 
-.header {
-  max-width: 48rem;
-  margin: 0 auto 3.5rem;
-  text-align: center;
-}
-
-@media (min-width: 1024px) {
-  .header {
-    margin-bottom: 5rem;
-  }
-}
-
 .eyebrow {
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -38,33 +26,8 @@
   font-weight: 500;
 }
 
-.title {
-  letter-spacing: -0.025em;
-  text-wrap: balance;
-  margin: 0 0 1.5rem;
-  font-size: clamp(36px, 5vw, 60px);
-  font-weight: 600;
-  line-height: 1.05;
-  color: var(--about-text);
-}
-
-.titleLight {
-  font-weight: 300;
-}
-
-.deck {
-  opacity: 0.8;
-  text-wrap: pretty;
-  max-width: 44ch;
-  margin: 0 auto;
-  font-size: 17px;
-  line-height: 1.6;
-}
-
 .servicesBlock {
   margin-top: 0;
-  padding-top: clamp(3rem, 6vw, 4.5rem);
-  border-top: 1px solid rgba(253, 250, 244, 0.12);
 }
 
 .servicesHead {
@@ -91,6 +54,14 @@
   letter-spacing: -0.025em;
   text-wrap: balance;
   color: var(--about-text);
+}
+
+.servicesSubtitle {
+  margin: 0.55rem 0 0;
+  color: var(--about-amber);
+  font-size: clamp(18px, 2.2vw, 26px);
+  font-weight: 500;
+  line-height: 1.2;
 }
 
 .servicesDeck {

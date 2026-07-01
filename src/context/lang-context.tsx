@@ -22,14 +22,14 @@ const LangContext = createContext<LangContextValue | null>(null);
 const STORAGE_KEY = "midearth-lang";
 
 export function LangProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("en");
-
-  useEffect(() => {
+  const [lang, setLangState] = useState<Lang>(() => {
+    if (typeof window === "undefined") return "en";
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === "en" || stored === "zh") {
-      setLangState(stored);
+      return stored;
     }
-  }, []);
+    return "en";
+  });
 
   const setLang = useCallback((next: Lang) => {
     setLangState(next);

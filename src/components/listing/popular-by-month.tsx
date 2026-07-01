@@ -9,6 +9,7 @@ import styles from "./browse-sections.module.css";
 type PopularByMonthProps = {
   eyebrow?: string;
   title?: ReactNode;
+  subtitle?: ReactNode;
 };
 
 export function PopularByMonth({
@@ -20,6 +21,7 @@ export function PopularByMonth({
       by Month
     </>
   ),
+  subtitle,
 }: PopularByMonthProps) {
   const [active, setActive] = useState(destinationsByMonth[0].month);
   const panel = destinationsByMonth.find((m) => m.month === active)!;
@@ -29,6 +31,7 @@ export function PopularByMonth({
       <div className={styles.secHead}>
         <p className={styles.eyebrow}>{eyebrow}</p>
         <h2 className={styles.secTitle}>{title}</h2>
+        {subtitle && <p className={styles.secSubtitle}>{subtitle}</p>}
       </div>
 
       <div className={styles.monthTabs} role="tablist" aria-label="Month">

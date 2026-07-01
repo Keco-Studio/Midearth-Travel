@@ -2,38 +2,39 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import { useLang } from "@/context/lang-context";
-import { regions } from "@/data/regions";
 import { site } from "@/data/site";
 
-function MegaRoutes() {
-  return (
-    <div className="mega">
-      <div className="mega-grid">
-        {regions.map((r) => (
-          <Link key={r.id} className="mega-card" href={`/routes/${r.slug}`}>
-            <img src={r.image} alt="" />
-            <div className="mega-card-body">
-              <div className="mega-card-title">{r.title}</div>
-              <div className="mega-card-sub">
-                {r.destinations.slice(0, 3).join(" · ")}
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
-}
+// Original routes mega navigation is intentionally disabled for the
+// homepage-focused destinations anchor.
+// function MegaRoutes() {
+//   return (
+//     <div className="mega">
+//       <div className="mega-grid">
+//         {regions.map((r) => (
+//           <Link key={r.id} className="mega-card" href={`/routes/${r.slug}`}>
+//             <img src={r.image} alt="" />
+//             <div className="mega-card-body">
+//               <div className="mega-card-title">{r.title}</div>
+//               <div className="mega-card-sub">
+//                 {r.destinations.slice(0, 3).join(" · ")}
+//               </div>
+//             </div>
+//           </Link>
+//         ))}
+//       </div>
+//     </div>
+//   );
+// }
 
 export function Navbar() {
   const pathname = usePathname();
   const { lang, setLang } = useLang();
   const [scrolled, setScrolled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [mega, setMega] = useState<"routes" | null>(null);
+  const previousPathname = useRef(pathname);
 
   const hasHeroOverlay =
     pathname === "/" || /^\/tours\/[^/]+$/.test(pathname);
@@ -47,17 +48,24 @@ export function Navbar() {
   }, []);
 
   useEffect(() => {
-    setDrawerOpen(false);
-    setMega(null);
-  }, [pathname]);
+    if (previousPathname.current === pathname) return;
+    previousPathname.current = pathname;
+    if (!drawerOpen) return;
+
+    const closeOnRouteChange = window.setTimeout(() => {
+      setDrawerOpen(false);
+    }, 0);
+
+    return () => window.clearTimeout(closeOnRouteChange);
+  }, [drawerOpen, pathname]);
 
   const nav = [
     { key: "home", label: "Home", href: "/" },
     {
       key: "routes",
-      label: "Routes",
-      mega: "routes" as const,
-      href: "/routes/north-america",
+      label: "Destinations",
+      href: "/#destinations",
+      // mega: "routes" as const,
     },
     { key: "services", label: "Services", href: "/#about" },
     { key: "contact", label: "Contact", href: "/#contact" },
@@ -65,7 +73,7 @@ export function Navbar() {
 
   const isActive = (item: (typeof nav)[number]) => {
     if (item.key === "routes") {
-      return pathname.startsWith("/routes");
+      return pathname === "/" && false;
     }
     return pathname === item.href;
   };
@@ -74,13 +82,7 @@ export function Navbar() {
     <header className={`site-header ${transparent ? "transparent" : "solid"}`}>
       <div className="header-inner">
         <Link className="brand" href="/">
-          <span className="brand-mark">
-            <BrandLogo size={28} />
-          </span>
-          <span className="brand-text">
-            <span className="brand-name">{site.name}</span>
-            <span className="brand-sub">{site.tagline}</span>
-          </span>
+          <BrandLogo />
         </Link>
 
         <nav className="nav-desktop">
@@ -88,17 +90,13 @@ export function Navbar() {
             <div
               key={item.key}
               className="nav-item"
-              onMouseEnter={() => item.mega && setMega(item.mega)}
-              onMouseLeave={() => item.mega && setMega(null)}
             >
               <Link
                 className={`nav-link ${isActive(item) ? "active" : ""}`}
                 href={item.href}
               >
                 {item.label}
-                {item.mega && <span className="nav-caret">▾</span>}
               </Link>
-              {item.mega === "routes" && mega === "routes" && <MegaRoutes />}
             </div>
           ))}
         </nav>
@@ -140,7 +138,7 @@ export function Navbar() {
         >
           <div className="drawer" onClick={(e) => e.stopPropagation()}>
             <div className="drawer-head">
-              <span className="brand-name">{site.name}</span>
+              <BrandLogo />
               <button
                 className="drawer-close"
                 onClick={() => setDrawerOpen(false)}
@@ -158,17 +156,13 @@ export function Navbar() {
               >
                 Home
               </Link>
-              <div className="drawer-section">Routes</div>
-              {regions.map((r) => (
-                <Link
-                  key={r.id}
-                  className="drawer-sublink"
-                  href={`/routes/${r.slug}`}
-                  onClick={() => setDrawerOpen(false)}
-                >
-                  {r.title}
-                </Link>
-              ))}
+              <Link
+                className="drawer-link"
+                href="/#destinations"
+                onClick={() => setDrawerOpen(false)}
+              >
+                Destinations
+              </Link>
               <Link
                 className="drawer-link"
                 href="/#about"
