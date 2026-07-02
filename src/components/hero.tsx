@@ -25,13 +25,13 @@ const featureCards = [
   },
   {
     title: "Worldwide Travel",
-    descLines: ["Canada & International", "Tours"],
+    descLines: ["Worldwide Cruise", "Packages"],
     icon: Globe,
     href: "/tours",
   },
   {
     title: "Other Services",
-    descLines: ["Worldwide Cruise", "Packages"],
+    descLines: ["Canada & International", "Tours"],
     icon: Ship,
     href: "/#services",
   },
@@ -51,7 +51,6 @@ export function Hero() {
           className={styles.bgImage}
         />
       </div>
-      <div className={styles.overlay} aria-hidden />
 
       <div className={styles.inner}>
         <div className={styles.headline}>

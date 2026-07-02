@@ -473,7 +473,10 @@ body {
 .brand-logo {
   display: block;
   height: clamp(32px, 5vw, 40px);
-  width: auto;
+  width: clamp(108px, 16.875vw, 135px);
+  object-fit: contain;
+  object-position: left center;
+  background: transparent;
 }
 
 .nav-desktop {

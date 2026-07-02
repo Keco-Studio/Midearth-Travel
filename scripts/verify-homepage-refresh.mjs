@@ -57,8 +57,8 @@ expectOrdered("hero cards", source.hero, [
 expectIncludes("hero title", source.heroCss, ".titleMain");
 expectIncludes("hero title prominence", source.heroCss, "color: #000");
 expectIncludes("hero subtitle", source.hero, "Your One-Stop Travel Solution");
-expectIncludes("hero card transparency", source.heroCss, "background: transparent");
-expectIncludes("hero card border", source.heroCss, "border: 1px solid #000");
+expectIncludes("hero card transparency", source.heroCss, "background: rgba(253, 250, 244, 0.18)");
+expectIncludes("hero card border", source.heroCss, "border: 1px solid");
 expectIncludes("hero card selected state", source.heroCss, ".card:is(:hover, :focus-visible, :active)");
 
 expectIncludes("navbar destinations label", source.navbar, 'label: "Destinations"');

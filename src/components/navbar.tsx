@@ -82,7 +82,7 @@ export function Navbar() {
     <header className={`site-header ${transparent ? "transparent" : "solid"}`}>
       <div className="header-inner">
         <Link className="brand" href="/">
-          <BrandLogo />
+          <BrandLogo solid={!transparent} />
         </Link>
 
         <nav className="nav-desktop">
@@ -138,7 +138,7 @@ export function Navbar() {
         >
           <div className="drawer" onClick={(e) => e.stopPropagation()}>
             <div className="drawer-head">
-              <BrandLogo />
+              <BrandLogo solid />
               <button
                 className="drawer-close"
                 onClick={() => setDrawerOpen(false)}

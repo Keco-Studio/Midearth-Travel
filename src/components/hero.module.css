@@ -30,26 +30,6 @@
   object-position: center 42%;
 }
 
-/* 顶部轻微提亮保证标题可读，底部柔和过渡到 top picks */
-.overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.18) 0%,
-    rgba(255, 255, 255, 0.08) 22%,
-    transparent 45%,
-    rgba(253, 250, 244, 0.1) 68%,
-    rgba(253, 250, 244, 0.32) 78%,
-    rgba(253, 250, 244, 0.58) 86%,
-    rgba(253, 250, 244, 0.82) 93%,
-    rgba(253, 250, 244, 0.95) 97%,
-    #fdfaf4 100%
-  );
-}
-
 .inner {
   position: relative;
   z-index: 2;
@@ -132,6 +112,7 @@
 }
 
 @keyframes broadcastPulse {
+
   0%,
   100% {
     box-shadow: 0 0 0 0 rgba(197, 148, 46, 0.45);
@@ -247,10 +228,11 @@
   padding: 1.35rem 0.85rem 1.05rem;
   text-decoration: none;
   color: inherit;
-  background: transparent;
-  border: 1px solid #000;
+  background: rgba(253, 250, 244, 0.18);
+  border: 1px solid rgba(253, 250, 244, 0.72);
   border-radius: 14px;
   box-shadow: 0 10px 28px rgba(10, 29, 55, 0.12);
+  backdrop-filter: blur(12px);
   transition:
     transform 0.2s,
     box-shadow 0.2s,
@@ -326,7 +308,7 @@
 .cardDescLine {
   font-size: 0.72rem;
   line-height: 1.4;
-  color: var(--hero-ink-soft);
+  color: color-mix(in srgb, var(--hero-ink-soft) 80%, #000 100%);
 }
 
 .cardArrow {
@@ -414,7 +396,7 @@
   font-weight: 300;
   line-height: 1;
   letter-spacing: -0.02em;
-  color: var(--hero-navy);
+  color: #fff;
 }
 
 .stat {
@@ -425,7 +407,7 @@
 
 .statLabel {
   font-size: clamp(0.72rem, 1.5vw, 0.9rem);
-  color: var(--hero-ink-muted);
+  color: #fff;
 }
 
 @media (max-width: 520px) {
