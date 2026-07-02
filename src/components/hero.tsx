@@ -51,6 +51,7 @@ export function Hero() {
           className={styles.bgImage}
         />
       </div>
+      <div className={styles.overlay} aria-hidden />
 
       <div className={styles.inner}>
         <div className={styles.headline}>

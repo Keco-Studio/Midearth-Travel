@@ -30,6 +30,25 @@
   object-position: center 42%;
 }
 
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0.08) 22%,
+    transparent 45%,
+    rgba(253, 250, 244, 0.1) 68%,
+    rgba(253, 250, 244, 0.32) 78%,
+    rgba(253, 250, 244, 0.58) 86%,
+    rgba(253, 250, 244, 0.82) 93%,
+    rgba(253, 250, 244, 0.95) 97%,
+    #fdfaf4 100%
+  );
+}
+
 .inner {
   position: relative;
   z-index: 2;
@@ -156,14 +175,14 @@
   }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 1024px) {
   .hero {
     min-height: 100dvh;
   }
 
   .inner {
     justify-content: flex-start;
-    padding: 9.2rem 1rem 1.25rem;
+    padding: clamp(7.5rem, 20vw, 9.5rem) 1rem 1.25rem;
   }
 
   .headline {
@@ -411,11 +430,6 @@
 }
 
 @media (max-width: 520px) {
-  .inner {
-    padding-top: 6.75rem;
-    padding-bottom: 2.25rem;
-  }
-
   .stats {
     gap: 1rem;
     padding-top: 1.25rem;

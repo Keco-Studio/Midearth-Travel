@@ -137,7 +137,18 @@
   }
 
   .monthTabs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    overflow: visible;
     margin-bottom: 24px;
+    padding-bottom: 0;
+  }
+
+  .monthTab {
+    width: 100%;
+    min-width: 0;
+    padding: 8px 0;
   }
 
   .destGrid {
