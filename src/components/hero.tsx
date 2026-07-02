@@ -42,10 +42,11 @@ export function Hero() {
     <section className={styles.hero}>
       <div className={styles.bg} aria-hidden>
         <Image
-          src="/hero/hero-lighthouse.jpg"
+          src="/hero/hero-coast.jpg"
           alt=""
           fill
           priority
+          unoptimized
           sizes="100vw"
           className={styles.bgImage}
         />

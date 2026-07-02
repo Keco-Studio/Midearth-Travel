@@ -55,7 +55,7 @@ expectOrdered("hero cards", source.hero, [
   'title: "Other Services"',
 ]);
 expectIncludes("hero title", source.heroCss, ".titleMain");
-expectIncludes("hero title prominence", source.heroCss, "color: var(--hero-gold)");
+expectIncludes("hero title prominence", source.heroCss, "color: #000");
 expectIncludes("hero subtitle", source.hero, "Your One-Stop Travel Solution");
 expectIncludes("hero card transparency", source.heroCss, "background: transparent");
 expectIncludes("hero card border", source.heroCss, "border: 1px solid #000");
