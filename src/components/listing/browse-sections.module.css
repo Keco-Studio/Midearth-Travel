@@ -64,10 +64,14 @@
   border-color: rgba(27, 25, 22, 0.3);
 }
 
-.monthTabActive {
-  color: #fdfaf4;
+.monthTab.monthTabActive {
+  color: #fdfaf4 !important;
   background: #1b1916;
   border-color: #1b1916;
+}
+
+.monthTab.monthTabActive:hover {
+  color: #fdfaf4 !important;
 }
 
 .destGrid {
@@ -138,7 +142,7 @@
 
   .monthTabs {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(auto, 1fr));
     gap: 8px;
     overflow: visible;
     margin-bottom: 24px;
@@ -148,7 +152,8 @@
   .monthTab {
     width: 100%;
     min-width: 0;
-    padding: 8px 0;
+    padding: 8px 4px;
+    text-align: center;
   }
 
   .destGrid {
