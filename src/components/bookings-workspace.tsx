@@ -3,7 +3,7 @@
 import { ProTable } from "@ant-design/pro-components";
 import type { ProColumns } from "@ant-design/pro-components";
 import { App, Button, Card, Col, Descriptions, Divider, Empty, Row, Space, Statistic, Tag, Tooltip, Typography } from "antd";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { getBookingStatusCounts, getPaymentsForBooking } from "@/lib/workspace-view-models";
 import type { BookingRecord, BookingSource, BookingStatus, PaymentRecord } from "@/types/cms";
 
@@ -46,9 +46,14 @@ export function BookingsWorkspace({
   onViewPayment,
 }: BookingsWorkspaceProps) {
   const { message } = App.useApp();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [localSelectedId, setLocalSelectedId] = useState<string | null>(null);
   const [loading] = useState(false);
   const counts = getBookingStatusCounts(bookings);
+  const focusedBookingExists =
+    focusBookingId !== null &&
+    focusBookingId !== undefined &&
+    bookings.some((booking) => booking.id === focusBookingId);
+  const selectedId = focusedBookingExists ? focusBookingId : localSelectedId;
 
   const selectedBooking = useMemo(
     () => bookings.find((booking) => booking.id === selectedId) ?? null,
@@ -60,24 +65,15 @@ export function BookingsWorkspace({
     [payments, selectedBooking],
   );
 
-  useEffect(() => {
-    if (!focusBookingId) {
-      return;
-    }
-
-    const bookingExists = bookings.some((booking) => booking.id === focusBookingId);
-    if (bookingExists) {
-      setSelectedId(focusBookingId);
-    }
-
-    onFocusHandled?.();
-  }, [bookings, focusBookingId, onFocusHandled]);
-
   const markContactedDisabledReason = getMarkContactedDisabledReason(selectedBooking);
 
-  const handleSelectBooking = useCallback((bookingId: string) => {
-    setSelectedId(bookingId);
-  }, []);
+  const handleSelectBooking = useCallback(
+    (bookingId: string) => {
+      setLocalSelectedId(bookingId);
+      onFocusHandled?.();
+    },
+    [onFocusHandled],
+  );
 
   const columns: ProColumns<BookingRecord>[] = useMemo(
     () => [

@@ -3,7 +3,7 @@
 import { ProTable } from "@ant-design/pro-components";
 import type { ProColumns } from "@ant-design/pro-components";
 import { App, Button, Card, Col, Descriptions, Divider, Empty, Row, Space, Statistic, Tag, Typography } from "antd";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { getPaymentStatusCounts } from "@/lib/workspace-view-models";
 import type {
   BookingRecord,
@@ -60,9 +60,14 @@ export function PaymentsWorkspace({
   onViewBooking,
 }: PaymentsWorkspaceProps) {
   const { message } = App.useApp();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [localSelectedId, setLocalSelectedId] = useState<string | null>(null);
   const [loading] = useState(false);
   const counts = getPaymentStatusCounts(payments);
+  const focusedPaymentExists =
+    focusPaymentId !== null &&
+    focusPaymentId !== undefined &&
+    payments.some((payment) => payment.id === focusPaymentId);
+  const selectedId = focusedPaymentExists ? focusPaymentId : localSelectedId;
 
   const selectedPayment = useMemo(
     () => payments.find((payment) => payment.id === selectedId) ?? null,
@@ -77,22 +82,13 @@ export function PaymentsWorkspace({
     [bookings, selectedPayment],
   );
 
-  useEffect(() => {
-    if (!focusPaymentId) {
-      return;
-    }
-
-    const paymentExists = payments.some((payment) => payment.id === focusPaymentId);
-    if (paymentExists) {
-      setSelectedId(focusPaymentId);
-    }
-
-    onFocusHandled?.();
-  }, [focusPaymentId, onFocusHandled, payments]);
-
-  const handleSelectPayment = useCallback((paymentId: string) => {
-    setSelectedId(paymentId);
-  }, []);
+  const handleSelectPayment = useCallback(
+    (paymentId: string) => {
+      setLocalSelectedId(paymentId);
+      onFocusHandled?.();
+    },
+    [onFocusHandled],
+  );
 
   const columns: ProColumns<PaymentRecord>[] = useMemo(
     () => [

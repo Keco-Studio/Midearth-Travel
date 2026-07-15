@@ -3,7 +3,7 @@
 import { PageContainer, ProLayout } from "@ant-design/pro-components";
 import { App, Button, Space, Tag, Tooltip } from "antd";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { BookingsWorkspace } from "@/components/bookings-workspace";
 import { HomeModuleEditor } from "@/components/home-module-editor";
 import { PaymentsWorkspace } from "@/components/payments-workspace";
@@ -33,9 +33,17 @@ import {
 import { proLayoutToken } from "@/theme/mid-earth-theme";
 import type { HomeModuleId } from "@/types/cms";
 
+const subscribeToHydration = () => () => {};
+const getClientHydrationSnapshot = () => true;
+const getServerHydrationSnapshot = () => false;
+
 export function AdminShell() {
   const { message } = App.useApp();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    subscribeToHydration,
+    getClientHydrationSnapshot,
+    getServerHydrationSnapshot,
+  );
   const [state, setState] = useState<AdminState>(createInitialAdminState);
   const activeModule = getActiveModule(state);
   const pathname = getPathFromAdminState(state.workspace, state.selectedHomeModuleId);
@@ -79,10 +87,6 @@ export function AdminShell() {
   function handlePreviewDraft() {
     message.info("Preview draft opened");
   }
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   if (!mounted) {
     return (
