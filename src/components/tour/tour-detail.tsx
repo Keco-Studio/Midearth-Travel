@@ -23,6 +23,7 @@ import {
   type TourPolicy,
 } from "@/data/tours";
 import { TourDetailHeader } from "@/components/tour/tour-detail-header";
+import { TourPdfDownload } from "@/components/tour/tour-pdf-download";
 import styles from "@/components/tour/tour-detail.module.css";
 
 function PolicyIcon({ icon }: { icon?: TourPolicy["icon"] }) {
@@ -102,9 +103,13 @@ export function TourDetail({ tour }: { tour: Tour }) {
 
       <div className={styles.tourBody}>
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
-        <div className="grid gap-12 lg:grid-cols-12 lg:gap-10">
-          <div className="space-y-14 lg:col-span-8">
-            {tour.itinerary && tour.itinerary.length > 0 && (
+        <div className={styles.overviewBlock}>
+          <div className={styles.pdfDownloadSlot}>
+            <TourPdfDownload />
+          </div>
+
+          <div className={styles.overviewMain}>
+            {tour.itinerary && tour.itinerary.length > 0 ? (
               <section className={styles.dayByDaySection}>
                 <h2 className="text-3xl font-light tracking-tight md:text-4xl">
                   Day by <span className="font-semibold">day</span>
@@ -150,8 +155,23 @@ export function TourDetail({ tour }: { tour: Tour }) {
                   ))}
                 </ol>
               </section>
-            )}
+            ) : null}
+          </div>
 
+          <div className={styles.overviewAside}>
+            <div className={styles.includedCard}>
+              <div className={styles.includedHead}>Included</div>
+              <ul className={styles.includedList}>
+                {included.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-12 grid gap-12 lg:grid-cols-12 lg:gap-10">
+          <div className="space-y-14 lg:col-span-8">
             {tour.policies && tour.policies.length > 0 && (
               <section
                 className="grid gap-6 md:grid-cols-2"
@@ -184,15 +204,6 @@ export function TourDetail({ tour }: { tour: Tour }) {
 
           <aside className="lg:col-span-4">
             <div className="space-y-6 lg:sticky lg:top-28">
-              <div className={styles.includedCard}>
-                <div className={styles.includedHead}>Included</div>
-                <ul className={styles.includedList}>
-                  {included.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-
               <div className={styles.notIncludedCard}>
                 <div className={styles.notIncludedHead}>Not included</div>
                 <ul className={styles.notIncludedList}>

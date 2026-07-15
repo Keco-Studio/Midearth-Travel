@@ -78,7 +78,104 @@
   background: #f5efe3;
 }
 
+.pdfDownload {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.pdfDownloadLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  color: #1d4f91;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s ease;
+}
+
+.pdfDownloadLink:hover {
+  color: #163530;
+}
+
+.pdfDownloadIcon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: #c5481f;
+}
+
+.pdfDownloadStatus {
+  margin: 0;
+  font-size: 13px;
+  color: #8a857c;
+}
+
+.overviewBlock {
+  display: grid;
+  gap: 1.5rem 2.5rem;
+}
+
+.pdfDownloadSlot {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.overviewMain,
+.overviewAside {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .overviewBlock {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: stretch;
+  }
+
+  .pdfDownloadSlot {
+    grid-column: 2;
+    grid-row: 1;
+    justify-content: flex-start;
+  }
+
+  .overviewMain {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .overviewAside {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .overviewMain,
+  .overviewAside {
+    align-self: stretch;
+  }
+
+  .overviewAside .includedCard {
+    flex: 1;
+    height: 100%;
+  }
+}
+
+@media (max-width: 1023px) {
+  .pdfDownloadSlot {
+    order: -1;
+  }
+}
+
 .dayByDaySection {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   padding: 2.5rem 1.5rem;
   background: #fdfaf4;
   border: 1px solid #e8e2d4;
