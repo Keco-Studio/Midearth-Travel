@@ -12,15 +12,16 @@ import {
   Image,
   Input,
   Row,
-  Select,
   Space,
   Switch,
   Typography,
   Upload,
+  Select,
 } from "antd";
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { RichTextEditor } from "@/components/rich-text-editor";
+import { TourTypeAutoComplete } from "@/components/tour-type-autocomplete";
 import type { TourRecord } from "@/types/cms";
 
 type TourEditorProps = {
@@ -41,7 +42,7 @@ const requiredRules = {
   slug: [{ required: true, whitespace: true, message: "Enter a slug" }],
   region: [{ required: true, whitespace: true, message: "Enter a region" }],
   duration: [{ required: true, whitespace: true, message: "Enter an English duration" }],
-  tourType: [{ required: true, message: "Select a tour type" }],
+  tourType: [{ required: true, whitespace: true, message: "Enter or select a tour type" }],
 };
 
 export function TourEditor({ tour, tourTypeOptions, onCancel, onUpdate }: TourEditorProps) {
@@ -95,6 +96,7 @@ export function TourEditor({ tour, tourTypeOptions, onCancel, onUpdate }: TourEd
   return (
     <div className="cms-tour-editor">
       <Form<TourRecord>
+        className="cms-tour-editor-form"
         form={form}
         layout="vertical"
         initialValues={tour}
@@ -132,7 +134,7 @@ export function TourEditor({ tour, tourTypeOptions, onCancel, onUpdate }: TourEd
             </Col>
             <Col xs={24} md={8}>
               <Form.Item name="tourType" label="Tour type" rules={requiredRules.tourType}>
-                <Select options={tourTypeOptions.map((value) => ({ value, label: value }))} />
+                <TourTypeAutoComplete options={tourTypeOptions} />
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>
@@ -184,7 +186,7 @@ export function TourEditor({ tour, tourTypeOptions, onCancel, onUpdate }: TourEd
         </EditorSection>
 
         <EditorSection title="Pricing">
-          <Row gutter={[16, 0]}>
+          <Row gutter={[16, 0]} className="cms-tour-editor-price-grid">
             <PriceField name="child" label="Child" />
             <PriceField name="single" label="Single" />
             <PriceField name="double" label="Double" />
@@ -203,7 +205,7 @@ export function TourEditor({ tour, tourTypeOptions, onCancel, onUpdate }: TourEd
         </EditorSection>
 
         <EditorSection title="Media and PDF">
-          <Row gutter={[24, 16]} align="top">
+          <Row gutter={[24, 16]} align="top" className="cms-tour-editor-media-grid">
             <Col xs={24} lg={10}>
               <Typography.Text className="cms-tour-editor-field-label">Tour image</Typography.Text>
               <div className="cms-tour-editor-image-preview">
@@ -260,13 +262,13 @@ export function TourEditor({ tour, tourTypeOptions, onCancel, onUpdate }: TourEd
         </EditorSection>
 
         <EditorSection title="Publishing and categories">
-          <Row gutter={[16, 8]}>
+          <Row gutter={[16, 8]} className="cms-tour-editor-publishing-grid">
             <ToggleField name="specialOffer" label="Special offer package" />
             <ToggleField name="specialDeals" label="Special deals package" />
             <ToggleField name="vacationPackage" label="Vacation package" />
             <ToggleField name="travelNewsPackage" label="Travel news package" />
             <ToggleField name="busTourPackage" label="Bus tour package" />
-            <Col xs={24} md={12} lg={8}>
+            <Col xs={24} md={12} lg={8} className="cms-tour-editor-publishing-controls">
               <Form.Item name="status" label="Status">
                 <Select options={statusOptions} />
               </Form.Item>
@@ -291,8 +293,11 @@ export function TourEditor({ tour, tourTypeOptions, onCancel, onUpdate }: TourEd
 function EditorSection({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="cms-tour-editor-section">
-      <Typography.Title level={5}>{title}</Typography.Title>
-      {children}
+      <div className="cms-tour-editor-section-heading">
+        <span className="cms-tour-editor-section-marker" aria-hidden="true" />
+        <Typography.Title level={5}>{title}</Typography.Title>
+      </div>
+      <div className="cms-tour-editor-section-body">{children}</div>
     </section>
   );
 }
@@ -321,7 +326,12 @@ function ToggleField({
 }) {
   return (
     <Col xs={24} md={12} lg={8}>
-      <Form.Item name={name} label={label} valuePropName="checked">
+      <Form.Item
+        name={name}
+        label={label}
+        valuePropName="checked"
+        className="cms-tour-editor-toggle"
+      >
         <Switch checkedChildren="Yes" unCheckedChildren="No" />
       </Form.Item>
     </Col>

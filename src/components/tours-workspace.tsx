@@ -1,6 +1,6 @@
 "use client";
 
-import { EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { EditOutlined } from "@ant-design/icons";
 import { ProTable } from "@ant-design/pro-components";
 import type { ProColumns } from "@ant-design/pro-components";
 import {
@@ -10,18 +10,15 @@ import {
   Col,
   Empty,
   Image,
-  Input,
-  Modal,
   Row,
-  Select,
   Space,
   Statistic,
-  Tooltip,
   Typography,
 } from "antd";
 import { useMemo, useState } from "react";
 import { StatusTag } from "@/components/status-tag";
 import { TourEditor } from "@/components/tour-editor";
+import { TourTypeAutoComplete } from "@/components/tour-type-autocomplete";
 import {
   TOUR_EDITOR_STORAGE_KEY,
   applyTourEditorRecords,
@@ -36,7 +33,6 @@ import {
   buildTourTypeStorageState,
   getTourTypeOptions,
   parseTourTypeStorage,
-  validateNewTourType,
 } from "@/lib/tour-type-state";
 import { getTourStatusCounts } from "@/lib/workspace-view-models";
 import type { TourRecord } from "@/types/cms";
@@ -50,23 +46,12 @@ type TourWorkspaceState = {
   customTypes: string[];
 };
 
-type TourTypeError = "required" | "duplicate";
-
-const tourTypeErrorMessages: Record<TourTypeError, string> = {
-  required: "Enter a tour type name",
-  duplicate: "This tour type already exists",
-};
-
 export function ToursWorkspace({ tours }: ToursWorkspaceProps) {
   const { message } = App.useApp();
   const [tourState, setTourState] = useState<TourWorkspaceState>(() =>
     createInitialTourWorkspaceState(tours),
   );
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
-  const [openTypeSelectSlug, setOpenTypeSelectSlug] = useState<string | null>(null);
-  const [addTypeTourSlug, setAddTypeTourSlug] = useState<string | null>(null);
-  const [newTourTypeName, setNewTourTypeName] = useState("");
-  const [newTourTypeError, setNewTourTypeError] = useState<TourTypeError | null>(null);
   const [loading] = useState(false);
   const counts = getTourStatusCounts(tourState.records);
 
@@ -111,52 +96,50 @@ export function ToursWorkspace({ tours }: ToursWorkspaceProps) {
     }
   }
 
-  function handleTourTypeChange(slug: string, tourType: string) {
-    const nextState = {
-      ...tourState,
-      records: tourState.records.map((tour) =>
-        tour.slug === slug ? { ...tour, tourType } : tour,
-      ),
-    };
+  function resolveTourType(rawValue: string): { tourType: string; isNew: boolean } | null {
+    const trimmed = rawValue.trim();
 
-    setOpenTypeSelectSlug(null);
-    commitTourTypeState(nextState);
+    if (!trimmed) {
+      return null;
+    }
+
+    const existing = tourTypeOptions.find(
+      (tourType) => tourType.toLocaleLowerCase("en") === trimmed.toLocaleLowerCase("en"),
+    );
+
+    if (existing) {
+      return { tourType: existing, isNew: false };
+    }
+
+    return { tourType: trimmed, isNew: true };
   }
 
-  function openAddTypeModal(slug: string) {
-    setOpenTypeSelectSlug(null);
-    setAddTypeTourSlug(slug);
-    setNewTourTypeName("");
-    setNewTourTypeError(null);
-  }
+  function commitTourTypeValue(slug: string, rawValue: string) {
+    const resolved = resolveTourType(rawValue);
 
-  function closeAddTypeModal() {
-    setAddTypeTourSlug(null);
-    setNewTourTypeName("");
-    setNewTourTypeError(null);
-  }
-
-  function handleAddTourType() {
-    if (!addTypeTourSlug) {
+    if (!resolved) {
+      message.error("Enter a tour type name");
       return;
     }
 
-    const validation = validateNewTourType(newTourTypeName, tourTypeOptions);
-
-    if (!validation.ok) {
-      setNewTourTypeError(validation.reason);
+    const current = tourState.records.find((tour) => tour.slug === slug);
+    if (
+      current?.tourType === resolved.tourType &&
+      (!resolved.isNew || tourState.customTypes.includes(resolved.tourType))
+    ) {
       return;
     }
 
     const nextState = {
       records: tourState.records.map((tour) =>
-        tour.slug === addTypeTourSlug ? { ...tour, tourType: validation.value } : tour,
+        tour.slug === slug ? { ...tour, tourType: resolved.tourType } : tour,
       ),
-      customTypes: [...tourState.customTypes, validation.value],
+      customTypes: resolved.isNew
+        ? [...tourState.customTypes, resolved.tourType]
+        : tourState.customTypes,
     };
 
     commitTourTypeState(nextState);
-    closeAddTypeModal();
   }
 
   function handleTourUpdate(record: TourRecord) {
@@ -167,12 +150,22 @@ export function ToursWorkspace({ tours }: ToursWorkspaceProps) {
       return;
     }
 
+    const resolved = resolveTourType(validation.value.tourType);
+
+    if (!resolved) {
+      message.error("Enter a tour type name");
+      return;
+    }
+
     const updatedRecord = {
       ...validation.value,
+      tourType: resolved.tourType,
       updatedAt: new Date().toISOString(),
     };
     const nextState = {
-      ...tourState,
+      customTypes: resolved.isNew
+        ? [...tourState.customTypes, resolved.tourType]
+        : tourState.customTypes,
       records: replaceTourEditorRecord(tourState.records, updatedRecord),
     };
 
@@ -222,31 +215,13 @@ export function ToursWorkspace({ tours }: ToursWorkspaceProps) {
       dataIndex: "tourType",
       width: 192,
       render: (_, record) => (
-        <Select
+        <TourTypeAutoComplete
           className="cms-tour-type-select"
           value={record.tourType}
-          options={tourTypeOptions.map((value) => ({ value, label: value }))}
+          options={tourTypeOptions}
           aria-label={`Type for ${record.title}`}
-          open={openTypeSelectSlug === record.slug}
-          onOpenChange={(open) => setOpenTypeSelectSlug(open ? record.slug : null)}
           onClick={(event) => event.stopPropagation()}
-          onChange={(value) => handleTourTypeChange(record.slug, value)}
-          popupRender={(menu) => (
-            <>
-              {menu}
-              <div className="cms-tour-type-dropdown-footer">
-                <Tooltip title="Add type">
-                  <Button
-                    type="text"
-                    className="cms-tour-type-add-button"
-                    icon={<PlusOutlined />}
-                    aria-label="Add type"
-                    onClick={() => openAddTypeModal(record.slug)}
-                  />
-                </Tooltip>
-              </div>
-            </>
-          )}
+          onCommit={(nextValue) => commitTourTypeValue(record.slug, nextValue)}
         />
       ),
     },
@@ -345,36 +320,6 @@ export function ToursWorkspace({ tours }: ToursWorkspaceProps) {
           />
         </Col>
       </Row>
-
-      <Modal
-        title="Add tour type"
-        open={addTypeTourSlug !== null}
-        okText="Add"
-        onOk={handleAddTourType}
-        onCancel={closeAddTypeModal}
-        destroyOnHidden
-      >
-        <label className="cms-tour-type-modal-label" htmlFor="new-tour-type-name">
-          Tour type name
-        </label>
-        <Input
-          id="new-tour-type-name"
-          value={newTourTypeName}
-          placeholder="Tour type name"
-          status={newTourTypeError ? "error" : undefined}
-          autoFocus
-          onChange={(event) => {
-            setNewTourTypeName(event.target.value);
-            setNewTourTypeError(null);
-          }}
-          onPressEnter={handleAddTourType}
-        />
-        {newTourTypeError ? (
-          <Typography.Text type="danger" className="cms-tour-type-error">
-            {tourTypeErrorMessages[newTourTypeError]}
-          </Typography.Text>
-        ) : null}
-      </Modal>
     </Space>
   );
 }

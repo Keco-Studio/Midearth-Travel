@@ -356,48 +356,50 @@
   width: 168px;
 }
 
-.cms-tour-type-dropdown-footer {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 4px;
-  padding: 4px 8px 0;
-  border-top: 1px solid #efe9dd;
-}
-
-.cms-tour-type-add-button.ant-btn {
-  width: 32px;
-  height: 32px;
-  padding: 0;
-}
-
-.cms-tour-type-modal-label {
-  display: block;
-  margin-bottom: 6px;
-  color: #4a4438;
-  font-weight: 600;
-}
-
-.cms-tour-type-error {
-  display: block;
-  margin-top: 6px;
-}
-
 .cms-tour-editor {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding-bottom: 32px;
+  padding: 8px 0 40px;
 }
 
-.cms-tour-editor-section {
-  padding: 22px 0 8px;
-  border-bottom: 1px solid #e4ded1;
+.cms-tour-editor .cms-tour-editor-form {
+  display: grid;
+  gap: 16px;
 }
 
-.cms-tour-editor-section > .ant-typography {
-  margin-top: 0;
-  margin-bottom: 18px;
+.cms-tour-editor .cms-tour-editor-section {
+  padding: 24px 24px 8px;
+  border-block: 1px solid #e4ded1;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.cms-tour-editor .cms-tour-editor-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.cms-tour-editor .cms-tour-editor-section-heading > .ant-typography {
+  margin: 0;
   color: #12312b;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.cms-tour-editor .cms-tour-editor-section-marker {
+  width: 3px;
+  height: 18px;
+  flex: 0 0 auto;
+  border-radius: 2px;
+  background: #c8953f;
+}
+
+.cms-tour-editor .cms-tour-editor-section-body > :last-child,
+.cms-tour-editor .cms-tour-editor-section-body > :last-child .ant-form-item:last-child {
+  margin-bottom: 0;
 }
 
 .cms-tour-editor-description {
@@ -497,6 +499,10 @@
   width: min(320px, calc(100vw - 48px));
 }
 
+.cms-tour-editor .cms-tour-editor-media-grid {
+  align-items: stretch;
+}
+
 .cms-tour-editor-field-label {
   display: block;
   margin-bottom: 8px;
@@ -505,7 +511,7 @@
 }
 
 .cms-tour-editor-image-preview {
-  width: min(100%, 520px);
+  width: 100%;
   aspect-ratio: 16 / 9;
   margin-bottom: 12px;
   overflow: hidden;
@@ -538,11 +544,50 @@
   background: #fff;
 }
 
-.cms-tour-editor-actions {
+.cms-tour-editor .cms-tour-editor-toggle.ant-form-item {
+  margin-bottom: 8px;
+}
+
+.cms-tour-editor .cms-tour-editor-toggle .ant-form-item-row {
+  min-height: 48px;
+  flex-direction: row;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid #efe9dd;
+  border-radius: 6px;
+  background: #fffaf1;
+}
+
+.cms-tour-editor .cms-tour-editor-toggle .ant-form-item-label {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  padding: 0 12px 0 0;
+  text-align: left;
+  white-space: normal;
+}
+
+.cms-tour-editor .cms-tour-editor-toggle .ant-form-item-label > label {
+  height: auto;
+  color: #4a4438;
+  white-space: normal;
+}
+
+.cms-tour-editor .cms-tour-editor-toggle .ant-form-item-control {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: max-content;
+}
+
+.cms-tour-editor .cms-tour-editor-publishing-controls {
+  padding-top: 0;
+}
+
+.cms-tour-editor .cms-tour-editor-actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  padding-top: 24px;
+  padding-top: 8px;
 }
 
 .cms-inline-image-field {
@@ -553,12 +598,39 @@
   min-height: 32px;
 }
 
-@media (max-width: 575px) {
-  .cms-tour-editor-section {
-    padding-top: 18px;
+@media (min-width: 1200px) {
+  .cms-tour-editor .cms-tour-editor-price-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    margin-inline: 0 !important;
+    gap: 16px;
   }
 
-  .cms-tour-editor-actions .ant-btn {
+  .cms-tour-editor .cms-tour-editor-price-grid > .ant-col {
+    width: auto;
+    max-width: none;
+    padding-inline: 0 !important;
+  }
+}
+
+@media (max-width: 575px) {
+  .cms-tour-editor {
+    padding-top: 0;
+  }
+
+  .cms-tour-editor .cms-tour-editor-form {
+    gap: 12px;
+  }
+
+  .cms-tour-editor .cms-tour-editor-section {
+    padding: 18px 16px 4px;
+  }
+
+  .cms-tour-editor .cms-tour-editor-section-heading {
+    margin-bottom: 16px;
+  }
+
+  .cms-tour-editor .cms-tour-editor-actions .ant-btn {
     flex: 1 1 0;
   }
 
