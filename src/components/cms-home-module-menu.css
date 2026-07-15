@@ -1,0 +1,92 @@
+/*
+ * Homepage module list — cream panel on dark sider.
+ * Uses :has(.cms-home-module-link) so styles apply regardless of Ant Menu theme classes.
+ */
+
+ul.ant-menu-sub:has(.cms-home-module-link) {
+  background-color: #f4f1ea !important;
+  margin: 4px 10px 8px !important;
+  padding: 6px 4px !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(200, 149, 63, 0.22) !important;
+}
+
+ul.ant-menu-sub:has(.cms-home-module-link) > li.ant-menu-item {
+  color: #12312b !important;
+  background-color: transparent !important;
+  margin-block: 1px !important;
+  margin-inline: 0 !important;
+  border-radius: 6px !important;
+  padding-inline: 10px !important;
+  box-shadow: none !important;
+}
+
+ul.ant-menu-sub:has(.cms-home-module-link) > li.ant-menu-item-selected {
+  background-color: rgba(200, 149, 63, 0.2) !important;
+  color: #12312b !important;
+}
+
+ul.ant-menu-sub:has(.cms-home-module-link) > li.ant-menu-item:not(.ant-menu-item-selected):hover {
+  background-color: rgba(200, 149, 63, 0.1) !important;
+  color: #12312b !important;
+}
+
+ul.ant-menu-sub:has(.cms-home-module-link) .ant-menu-title-content {
+  color: #12312b !important;
+}
+
+.cms-home-module-link {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  color: #12312b !important;
+  cursor: pointer;
+}
+
+.cms-home-module-index {
+  flex: 0 0 auto;
+  min-width: 20px;
+  margin-right: 4px;
+  color: #12312b !important;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.35;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+
+.cms-home-module-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.35;
+  font-size: 13px;
+  color: #12312b !important;
+  letter-spacing: 0.01em;
+}
+
+.cms-home-module-status {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+}
+
+.cms-home-module-status .ant-badge-status-dot {
+  width: 8px;
+  height: 8px;
+}
+
+.ant-pro-sider-collapsed ul.ant-menu-sub:has(.cms-home-module-link) {
+  display: none !important;
+}
+
+.ant-pro-sider-collapsed .ant-pro-base-menu-inline-group > .ant-menu-item-group-title,
+.ant-pro-sider-collapsed .ant-pro-base-menu-inline-divider {
+  display: none !important;
+}
