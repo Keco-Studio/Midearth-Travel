@@ -69,9 +69,13 @@ export function Navbar() {
     },
     { key: "services", label: "Services", href: "/#about" },
     { key: "contact", label: "Contact", href: "/#contact" },
+    { key: "admin", label: "Admin Portal", href: "/admin" },
   ];
 
   const isActive = (item: (typeof nav)[number]) => {
+    if (item.key === "admin") {
+      return pathname.startsWith("/admin");
+    }
     if (item.key === "routes") {
       return pathname === "/" && false;
     }
@@ -149,34 +153,16 @@ export function Navbar() {
               </button>
             </div>
             <div className="drawer-body">
-              <Link
-                className="drawer-link"
-                href="/"
-                onClick={() => setDrawerOpen(false)}
-              >
-                Home
-              </Link>
-              <Link
-                className="drawer-link"
-                href="/#destinations"
-                onClick={() => setDrawerOpen(false)}
-              >
-                Destinations
-              </Link>
-              <Link
-                className="drawer-link"
-                href="/#about"
-                onClick={() => setDrawerOpen(false)}
-              >
-                Services
-              </Link>
-              <Link
-                className="drawer-link"
-                href="/#contact"
-                onClick={() => setDrawerOpen(false)}
-              >
-                Contact
-              </Link>
+              {nav.map((item) => (
+                <Link
+                  key={item.key}
+                  className="drawer-link"
+                  href={item.href}
+                  onClick={() => setDrawerOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
             </div>
             <div className="drawer-foot">
               <button
