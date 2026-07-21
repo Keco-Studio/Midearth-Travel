@@ -69,18 +69,16 @@ export function Navbar() {
     },
     { key: "services", label: "Services", href: "/#about" },
     { key: "contact", label: "Contact", href: "/#contact" },
-    { key: "admin", label: "Admin Portal", href: "/admin" },
   ];
 
   const isActive = (item: (typeof nav)[number]) => {
-    if (item.key === "admin") {
-      return pathname.startsWith("/admin");
-    }
     if (item.key === "routes") {
       return pathname === "/" && false;
     }
     return pathname === item.href;
   };
+
+  const adminActive = pathname.startsWith("/admin");
 
   return (
     <header className={`site-header ${transparent ? "transparent" : "solid"}`}>
@@ -121,6 +119,12 @@ export function Navbar() {
           </button>
           <Link href={`tel:${site.phoneTel}`} className="header-pill">
             Book Now
+          </Link>
+          <Link
+            href="/admin"
+            className={`header-pill ${adminActive ? "active" : ""}`}
+          >
+            Admin Portal
           </Link>
           <button
             className="hamburger"
@@ -180,6 +184,13 @@ export function Navbar() {
                 onClick={() => setDrawerOpen(false)}
               >
                 Book Now
+              </Link>
+              <Link
+                href="/admin"
+                className={`header-pill header-pill-drawer ${adminActive ? "active" : ""}`}
+                onClick={() => setDrawerOpen(false)}
+              >
+                Admin Portal
               </Link>
               <div className="drawer-contact">
                 <div>{site.phone}</div>
