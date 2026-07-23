@@ -29,6 +29,8 @@ export function TourTypeAutoComplete({
   const [keyword, setKeyword] = useState("");
 
   useEffect(() => {
+    // Keep the editable draft synchronized when the controlled value changes externally.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDraft(value);
   }, [value]);
 

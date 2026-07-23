@@ -1,14 +1,16 @@
 import { TourListing } from "@/components/listing/tour-listing";
 import { categoryMeta } from "@/data/categories";
-import { getToursForCategory } from "@/data/tour-filters";
+import { filterToursForCategory } from "@/data/tour-filters";
+import { loadPublishedTours } from "@/lib/supabase-tours";
 
 export const metadata = {
   title: "All Tours | Midearth Travel",
   description: categoryMeta.all.summary,
 };
 
-export default function AllToursPage() {
+export default async function AllToursPage() {
   const meta = categoryMeta.all;
+  const tours = await loadPublishedTours();
 
   return (
     <TourListing
@@ -16,7 +18,7 @@ export default function AllToursPage() {
       title={meta.title}
       summary={meta.summary}
       image={meta.image}
-      initialTours={getToursForCategory("all")}
+      initialTours={filterToursForCategory(tours, "all")}
     />
   );
 }

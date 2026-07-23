@@ -3,7 +3,7 @@
 import { PageContainer, ProLayout } from "@ant-design/pro-components";
 import { App, Button, Space, Tag, Tooltip } from "antd";
 import Link from "next/link";
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { BookingsWorkspace } from "@/components/bookings-workspace";
 import { HomeModuleEditor } from "@/components/home-module-editor";
 import { PaymentsWorkspace } from "@/components/payments-workspace";
@@ -13,16 +13,17 @@ import { StatusTag } from "@/components/status-tag";
 import { ToursWorkspace } from "@/components/tours-workspace";
 import { bookingSeeds, paymentSeeds, settingsSeed, tourSeeds } from "@/data/cms-seed";
 import {
+  applyPersistedHomeModule,
   clearWorkspaceFocus,
   createInitialAdminState,
   getActiveModule,
   getWorkspaceTitle,
   openBooking,
   openPayment,
-  saveDraft,
+  mergeLoadedHomeModules,
   selectHomeModule,
   selectWorkspace,
-  updateActiveModuleField,
+  updateHomeModuleField,
   type AdminState,
 } from "@/lib/admin-state";
 import {
@@ -31,7 +32,7 @@ import {
   parseLayoutPath,
 } from "@/lib/layout-routes";
 import { proLayoutToken } from "@/theme/mid-earth-theme";
-import type { HomeModuleId } from "@/types/cms";
+import type { HomeModuleId, HomeModuleRecord } from "@/types/cms";
 
 const subscribeToHydration = () => () => {};
 const getClientHydrationSnapshot = () => true;
@@ -45,6 +46,7 @@ export function AdminShell() {
     getServerHydrationSnapshot,
   );
   const [state, setState] = useState<AdminState>(createInitialAdminState);
+  const [pendingAction, setPendingAction] = useState<"save" | "publish" | null>(null);
   const activeModule = getActiveModule(state);
   const pathname = getPathFromAdminState(state.workspace, state.selectedHomeModuleId);
   const pageTitle =
@@ -58,6 +60,32 @@ export function AdminShell() {
     () => new Map(state.homeModules.map((module) => [module.id, module.status])),
     [state.homeModules],
   );
+
+  useEffect(() => {
+    if (!mounted) {
+      return;
+    }
+
+    const controller = new AbortController();
+
+    async function loadModules() {
+      try {
+        const response = await fetch("/api/admin/home-modules", {
+          signal: controller.signal,
+          cache: "no-store",
+        });
+        const payload = await readApiResponse<{ modules: HomeModuleRecord[] }>(response);
+        setState((current) => mergeLoadedHomeModules(current, payload.modules));
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          message.error(getErrorMessage(error, "Homepage content could not be loaded"));
+        }
+      }
+    }
+
+    void loadModules();
+    return () => controller.abort();
+  }, [message, mounted]);
 
   function handleMenuClick(path: string) {
     const parsed = parseLayoutPath(path);
@@ -75,13 +103,66 @@ export function AdminShell() {
     setState((current) => selectWorkspace(current, parsed.workspace));
   }
 
-  function handleSaveDraft() {
-    setState((current) => saveDraft(current));
-    message.success("Draft saved");
+  async function handleSaveDraft() {
+    const submittedData = activeModule.data;
+    setPendingAction("save");
+
+    try {
+      const response = await fetch(`/api/admin/home-modules/${activeModule.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "save", module: activeModule }),
+      });
+      const payload = await readApiResponse<{ module: HomeModuleRecord }>(response);
+      setState((current) =>
+        applyPersistedHomeModule(current, payload.module, submittedData),
+      );
+      message.success("Draft saved to Supabase");
+    } catch (error) {
+      message.error(getErrorMessage(error, "Draft could not be saved"));
+    } finally {
+      setPendingAction(null);
+    }
   }
 
-  function handlePublish() {
-    message.success("Module published");
+  async function handlePublish() {
+    const submittedData = activeModule.data;
+    setPendingAction("publish");
+
+    try {
+      const response = await fetch(`/api/admin/home-modules/${activeModule.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "publish" }),
+      });
+      const payload = await readApiResponse<{ module: HomeModuleRecord }>(response);
+      setState((current) =>
+        applyPersistedHomeModule(current, payload.module, submittedData),
+      );
+      message.success("Module published to the homepage");
+    } catch (error) {
+      message.error(getErrorMessage(error, "Module could not be published"));
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function handleImageUpload(
+    moduleId: HomeModuleId,
+    fieldKey: string,
+    file: File,
+  ): Promise<string> {
+    const formData = new FormData();
+    formData.set("moduleId", moduleId);
+    formData.set("fieldKey", fieldKey);
+    formData.set("file", file);
+
+    const response = await fetch("/api/admin/home-modules/upload", {
+      method: "POST",
+      body: formData,
+    });
+    const payload = await readApiResponse<{ url: string }>(response);
+    return payload.url;
   }
 
   function handlePreviewDraft() {
@@ -185,6 +266,7 @@ export function AdminShell() {
           onPreviewDraft: handlePreviewDraft,
           onSaveDraft: handleSaveDraft,
           onPublish: handlePublish,
+          pendingAction,
         })}
         tags={renderPageTags(state, activeModule)}
         breadcrumb={{
@@ -195,9 +277,13 @@ export function AdminShell() {
         }}
       >
         {renderWorkspace(state, activeModule, {
-          onModuleFieldChange: (key, value) => {
-            setState((current) => updateActiveModuleField(current, key, value));
+          onModuleFieldChange: (moduleId, key, value) => {
+            setState((current) =>
+              updateHomeModuleField(current, moduleId, key, value),
+            );
           },
+          onImageUpload: (fieldKey, file) =>
+            handleImageUpload(activeModule.id, fieldKey, file),
           onViewBooking: (bookingId) => {
             setState((current) => openBooking(current, bookingId));
           },
@@ -254,6 +340,7 @@ function renderPageActions(
     onPreviewDraft: () => void;
     onSaveDraft: () => void;
     onPublish: () => void;
+    pendingAction: "save" | "publish" | null;
   },
 ) {
   if (state.workspace === "home") {
@@ -265,13 +352,20 @@ function renderPageActions(
         <Button type="text" onClick={handlers.onPreviewDraft}>
           Preview Draft
         </Button>
-        <Button onClick={handlers.onSaveDraft}>Save Draft</Button>
+        <Button
+          loading={handlers.pendingAction === "save"}
+          disabled={handlers.pendingAction !== null}
+          onClick={handlers.onSaveDraft}
+        >
+          Save Draft
+        </Button>
         <Tooltip title={publishDisabledReason ?? undefined}>
           <span className="cms-disabled-action-wrap">
             <Button
               type="primary"
               className="cms-primary-action"
               disabled={!canPublish}
+              loading={handlers.pendingAction === "publish"}
               onClick={handlers.onPublish}
             >
               Publish
@@ -304,7 +398,12 @@ function renderWorkspace(
   state: AdminState,
   activeModule: ReturnType<typeof getActiveModule>,
   handlers: {
-    onModuleFieldChange: (key: string, value: (typeof activeModule.data)[string]) => void;
+    onModuleFieldChange: (
+      moduleId: HomeModuleId,
+      key: string,
+      value: (typeof activeModule.data)[string],
+    ) => void;
+    onImageUpload: (fieldKey: string, file: File) => Promise<string>;
     onViewBooking: (bookingId: string) => void;
     onViewPayment: (paymentId: string) => void;
     onFocusHandled: () => void;
@@ -312,7 +411,13 @@ function renderWorkspace(
 ) {
   if (state.workspace === "home") {
     return (
-      <HomeModuleEditor module={activeModule} onChange={handlers.onModuleFieldChange} />
+      <HomeModuleEditor
+        module={activeModule}
+        onChange={(key, value) =>
+          handlers.onModuleFieldChange(activeModule.id, key, value)
+        }
+        onImageUpload={handlers.onImageUpload}
+      />
     );
   }
 
@@ -349,4 +454,18 @@ function renderWorkspace(
   }
 
   return null;
+}
+
+async function readApiResponse<T>(response: Response): Promise<T> {
+  const payload = (await response.json()) as T & { error?: string };
+
+  if (!response.ok) {
+    throw new Error(payload.error ?? `Request failed (${response.status})`);
+  }
+
+  return payload;
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
 }

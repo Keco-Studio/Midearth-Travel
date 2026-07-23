@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { TourDetail } from "@/components/tour/tour-detail";
-import { getTourBySlug } from "@/data/tours";
+import { loadPublishedTours } from "@/lib/supabase-tours";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -13,7 +13,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
-  const tour = getTourBySlug(slug);
+  const tour = (await loadPublishedTours()).find((entry) => entry.slug === slug);
   if (!tour) return { title: "Tour Not Found" };
   return {
     title: `${tour.pageTitle ?? tour.title} | Midearth Travel`,
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function TourPage({ params }: Props) {
   const { slug } = await params;
-  const tour = getTourBySlug(slug);
+  const tour = (await loadPublishedTours()).find((entry) => entry.slug === slug);
   if (!tour) notFound();
 
   return <TourDetail tour={tour} />;

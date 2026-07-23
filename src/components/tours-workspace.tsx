@@ -15,25 +15,12 @@ import {
   Statistic,
   Typography,
 } from "antd";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { StatusTag } from "@/components/status-tag";
 import { TourEditor } from "@/components/tour-editor";
 import { TourTypeAutoComplete } from "@/components/tour-type-autocomplete";
-import {
-  TOUR_EDITOR_STORAGE_KEY,
-  applyTourEditorRecords,
-  buildTourEditorStorage,
-  parseTourEditorStorage,
-  replaceTourEditorRecord,
-  validateTourEditorRecord,
-} from "@/lib/tour-editor-state";
-import {
-  TOUR_TYPE_STORAGE_KEY,
-  applyTourTypeOverrides,
-  buildTourTypeStorageState,
-  getTourTypeOptions,
-  parseTourTypeStorage,
-} from "@/lib/tour-type-state";
+import { replaceTourEditorRecord, validateTourEditorRecord } from "@/lib/tour-editor-state";
+import { getTourTypeOptions } from "@/lib/tour-type-state";
 import { getTourStatusCounts } from "@/lib/workspace-view-models";
 import type { TourRecord } from "@/types/cms";
 
@@ -52,7 +39,7 @@ export function ToursWorkspace({ tours }: ToursWorkspaceProps) {
     createInitialTourWorkspaceState(tours),
   );
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const counts = getTourStatusCounts(tourState.records);
 
   const editingTour = useMemo(
@@ -65,36 +52,29 @@ export function ToursWorkspace({ tours }: ToursWorkspaceProps) {
     [tourState.customTypes, tourState.records],
   );
 
-  function persistTourTypeState(nextState: TourWorkspaceState) {
-    if (typeof window === "undefined") {
-      return;
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadTours() {
+      try {
+        const response = await fetch("/api/admin/tours", {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        const payload = await readApiResponse<{ tours: TourRecord[] }>(response);
+        setTourState({ records: payload.tours, customTypes: [] });
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          message.error(getErrorMessage(error, "Tours could not be loaded"));
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
     }
 
-    try {
-      const stored = buildTourTypeStorageState(tours, nextState.records, nextState.customTypes);
-      window.localStorage.setItem(TOUR_TYPE_STORAGE_KEY, JSON.stringify(stored));
-    } catch {
-      message.error("Tour type changes could not be saved");
-    }
-  }
-
-  function commitTourTypeState(nextState: TourWorkspaceState) {
-    setTourState(nextState);
-    persistTourTypeState(nextState);
-  }
-
-  function persistEditorRecords(records: TourRecord[]) {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    try {
-      const stored = buildTourEditorStorage(tours, records);
-      window.localStorage.setItem(TOUR_EDITOR_STORAGE_KEY, JSON.stringify(stored));
-    } catch {
-      message.error("Tour changes could not be saved");
-    }
-  }
+    void loadTours();
+    return () => controller.abort();
+  }, [message]);
 
   function resolveTourType(rawValue: string): { tourType: string; isNew: boolean } | null {
     const trimmed = rawValue.trim();
@@ -114,7 +94,7 @@ export function ToursWorkspace({ tours }: ToursWorkspaceProps) {
     return { tourType: trimmed, isNew: true };
   }
 
-  function commitTourTypeValue(slug: string, rawValue: string) {
+  async function commitTourTypeValue(slug: string, rawValue: string) {
     const resolved = resolveTourType(rawValue);
 
     if (!resolved) {
@@ -130,19 +110,24 @@ export function ToursWorkspace({ tours }: ToursWorkspaceProps) {
       return;
     }
 
-    const nextState = {
-      records: tourState.records.map((tour) =>
-        tour.slug === slug ? { ...tour, tourType: resolved.tourType } : tour,
-      ),
-      customTypes: resolved.isNew
-        ? [...tourState.customTypes, resolved.tourType]
-        : tourState.customTypes,
-    };
+    if (!current) return;
 
-    commitTourTypeState(nextState);
+    try {
+      const saved = await persistTour({ ...current, tourType: resolved.tourType });
+      setTourState((state) => ({
+        records: replaceTourEditorRecord(state.records, saved),
+        customTypes:
+          resolved.isNew && !state.customTypes.includes(resolved.tourType)
+            ? [...state.customTypes, resolved.tourType]
+            : state.customTypes,
+      }));
+      message.success("Tour type saved to Supabase");
+    } catch (error) {
+      message.error(getErrorMessage(error, "Tour type could not be saved"));
+    }
   }
 
-  function handleTourUpdate(record: TourRecord) {
+  async function handleTourUpdate(record: TourRecord) {
     const validation = validateTourEditorRecord(record);
 
     if (!validation.ok) {
@@ -162,17 +147,42 @@ export function ToursWorkspace({ tours }: ToursWorkspaceProps) {
       tourType: resolved.tourType,
       updatedAt: new Date().toISOString(),
     };
-    const nextState = {
-      customTypes: resolved.isNew
-        ? [...tourState.customTypes, resolved.tourType]
-        : tourState.customTypes,
-      records: replaceTourEditorRecord(tourState.records, updatedRecord),
-    };
+    try {
+      const saved = await persistTour(updatedRecord);
+      setTourState((state) => ({
+        customTypes:
+          resolved.isNew && !state.customTypes.includes(resolved.tourType)
+            ? [...state.customTypes, resolved.tourType]
+            : state.customTypes,
+        records: replaceTourEditorRecord(state.records, saved),
+      }));
+      setEditingSlug(null);
+      message.success("Tour updated in Supabase");
+    } catch (error) {
+      message.error(getErrorMessage(error, "Tour could not be updated"));
+    }
+  }
 
-    commitTourTypeState(nextState);
-    persistEditorRecords(nextState.records);
-    setEditingSlug(null);
-    message.success("Tour updated");
+  async function persistTour(record: TourRecord): Promise<TourRecord> {
+    const response = await fetch(`/api/admin/tours/${record.slug}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tour: record }),
+    });
+    const payload = await readApiResponse<{ tour: TourRecord }>(response);
+    return payload.tour;
+  }
+
+  async function uploadTourImage(slug: string, file: File): Promise<string> {
+    const formData = new FormData();
+    formData.set("slug", slug);
+    formData.set("file", file);
+    const response = await fetch("/api/admin/tours/upload", {
+      method: "POST",
+      body: formData,
+    });
+    const payload = await readApiResponse<{ url: string }>(response);
+    return payload.url;
   }
 
   const columns: ProColumns<TourRecord>[] = [
@@ -221,7 +231,7 @@ export function ToursWorkspace({ tours }: ToursWorkspaceProps) {
           options={tourTypeOptions}
           aria-label={`Type for ${record.title}`}
           onClick={(event) => event.stopPropagation()}
-          onCommit={(nextValue) => commitTourTypeValue(record.slug, nextValue)}
+          onCommit={(nextValue) => void commitTourTypeValue(record.slug, nextValue)}
         />
       ),
     },
@@ -258,6 +268,7 @@ export function ToursWorkspace({ tours }: ToursWorkspaceProps) {
         tourTypeOptions={tourTypeOptions}
         onCancel={() => setEditingSlug(null)}
         onUpdate={handleTourUpdate}
+        onImageUpload={(file) => uploadTourImage(editingTour.slug, file)}
       />
     );
   }
@@ -325,26 +336,7 @@ export function ToursWorkspace({ tours }: ToursWorkspaceProps) {
 }
 
 function createInitialTourWorkspaceState(tours: TourRecord[]): TourWorkspaceState {
-  if (typeof window === "undefined") {
-    return { records: tours, customTypes: [] };
-  }
-
-  try {
-    const storedEditor = parseTourEditorStorage(
-      window.localStorage.getItem(TOUR_EDITOR_STORAGE_KEY),
-    );
-    const editedRecords = applyTourEditorRecords(tours, storedEditor.records);
-    const storedTypes = parseTourTypeStorage(
-      window.localStorage.getItem(TOUR_TYPE_STORAGE_KEY),
-    );
-
-    return {
-      records: applyTourTypeOverrides(editedRecords, storedTypes.overrides),
-      customTypes: storedTypes.customTypes,
-    };
-  } catch {
-    return { records: tours, customTypes: [] };
-  }
+  return { records: tours, customTypes: [] };
 }
 
 function formatDate(value: string): string {
@@ -352,4 +344,16 @@ function formatDate(value: string): string {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+async function readApiResponse<T>(response: Response): Promise<T> {
+  const payload = (await response.json()) as T & { error?: string };
+  if (!response.ok) {
+    throw new Error(payload.error ?? `Request failed (${response.status})`);
+  }
+  return payload;
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
 }

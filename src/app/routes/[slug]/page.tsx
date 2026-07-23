@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { TourListing } from "@/components/listing/tour-listing";
-import { getToursForCategory } from "@/data/tour-filters";
+import { filterToursForCategory } from "@/data/tour-filters";
 import { getRegionBySlug } from "@/data/regions";
+import { loadPublishedTours } from "@/lib/supabase-tours";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -24,6 +25,7 @@ export default async function RouteRegionPage({ params }: Props) {
   const { slug } = await params;
   const region = getRegionBySlug(slug);
   if (!region) notFound();
+  const tours = await loadPublishedTours();
 
   return (
     <TourListing
@@ -31,7 +33,7 @@ export default async function RouteRegionPage({ params }: Props) {
       title={region.title}
       summary={region.summary}
       image={region.image}
-      initialTours={getToursForCategory(slug)}
+      initialTours={filterToursForCategory(tours, slug)}
     />
   );
 }

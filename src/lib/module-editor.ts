@@ -9,6 +9,10 @@ export type FieldViewModel = {
 
 export type ModuleValidationResult = Record<string, string[]>;
 
+export function getHomeModuleEditorKey(module: HomeModuleRecord): string {
+  return `${module.id}:${module.updatedAt}:${module.draftVersion ?? "published"}`;
+}
+
 export function getFieldValue(module: HomeModuleRecord, key: string): ContentValue | "" {
   return module.data[key] ?? "";
 }

@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build --webpack",
-    "start": "next start",
+    "dev": "node scripts/run-next-with-env-proxy.mjs dev",
+    "build": "node scripts/run-next-with-env-proxy.mjs build --webpack",
+    "start": "node scripts/run-next-with-env-proxy.mjs start",
     "lint": "eslint",
     "test": "node --experimental-strip-types --test",
     "verify:admin": "node scripts/verify-admin-integration.mjs",

@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { TourListing } from "@/components/listing/tour-listing";
 import { categoryMeta } from "@/data/categories";
-import { getToursForCategory } from "@/data/tour-filters";
+import { filterToursForCategory } from "@/data/tour-filters";
+import { loadPublishedTours } from "@/lib/supabase-tours";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -25,6 +26,7 @@ export default async function TourCategoryPage({ params }: Props) {
   const { slug } = await params;
   const meta = categoryMeta[slug];
   if (!meta) notFound();
+  const tours = await loadPublishedTours();
 
   return (
     <TourListing
@@ -32,7 +34,7 @@ export default async function TourCategoryPage({ params }: Props) {
       title={meta.title}
       summary={meta.summary}
       image={meta.image}
-      initialTours={getToursForCategory(slug)}
+      initialTours={filterToursForCategory(tours, slug)}
       showBrowseSections={slug === "bus-tours"}
     />
   );

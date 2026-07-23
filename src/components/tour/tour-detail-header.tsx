@@ -42,6 +42,7 @@ export function TourDetailHeader({ images, alt, children }: Props) {
           src={gallery[index]}
           alt={alt}
           fill
+          unoptimized
           priority
           sizes="100vw"
           className={styles.heroGalleryImage}

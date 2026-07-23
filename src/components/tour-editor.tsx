@@ -6,6 +6,7 @@ import {
   UploadOutlined,
 } from "@ant-design/icons";
 import {
+  App,
   Button,
   Col,
   Form,
@@ -18,10 +19,11 @@ import {
   Upload,
   Select,
 } from "antd";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { ReactNode } from "react";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { TourTypeAutoComplete } from "@/components/tour-type-autocomplete";
+import { validateInlineImageFile } from "@/lib/inline-image-upload";
 import type { TourRecord } from "@/types/cms";
 
 type TourEditorProps = {
@@ -29,6 +31,7 @@ type TourEditorProps = {
   tourTypeOptions: string[];
   onCancel: () => void;
   onUpdate: (tour: TourRecord) => void;
+  onImageUpload: (file: File) => Promise<string>;
 };
 
 const statusOptions = [
@@ -45,39 +48,39 @@ const requiredRules = {
   tourType: [{ required: true, whitespace: true, message: "Enter or select a tour type" }],
 };
 
-export function TourEditor({ tour, tourTypeOptions, onCancel, onUpdate }: TourEditorProps) {
+export function TourEditor({
+  tour,
+  tourTypeOptions,
+  onCancel,
+  onUpdate,
+  onImageUpload,
+}: TourEditorProps) {
+  const { message } = App.useApp();
   const [form] = Form.useForm<TourRecord>();
   const [imagePreview, setImagePreview] = useState(tour.image || "/file.svg");
   const [pdfFileName, setPdfFileName] = useState(tour.pdfFileName);
-  const temporaryImageUrl = useRef<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
-  useEffect(
-    () => () => {
-      if (temporaryImageUrl.current) {
-        URL.revokeObjectURL(temporaryImageUrl.current);
-      }
-    },
-    [],
-  );
-
-  function handleImageSelection(file: File) {
-    if (temporaryImageUrl.current) {
-      URL.revokeObjectURL(temporaryImageUrl.current);
+  async function handleImageSelection(file: File) {
+    const validation = validateInlineImageFile(file);
+    if (!validation.ok) {
+      message.error(validation.error);
+      return;
     }
 
-    const previewUrl = URL.createObjectURL(file);
-    temporaryImageUrl.current = previewUrl;
-    setImagePreview(previewUrl);
-    form.setFieldValue("image", previewUrl);
-    return Upload.LIST_IGNORE;
+    setUploadingImage(true);
+    try {
+      const url = await onImageUpload(file);
+      setImagePreview(url);
+      form.setFieldValue("image", url);
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : "Tour image upload failed");
+    } finally {
+      setUploadingImage(false);
+    }
   }
 
   function removeImage() {
-    if (temporaryImageUrl.current) {
-      URL.revokeObjectURL(temporaryImageUrl.current);
-      temporaryImageUrl.current = null;
-    }
-
     setImagePreview("/file.svg");
     form.setFieldValue("image", "");
   }
@@ -217,10 +220,24 @@ export function TourEditor({ tour, tourTypeOptions, onCancel, onUpdate }: TourEd
                 />
               </div>
               <Space wrap>
-                <Upload accept="image/*" showUploadList={false} beforeUpload={handleImageSelection}>
-                  <Button icon={<UploadOutlined />}>Choose image</Button>
+                <Upload
+                  accept="image/*"
+                  showUploadList={false}
+                  disabled={uploadingImage}
+                  beforeUpload={(file) => {
+                    void handleImageSelection(file);
+                    return Upload.LIST_IGNORE;
+                  }}
+                >
+                  <Button icon={<UploadOutlined />} loading={uploadingImage}>
+                    Upload image
+                  </Button>
                 </Upload>
-                <Button icon={<DeleteOutlined />} onClick={removeImage}>
+                <Button
+                  icon={<DeleteOutlined />}
+                  disabled={uploadingImage}
+                  onClick={removeImage}
+                >
                   Remove image
                 </Button>
               </Space>
