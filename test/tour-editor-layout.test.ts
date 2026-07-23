@@ -27,7 +27,8 @@ test("tour editor preserves its section order and interaction handlers", () => {
 
   for (const contract of [
     "onFinish={onUpdate}",
-    "beforeUpload={handleImageSelection}",
+    "void handleImageSelection(file)",
+    "onImageUpload",
     "onClick={removeImage}",
     "beforeUpload={handlePdfSelection}",
     "onClick={removePdf}",

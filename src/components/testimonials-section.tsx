@@ -1,11 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { testimonials } from "@/data/testimonials";
+import { testimonials as staticTestimonials, type Testimonial } from "@/data/testimonials";
+import { getStringContent, type ContentData } from "@/lib/content-values";
 import styles from "./testimonials-section.module.css";
 
-export function TestimonialsSection() {
+export function TestimonialsSection({
+  content = {},
+  testimonials = staticTestimonials,
+}: {
+  content?: ContentData;
+  testimonials?: Testimonial[];
+}) {
   const [active, setActive] = useState(0);
+  const eyebrow = getStringContent(content, "eyebrow", "Reviews");
+  const sectionTitle = getStringContent(
+    content,
+    "sectionTitle",
+    "From people we've sent somewhere.",
+  );
+  const ratingSummary = getStringContent(content, "ratingSummary", "4.9 · 240+ Google reviews");
 
   useEffect(() => {
     const id = window.setInterval(
@@ -13,23 +27,21 @@ export function TestimonialsSection() {
       6000,
     );
     return () => window.clearInterval(id);
-  }, []);
+  }, [testimonials.length]);
 
   return (
     <section className={styles.section}>
       <div className={styles.container}>
         <div className={styles.head}>
           <div>
-            <div className={styles.eyebrow}>— Reviews</div>
+            <div className={styles.eyebrow}>— {eyebrow}</div>
             <h2 className={styles.title}>
-              From people we&apos;ve sent somewhere.
+              {sectionTitle}
             </h2>
           </div>
           <div className={styles.ratingPill}>
             <span className={styles.ratingStars}>★★★★★</span>
-            <span>
-              <b>4.9</b> · 240+ Google reviews
-            </span>
+            <span>{ratingSummary}</span>
           </div>
         </div>
         <div className={styles.stage}>
@@ -40,7 +52,7 @@ export function TestimonialsSection() {
             >
               {testimonials.map((t) => (
                 <figure key={t.id} className={styles.slide}>
-                  <div className={styles.slideStars}>★★★★★</div>
+                  <div className={styles.slideStars}>{"★".repeat(t.rating)}</div>
                   <blockquote className={styles.slideQuote}>
                     &ldquo;{t.text}&rdquo;
                   </blockquote>

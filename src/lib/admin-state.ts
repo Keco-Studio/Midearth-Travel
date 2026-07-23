@@ -115,11 +115,24 @@ export function updateActiveModuleField(
   key: string,
   value: HomeModuleRecord["data"][string],
 ): AdminState {
+  return updateHomeModuleField(state, state.selectedHomeModuleId, key, value);
+}
+
+export function updateHomeModuleField(
+  state: AdminState,
+  moduleId: HomeModuleId,
+  key: string,
+  value: HomeModuleRecord["data"][string],
+): AdminState {
+  if (state.selectedHomeModuleId !== moduleId) {
+    return state;
+  }
+
   return {
     ...state,
     hasUnsavedChanges: true,
     homeModules: state.homeModules.map((module) =>
-      module.id === state.selectedHomeModuleId
+      module.id === moduleId
         ? {
             ...module,
             data: {
@@ -130,6 +143,80 @@ export function updateActiveModuleField(
         : module,
     ),
   };
+}
+
+export function mergeLoadedHomeModules(
+  state: AdminState,
+  modules: HomeModuleRecord[],
+): AdminState {
+  const modulesById = new Map(modules.map((module) => [module.id, module]));
+
+  return {
+    ...state,
+    homeModules: state.homeModules.map(
+      (module) =>
+        state.hasUnsavedChanges && module.id === state.selectedHomeModuleId
+          ? module
+          : modulesById.get(module.id) ?? module,
+    ),
+    hasUnsavedChanges: state.hasUnsavedChanges,
+  };
+}
+
+export function replaceHomeModule(
+  state: AdminState,
+  module: HomeModuleRecord,
+): AdminState {
+  return {
+    ...state,
+    homeModules: state.homeModules.map((entry) =>
+      entry.id === module.id ? module : entry,
+    ),
+    hasUnsavedChanges:
+      state.selectedHomeModuleId === module.id ? false : state.hasUnsavedChanges,
+  };
+}
+
+export function applyPersistedHomeModule(
+  state: AdminState,
+  persistedModule: HomeModuleRecord,
+  submittedData: HomeModuleRecord["data"],
+): AdminState {
+  const currentModule = state.homeModules.find(
+    (entry) => entry.id === persistedModule.id,
+  );
+  const hasNewerEdits = Boolean(
+    currentModule &&
+      state.hasUnsavedChanges &&
+      !isContentDataEqual(currentModule.data, submittedData),
+  );
+
+  if (!hasNewerEdits) {
+    return replaceHomeModule(state, persistedModule);
+  }
+
+  return {
+    ...state,
+    homeModules: state.homeModules.map((entry) =>
+      entry.id === persistedModule.id
+        ? { ...persistedModule, data: currentModule?.data ?? persistedModule.data }
+        : entry,
+    ),
+    hasUnsavedChanges: true,
+  };
+}
+
+function isContentDataEqual(
+  left: HomeModuleRecord["data"],
+  right: HomeModuleRecord["data"],
+): boolean {
+  const leftKeys = Object.keys(left);
+  const rightKeys = Object.keys(right);
+
+  return (
+    leftKeys.length === rightKeys.length &&
+    leftKeys.every((key) => left[key] === right[key])
+  );
 }
 
 export function saveDraft(state: AdminState): AdminState {

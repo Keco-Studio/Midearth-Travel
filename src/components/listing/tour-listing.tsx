@@ -37,7 +37,7 @@ export function TourListing({
   const [duration, setDuration] = useState("all");
   const [sort, setSort] = useState("featured");
 
-  const regions = ["all", ...getTourRegions()];
+  const regions = ["all", ...getTourRegions(initialTours)];
 
   const filtered = useMemo(() => {
     let list = [...initialTours];

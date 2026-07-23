@@ -8,6 +8,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { HeroBroadcast } from "@/components/hero-broadcast";
+import { getStringContent, type ContentData } from "@/lib/content-values";
 import styles from "./hero.module.css";
 
 const featureCards = [
@@ -37,12 +38,20 @@ const featureCards = [
   },
 ];
 
-export function Hero() {
+export function Hero({ content = {} }: { content?: ContentData }) {
+  const backgroundImage = getStringContent(content, "backgroundImage", "/hero/hero-coast.jpg");
+  const titleMain = getStringContent(content, "titleMain", "Midearth Travel");
+  const subtitle = getStringContent(content, "subtitle", "Your One-Stop Travel Solution");
+  const primaryButtonText = getStringContent(content, "primaryButtonText", "Explore Tours");
+  const primaryButtonLink = getStringContent(content, "primaryButtonLink", "#tours");
+  const secondaryButtonText = getStringContent(content, "secondaryButtonText", "Request Quote");
+  const secondaryButtonLink = getStringContent(content, "secondaryButtonLink", "#contact");
+
   return (
     <section className={styles.hero}>
       <div className={styles.bg} aria-hidden>
         <Image
-          src="/hero/hero-coast.jpg"
+          src={backgroundImage}
           alt=""
           fill
           priority
@@ -56,10 +65,10 @@ export function Hero() {
       <div className={styles.inner}>
         <div className={styles.headline}>
           <h1 className={styles.title}>
-            <span className={styles.titleMain}>Midearth Travel</span>
+            <span className={styles.titleMain}>{titleMain}</span>
           </h1>
 
-          <p className={styles.subtitle}>Your One-Stop Travel Solution</p>
+          <p className={styles.subtitle}>{subtitle}</p>
 
           <HeroBroadcast />
         </div>
@@ -86,14 +95,16 @@ export function Hero() {
         </div>
 
         <div className={styles.actions}>
-          <Link href="#tours" className={styles.btnPrimary}>
-            Explore Tours
+          <Link href={primaryButtonLink} className={styles.btnPrimary}>
+            {primaryButtonText}
             <ArrowRight size={18} />
           </Link>
-          <Link href="#contact" className={styles.btnGold}>
-            Request Quote
-            <ArrowRight size={18} />
-          </Link>
+          {secondaryButtonText ? (
+            <Link href={secondaryButtonLink} className={styles.btnGold}>
+              {secondaryButtonText}
+              <ArrowRight size={18} />
+            </Link>
+          ) : null}
         </div>
 
         <div className={styles.stats}>

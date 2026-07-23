@@ -11,19 +11,26 @@ import {
 } from "@ant-design/pro-components";
 import { App, Button, Col, Input, Space, Upload } from "antd";
 import { DeleteOutlined, LinkOutlined, UploadOutlined } from "@ant-design/icons";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { AssetPreview } from "@/components/asset-preview";
+import { DestinationCategoryEditor } from "@/components/destination-category-editor";
+import { ServiceCardsEditor, TestimonialsEditor } from "@/components/home-collection-editors";
 import { FORBIDDEN_FIELD_KEYS } from "@/lib/content-rules";
 import { validateInlineImageFile } from "@/lib/inline-image-upload";
-import { getModuleFieldViewModels } from "@/lib/module-editor";
+import { getHomeModuleEditorKey, getModuleFieldViewModels } from "@/lib/module-editor";
 import type { ContentValue, FieldDefinition, HomeModuleRecord } from "@/types/cms";
 
 type HomeModuleEditorProps = {
   module: HomeModuleRecord;
   onChange: (key: string, value: ContentValue) => void;
+  onImageUpload: (fieldKey: string, file: File) => Promise<string>;
 };
 
-export function HomeModuleEditor({ module, onChange }: HomeModuleEditorProps) {
+export function HomeModuleEditor({
+  module,
+  onChange,
+  onImageUpload,
+}: HomeModuleEditorProps) {
   const { message } = App.useApp();
   const fields = useMemo(
     () =>
@@ -37,8 +44,9 @@ export function HomeModuleEditor({ module, onChange }: HomeModuleEditorProps) {
   );
 
   return (
-    <ProForm
-      key={module.id}
+    <>
+      <ProForm
+      key={getHomeModuleEditorKey(module)}
       layout="vertical"
       grid
       rowProps={{ gutter: [24, 0] }}
@@ -51,18 +59,23 @@ export function HomeModuleEditor({ module, onChange }: HomeModuleEditorProps) {
           onChange(key, value as ContentValue);
         }
       }}
-    >
-      {fields.map((field) => (
-        <FieldControl
-          definition={field.definition}
-          errors={field.errors}
-          key={field.definition.key}
-          name={field.definition.key}
-          onUploadError={(error) => message.error(error)}
-          value={field.value}
-        />
-      ))}
-    </ProForm>
+      >
+        {fields.map((field) => (
+          <FieldControl
+            definition={field.definition}
+            errors={field.errors}
+            key={field.definition.key}
+            name={field.definition.key}
+            onUploadError={(error) => message.error(error)}
+            onImageUpload={onImageUpload}
+            value={field.value}
+          />
+        ))}
+      </ProForm>
+      {module.id === "categoryGrid" ? <DestinationCategoryEditor /> : null}
+      {module.id === "aboutSection" ? <ServiceCardsEditor /> : null}
+      {module.id === "testimonials" ? <TestimonialsEditor /> : null}
+    </>
   );
 }
 
@@ -72,6 +85,7 @@ type FieldControlProps = {
   value: ContentValue | "";
   errors: string[];
   onUploadError: (error: string) => void;
+  onImageUpload: (fieldKey: string, file: File) => Promise<string>;
 };
 
 function FieldControl({
@@ -80,6 +94,7 @@ function FieldControl({
   value,
   errors,
   onUploadError,
+  onImageUpload,
 }: FieldControlProps) {
   const rules = [
     ...(definition.required
@@ -162,6 +177,7 @@ function FieldControl({
             fallbackValue={previewUrl}
             maxLength={definition.maxLength}
             onError={onUploadError}
+            onUpload={(file) => onImageUpload(definition.key, file)}
             variant={definition.key.toLowerCase().includes("qr") ? "qr" : "image"}
           />
         </ProFormItem>
@@ -201,6 +217,7 @@ type InlineImageUploadProps = {
   maxLength?: number;
   variant: "image" | "qr";
   onError: (error: string) => void;
+  onUpload: (file: File) => Promise<string>;
 };
 
 function InlineImageUpload({
@@ -211,27 +228,28 @@ function InlineImageUpload({
   maxLength,
   variant,
   onError,
+  onUpload,
 }: InlineImageUploadProps) {
+  const [uploading, setUploading] = useState(false);
   const currentValue = value ?? fallbackValue;
 
-  function handleImageSelection(file: File) {
+  async function handleImageSelection(file: File) {
     const validation = validateInlineImageFile(file);
 
     if (!validation.ok) {
       onError(validation.error);
-      return Upload.LIST_IGNORE;
+      return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        onChange?.(reader.result);
-      }
-    };
-    reader.onerror = () => onError("Image could not be read");
-    reader.readAsDataURL(file);
-
-    return Upload.LIST_IGNORE;
+    setUploading(true);
+    try {
+      const url = await onUpload(file);
+      onChange?.(url);
+    } catch (error) {
+      onError(error instanceof Error ? error.message : "Image upload failed");
+    } finally {
+      setUploading(false);
+    }
   }
 
   return (
@@ -246,13 +264,19 @@ function InlineImageUpload({
       <Space className="cms-inline-image-actions" wrap>
         <Upload
           accept="image/*"
-          beforeUpload={handleImageSelection}
+          beforeUpload={(file) => {
+            void handleImageSelection(file);
+            return Upload.LIST_IGNORE;
+          }}
+          disabled={uploading}
           showUploadList={false}
         >
-          <Button icon={<UploadOutlined />}>Choose Image</Button>
+          <Button icon={<UploadOutlined />} loading={uploading}>
+            Upload Image
+          </Button>
         </Upload>
         <Button
-          disabled={!currentValue}
+          disabled={!currentValue || uploading}
           icon={<DeleteOutlined />}
           onClick={() => onChange?.("")}
         >

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   getFieldValue,
+  getHomeModuleEditorKey,
   getModuleFieldViewModels,
   validateModuleData,
 } from "../src/lib/module-editor.ts";
@@ -67,4 +68,21 @@ test("validates all module fields", () => {
   assert.deepEqual(validateModuleData(invalidModule), {
     titleMain: ["Main title is required."],
   });
+});
+
+test("changes the editor key when persisted module data is refreshed", () => {
+  const refreshedModule = {
+    ...sampleModule,
+    draftVersion: 9,
+    updatedAt: "2026-07-23T12:00:00Z",
+  };
+
+  assert.notEqual(
+    getHomeModuleEditorKey(sampleModule),
+    getHomeModuleEditorKey(refreshedModule),
+  );
+  assert.equal(
+    getHomeModuleEditorKey(refreshedModule),
+    "hero:2026-07-23T12:00:00Z:9",
+  );
 });

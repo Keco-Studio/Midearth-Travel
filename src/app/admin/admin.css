@@ -804,3 +804,9 @@
 .ant-pro-table-column-setting-overlay .ant-popover-inner-content {
   padding-block-end: 8px;
 }
+
+.cms-destination-name-editor {
+  margin-top: 8px;
+  padding-top: 24px;
+  border-top: 1px solid #e3ddd1;
+}

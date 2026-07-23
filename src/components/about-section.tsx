@@ -1,25 +1,39 @@
 import Image from "next/image";
 import Link from "next/link";
-import { services } from "@/data/services";
+import { services as staticServices, type Service } from "@/data/services";
+import { getStringContent, type ContentData } from "@/lib/content-values";
 import styles from "./about-section.module.css";
 
-export function AboutSection() {
+export function AboutSection({
+  content = {},
+  services = staticServices,
+}: {
+  content?: ContentData;
+  services?: Service[];
+}) {
+  const eyebrow = getStringContent(content, "eyebrow", "Beyond tours");
+  const sectionTitle = getStringContent(content, "sectionTitle", "Travel Service");
+  const subtitle = getStringContent(content, "subtitle", "Everything else, handled.");
+  const deck = getStringContent(
+    content,
+    "deck",
+    "Flights, hotels, charter coaches, travel insurance, visa paperwork. The unglamorous half of any trip — done by people who've done it ten thousand times.",
+  );
+
   return (
     <section id="about" className={styles.section}>
       <div className={styles.container}>
         <div id="services" className={styles.servicesBlock}>
           <div className={styles.servicesHead}>
             <div>
-              <div className={styles.eyebrow}>— Beyond tours</div>
-              <h2 className={styles.servicesTitle}>Travel Service</h2>
+              <div className={styles.eyebrow}>— {eyebrow}</div>
+              <h2 className={styles.servicesTitle}>{sectionTitle}</h2>
               <p className={styles.servicesSubtitle}>
-                Everything else, handled.
+                {subtitle}
               </p>
             </div>
             <p className={styles.servicesDeck}>
-              Flights, hotels, charter coaches, travel insurance, visa paperwork.
-              The unglamorous half of any trip — done by people who&apos;ve done it
-              ten thousand times.
+              {deck}
             </p>
           </div>
           <div className={styles.svcGrid}>
@@ -27,13 +41,14 @@ export function AboutSection() {
               <Link
                 key={svc.id}
                 className={styles.svcCard}
-                href="/#contact"
+                href={`/?service=${encodeURIComponent(svc.slug)}#contact`}
               >
                 <div className={styles.svcCardImg}>
                   <Image
                     src={svc.image}
                     alt=""
                     fill
+                    unoptimized
                     sizes="(max-width: 768px) 100vw, 280px"
                     className={styles.svcCardImgEl}
                   />

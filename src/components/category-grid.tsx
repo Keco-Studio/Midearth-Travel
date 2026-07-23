@@ -1,28 +1,50 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { browseCategories, getCategoryHref } from "@/data/categories";
+import { getCategoryHref } from "@/data/categories";
+import { useLang } from "@/context/lang-context";
+import { getStringContent, type ContentData } from "@/lib/content-values";
+import {
+  destinationCategorySeeds,
+  type DestinationCategory,
+} from "@/lib/destination-categories";
 import styles from "./category-grid.module.css";
 
-export function CategoryGrid() {
+export function CategoryGrid({
+  content = {},
+  categories = destinationCategorySeeds,
+}: {
+  content?: ContentData;
+  categories?: DestinationCategory[];
+}) {
+  const { lang } = useLang();
+  const eyebrow = getStringContent(content, "eyebrow", "Explore Destinations");
+  const sectionTitle = getStringContent(content, "sectionTitle", "Where to Go");
+  const subtitle = getStringContent(content, "subtitle", "Explore Destinations");
+  const deck = getStringContent(
+    content,
+    "deck",
+    "Six broad strokes — pick one and we'll narrow it down. From a weekend in Niagara to nine days winding the Mediterranean, every category below has a real itinerary behind it.",
+  );
+
   return (
     <section id="destinations" className={`browse-section ${styles.section}`}>
       <div className="browse-container">
         <div className="browse-section-head">
           <div>
-            <div className="browse-eyebrow">— Explore Destinations</div>
-            <h2 className="browse-section-title">Where to Go</h2>
-            <p className="browse-section-subtitle">Explore Destinations</p>
+            <div className="browse-eyebrow">— {eyebrow}</div>
+            <h2 className="browse-section-title">{sectionTitle}</h2>
+            <p className="browse-section-subtitle">{subtitle}</p>
           </div>
           <p className="browse-section-deck">
-            Six broad strokes — pick one and we&apos;ll narrow it down. From a weekend in
-            Niagara to nine days winding the Mediterranean, every category below has a real
-            itinerary behind it.
+            {deck}
           </p>
         </div>
         <div className="cat-grid">
-          {browseCategories.map((cat, i) => (
+          {categories.map((cat, i) => (
             <Link
-              key={cat.title}
+              key={cat.id}
               className={`cat-card cat-card-${i} relative`}
               href={getCategoryHref(cat)}
             >
@@ -48,7 +70,9 @@ export function CategoryGrid() {
                   <div className="cat-card-count">
                     {String(cat.count).padStart(2, "0")} trips
                   </div>
-                  <div className="cat-card-title">{cat.title}</div>
+                  <div className="cat-card-title">
+                    {lang === "zh" ? cat.titleZh : cat.titleEn}
+                  </div>
                 </div>
                 <div className="cat-card-arrow">→</div>
               </div>

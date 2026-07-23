@@ -17,6 +17,7 @@ export function TourCard({ tour }: { tour: Tour }) {
           src={tour.image}
           alt={tour.title}
           fill
+          unoptimized
           sizes="(max-width: 768px) 100vw, 400px"
           className="object-cover"
         />

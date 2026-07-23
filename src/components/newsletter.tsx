@@ -4,25 +4,37 @@ import { Send } from "lucide-react";
 import Image from "next/image";
 import { FormEvent, useState } from "react";
 import styles from "./newsletter.module.css";
+import { getStringContent, type ContentData } from "@/lib/content-values";
 
-export function Newsletter() {
+export function Newsletter({ content = {} }: { content?: ContentData }) {
   const [email, setEmail] = useState("");
+  const eyebrow = getStringContent(content, "eyebrow", "Get a Quote");
+  const titlePrefix = getStringContent(content, "titlePrefix", "Get a");
+  const titleEmphasis = getStringContent(content, "titleEmphasis", "Quote");
+  const deck = getStringContent(
+    content,
+    "deck",
+    "Contact us today for personalized travel quotes and the best deals on flights, hotels, and tour packages",
+  );
+  const emailPlaceholder = getStringContent(content, "emailPlaceholder", "Enter your email");
+  const mailtoRecipient = getStringContent(content, "mailtoRecipient", "info@midearth.ca");
+  const wechatQrImage = getStringContent(content, "wechatQrImage", "/contact/wechat-qr.jpg");
+  const whatsappQrImage = getStringContent(content, "whatsappQrImage", "/contact/whatsapp-qr.jpg");
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    window.location.href = `mailto:info@midearth.ca?subject=Quote%20Request&body=Email:%20${encodeURIComponent(email)}`;
+    window.location.href = `mailto:${mailtoRecipient}?subject=Quote%20Request&body=Email:%20${encodeURIComponent(email)}`;
   }
 
   return (
     <section className={styles.section}>
       <div className={styles.container}>
-        <div className={styles.eyebrow}>— Get a Quote</div>
+        <div className={styles.eyebrow}>— {eyebrow}</div>
         <h2 className={styles.title}>
-          Get a <span className={styles.titleBold}>Quote</span>
+          {titlePrefix} <span className={styles.titleBold}>{titleEmphasis}</span>
         </h2>
         <p className={styles.deck}>
-          Contact us today for personalized travel quotes and the best deals on
-          flights, hotels, and tour packages
+          {deck}
         </p>
 
         <form className={styles.form} onSubmit={handleSubmit}>
@@ -32,7 +44,7 @@ export function Newsletter() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
+              placeholder={emailPlaceholder}
               className={styles.input}
             />
             <button
@@ -56,21 +68,23 @@ export function Newsletter() {
           <div className={styles.qrItem}>
             <p className={styles.qrLabel}>微信扫码咨询</p>
             <Image
-              src="/contact/wechat-qr.jpg"
+              src={wechatQrImage}
               alt="WeChat QR code"
               width={140}
               height={140}
               className={styles.qrImage}
+              unoptimized
             />
           </div>
           <div className={styles.qrItem}>
             <p className={styles.qrLabel}>WhatsApp us</p>
             <Image
-              src="/contact/whatsapp-qr.jpg"
+              src={whatsappQrImage}
               alt="WhatsApp QR code"
               width={140}
               height={140}
               className={styles.qrImage}
+              unoptimized
             />
           </div>
         </div>

@@ -1,27 +1,38 @@
 import Link from "next/link";
 import { site } from "@/data/site";
+import { getStringContent, type ContentData } from "@/lib/content-values";
 
-export function FinalCta() {
+export function FinalCta({ content = {} }: { content?: ContentData }) {
+  const image = getStringContent(content, "image", "/final-cta-travel-flatlay.jpg");
+  const eyebrow = getStringContent(content, "eyebrow", "Get in touch");
+  const title = getStringContent(content, "title", "Tell us where, we'll figure out how.");
+  const description = getStringContent(
+    content,
+    "description",
+    "Use the form, or call the office. Either reaches a real desk in downtown Ottawa.",
+  );
+  const primaryButtonText = getStringContent(content, "primaryButtonText", "Start a booking");
+  const primaryButtonLink = getStringContent(content, "primaryButtonLink", `tel:${site.phoneTel}`);
+
   return (
     <section className="final-cta">
       <div className="container">
         <div className="final-cta-inner">
           <div className="final-cta-img">
-            <img src="/final-cta-travel-flatlay.jpg" alt="" />
+            <img src={image} alt="" />
           </div>
           <div className="final-cta-body">
-            <div className="eyebrow">— Get in touch</div>
+            <div className="eyebrow">— {eyebrow}</div>
             <h2 className="section-title">
-              Tell us where, we&apos;ll figure out how.
+              {title}
             </h2>
             <p>
-              Use the form, or call the office. Either reaches a real desk in
-              downtown Ottawa.
+              {description}
             </p>
             <div className="final-cta-actions">
-              <Link href={`tel:${site.phoneTel}`}>
+              <Link href={primaryButtonLink}>
                 <button type="button" className="btn btn-lg btn-primary">
-                  Start a booking
+                  {primaryButtonText}
                 </button>
               </Link>
               <Link href="/#contact">

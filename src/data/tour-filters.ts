@@ -10,25 +10,29 @@ const regionMap: Record<string, string[]> = {
 };
 
 export function getToursForCategory(slug: string): Tour[] {
-  if (slug === "all") return tours;
+  return filterToursForCategory(tours, slug);
+}
+
+export function filterToursForCategory(sourceTours: Tour[], slug: string): Tour[] {
+  if (slug === "all") return sourceTours;
 
   const meta = categoryMeta[slug];
   if (meta?.filterTourType) {
-    return tours.filter((t) => t.tourType === meta.filterTourType);
+    return sourceTours.filter((t) => t.tourType === meta.filterTourType);
   }
 
   const region = getRegionBySlug(slug);
   if (region) {
     const regions = regionMap[slug];
     if (regions.length === 0) return [];
-    return tours.filter((t) => regions.includes(t.region));
+    return sourceTours.filter((t) => regions.includes(t.region));
   }
 
-  return tours;
+  return sourceTours;
 }
 
-export function getTourRegions(): string[] {
-  return [...new Set(tours.map((t) => t.region))].sort();
+export function getTourRegions(sourceTours: Tour[] = tours): string[] {
+  return [...new Set(sourceTours.map((t) => t.region))].sort();
 }
 
 export function parseDurationDays(duration: string): number {

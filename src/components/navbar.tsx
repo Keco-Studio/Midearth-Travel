@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import { useLang } from "@/context/lang-context";
 import { site } from "@/data/site";
+import { getStringContent, type ContentData } from "@/lib/content-values";
 
 // Original routes mega navigation is intentionally disabled for the
 // homepage-focused destinations anchor.
@@ -29,7 +30,7 @@ import { site } from "@/data/site";
 //   );
 // }
 
-export function Navbar() {
+export function Navbar({ content = {} }: { content?: ContentData }) {
   const pathname = usePathname();
   const { lang, setLang } = useLang();
   const [scrolled, setScrolled] = useState(false);
@@ -39,6 +40,9 @@ export function Navbar() {
   const hasHeroOverlay =
     pathname === "/" || /^\/tours\/[^/]+$/.test(pathname);
   const transparent = hasHeroOverlay && !scrolled;
+  const logoAlt = getStringContent(content, "logoAlt", "MidEarth Travel logo");
+  const bookNowLabel = getStringContent(content, "bookNowLabel", "Book Now");
+  const bookNowLink = getStringContent(content, "bookNowLink", `tel:${site.phoneTel}`);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -60,15 +64,23 @@ export function Navbar() {
   }, [drawerOpen, pathname]);
 
   const nav = [
-    { key: "home", label: "Home", href: "/" },
+    { key: "home", label: getStringContent(content, "homeLabel", "Home"), href: "/" },
     {
       key: "routes",
-      label: "Destinations",
+      label: getStringContent(content, "destinationsLabel", "Destinations"),
       href: "/#destinations",
       // mega: "routes" as const,
     },
-    { key: "services", label: "Services", href: "/#about" },
-    { key: "contact", label: "Contact", href: "/#contact" },
+    {
+      key: "services",
+      label: getStringContent(content, "servicesLabel", "Services"),
+      href: "/#about",
+    },
+    {
+      key: "contact",
+      label: getStringContent(content, "contactLabel", "Contact"),
+      href: "/#contact",
+    },
   ];
 
   const isActive = (item: (typeof nav)[number]) => {
@@ -84,7 +96,7 @@ export function Navbar() {
     <header className={`site-header ${transparent ? "transparent" : "solid"}`}>
       <div className="header-inner">
         <Link className="brand" href="/">
-          <BrandLogo solid={!transparent} />
+          <BrandLogo solid={!transparent} alt={logoAlt} />
         </Link>
 
         <nav className="nav-desktop">
@@ -117,8 +129,8 @@ export function Navbar() {
             <span className="lang-divider">/</span>
             <span className={lang === "zh" ? "active" : ""}>中文</span>
           </button>
-          <Link href={`tel:${site.phoneTel}`} className="header-pill">
-            Book Now
+          <Link href={bookNowLink} className="header-pill">
+            {bookNowLabel}
           </Link>
           <Link
             href="/admin"
@@ -146,7 +158,7 @@ export function Navbar() {
         >
           <div className="drawer" onClick={(e) => e.stopPropagation()}>
             <div className="drawer-head">
-              <BrandLogo solid />
+              <BrandLogo solid alt={logoAlt} />
               <button
                 className="drawer-close"
                 onClick={() => setDrawerOpen(false)}
@@ -179,11 +191,11 @@ export function Navbar() {
                 <span className={lang === "zh" ? "active" : ""}>中文</span>
               </button>
               <Link
-                href={`tel:${site.phoneTel}`}
+                href={bookNowLink}
                 className="header-pill header-pill-drawer"
                 onClick={() => setDrawerOpen(false)}
               >
-                Book Now
+                {bookNowLabel}
               </Link>
               <Link
                 href="/admin"
