@@ -3,10 +3,12 @@
 import { Send } from "lucide-react";
 import Image from "next/image";
 import { FormEvent, useState } from "react";
+import { useSiteSettings } from "@/context/site-settings-context";
 import styles from "./newsletter.module.css";
 import { getStringContent, type ContentData } from "@/lib/content-values";
 
 export function Newsletter({ content = {} }: { content?: ContentData }) {
+  const settings = useSiteSettings();
   const [email, setEmail] = useState("");
   const eyebrow = getStringContent(content, "eyebrow", "Get a Quote");
   const titlePrefix = getStringContent(content, "titlePrefix", "Get a");
@@ -17,7 +19,11 @@ export function Newsletter({ content = {} }: { content?: ContentData }) {
     "Contact us today for personalized travel quotes and the best deals on flights, hotels, and tour packages",
   );
   const emailPlaceholder = getStringContent(content, "emailPlaceholder", "Enter your email");
-  const mailtoRecipient = getStringContent(content, "mailtoRecipient", "info@midearth.ca");
+  const mailtoRecipient = getStringContent(
+    content,
+    "mailtoRecipient",
+    settings.emailLabel,
+  );
   const wechatQrImage = getStringContent(content, "wechatQrImage", "/contact/wechat-qr.jpg");
   const whatsappQrImage = getStringContent(content, "whatsappQrImage", "/contact/whatsapp-qr.jpg");
 
@@ -59,9 +65,14 @@ export function Newsletter({ content = {} }: { content?: ContentData }) {
 
         <p className={styles.contact}>
           Call us at{" "}
-          <a href="tel:6132365226">613-236-5226</a> /{" "}
-          <a href="tel:6132362323">613-236-2323</a> or email{" "}
-          <a href="mailto:info@midearth.ca">info@midearth.ca</a>
+          <a href={settings.primaryPhoneHref}>{settings.primaryPhoneLabel}</a>
+          {settings.secondaryPhoneLabel ? (
+            <>
+              {" / "}
+              <a href={settings.secondaryPhoneHref}>{settings.secondaryPhoneLabel}</a>
+            </>
+          ) : null}{" "}
+          or email <a href={settings.emailHref}>{settings.emailLabel}</a>
         </p>
 
         <div className={styles.qrSection}>

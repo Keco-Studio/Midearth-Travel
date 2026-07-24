@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import { useLang } from "@/context/lang-context";
-import { site } from "@/data/site";
+import { useSiteSettings } from "@/context/site-settings-context";
 import { getStringContent, type ContentData } from "@/lib/content-values";
 
 // Original routes mega navigation is intentionally disabled for the
@@ -31,6 +31,7 @@ import { getStringContent, type ContentData } from "@/lib/content-values";
 // }
 
 export function Navbar({ content = {} }: { content?: ContentData }) {
+  const settings = useSiteSettings();
   const pathname = usePathname();
   const { lang, setLang } = useLang();
   const [scrolled, setScrolled] = useState(false);
@@ -40,9 +41,17 @@ export function Navbar({ content = {} }: { content?: ContentData }) {
   const hasHeroOverlay =
     pathname === "/" || /^\/tours\/[^/]+$/.test(pathname);
   const transparent = hasHeroOverlay && !scrolled;
-  const logoAlt = getStringContent(content, "logoAlt", "MidEarth Travel logo");
+  const logoAlt = getStringContent(
+    content,
+    "logoAlt",
+    `${settings.siteName} ${settings.tagline}`,
+  );
   const bookNowLabel = getStringContent(content, "bookNowLabel", "Book Now");
-  const bookNowLink = getStringContent(content, "bookNowLink", `tel:${site.phoneTel}`);
+  const bookNowLink = getStringContent(
+    content,
+    "bookNowLink",
+    settings.primaryPhoneHref,
+  );
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -117,7 +126,7 @@ export function Navbar({ content = {} }: { content?: ContentData }) {
 
         <div className="header-right">
           <div className="header-contact">
-            <a href={`tel:${site.phoneTel}`}>{site.phone}</a>
+            <a href={settings.primaryPhoneHref}>{settings.primaryPhoneLabel}</a>
           </div>
           <button
             className="header-pill"
@@ -205,8 +214,8 @@ export function Navbar({ content = {} }: { content?: ContentData }) {
                 Admin Portal
               </Link>
               <div className="drawer-contact">
-                <div>{site.phone}</div>
-                <div>{site.email}</div>
+                <div>{settings.primaryPhoneLabel}</div>
+                <div>{settings.emailLabel}</div>
               </div>
             </div>
           </div>

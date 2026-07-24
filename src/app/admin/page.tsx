@@ -6,9 +6,10 @@ import {
   loadHomepageTestimonials,
 } from "@/lib/supabase-home-collections";
 import { loadAdminHomeModules } from "@/lib/supabase-home-content";
+import { loadGlobalSettings } from "@/lib/supabase-global-settings";
 
 export default async function AdminPage() {
-  const [homeModules, destinationCategories, services, testimonials] =
+  const [homeModules, destinationCategories, services, testimonials, settings] =
     await Promise.all([
       loadAdminHomeModules().catch((error) => {
         console.error("Unable to preload homepage modules", error);
@@ -17,6 +18,7 @@ export default async function AdminPage() {
       loadDestinationCategories(),
       loadHomepageServices(),
       loadHomepageTestimonials(),
+      loadGlobalSettings(),
     ]);
 
   return (
@@ -24,6 +26,7 @@ export default async function AdminPage() {
       initialDestinationCategories={destinationCategories}
       initialHomeModules={homeModules}
       initialServices={services}
+      initialSettings={settings}
       initialTestimonials={testimonials}
     />
   );

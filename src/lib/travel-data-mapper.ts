@@ -1,4 +1,4 @@
-import { site } from "../data/site.ts";
+import { siteSettingsSeed } from "../data/site-settings.ts";
 import { tours } from "../data/tours.ts";
 import type { MediaAsset, SiteSettings, TourRecord } from "../types/cms.ts";
 
@@ -63,12 +63,7 @@ function mapTourFares(fares: (typeof tours)[number]["fares"]): TourRecord["fares
 }
 
 export function mapTravelSiteSettings(): SiteSettings {
-  return {
-    siteName: site.name,
-    primaryPhone: site.phone,
-    email: site.email,
-    officeAddress: "Bronson Avenue, Ottawa, Ontario",
-  };
+  return { ...siteSettingsSeed };
 }
 
 type MediaSeedInput = {

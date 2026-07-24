@@ -16,7 +16,7 @@ import { SettingsPanel } from "@/components/settings-panel";
 import { HomeModuleMenuItem, MenuBrandHeader, menuBrandMarkStyle } from "@/components/cms-menu-items";
 import { StatusTag } from "@/components/status-tag";
 import { ToursWorkspace } from "@/components/tours-workspace";
-import { bookingSeeds, paymentSeeds, settingsSeed, tourSeeds } from "@/data/cms-seed";
+import { bookingSeeds, paymentSeeds, tourSeeds } from "@/data/cms-seed";
 import type { Service } from "@/data/services";
 import type { Testimonial } from "@/data/testimonials";
 import {
@@ -40,7 +40,7 @@ import {
 } from "@/lib/layout-routes";
 import type { DestinationCategory } from "@/lib/destination-categories";
 import { proLayoutToken } from "@/theme/mid-earth-theme";
-import type { HomeModuleId, HomeModuleRecord } from "@/types/cms";
+import type { HomeModuleId, HomeModuleRecord, SiteSettings } from "@/types/cms";
 
 const subscribeToHydration = () => () => {};
 const getClientHydrationSnapshot = () => true;
@@ -51,6 +51,7 @@ type AdminShellProps = {
   initialDestinationCategories: DestinationCategory[];
   initialServices: Service[];
   initialTestimonials: Testimonial[];
+  initialSettings: SiteSettings;
 };
 
 export function AdminShell({
@@ -58,6 +59,7 @@ export function AdminShell({
   initialDestinationCategories,
   initialServices,
   initialTestimonials,
+  initialSettings,
 }: AdminShellProps) {
   const { message } = App.useApp();
   const mounted = useSyncExternalStore(
@@ -74,6 +76,7 @@ export function AdminShell({
   );
   const [services, setServices] = useState(initialServices);
   const [testimonials, setTestimonials] = useState(initialTestimonials);
+  const [settings, setSettings] = useState(initialSettings);
   const [supplementalDirtyModuleIds, setSupplementalDirtyModuleIds] = useState<
     HomeModuleId[]
   >([]);
@@ -363,9 +366,11 @@ export function AdminShell({
           destinationCategories,
           services,
           testimonials,
+          settings,
           onDestinationCategoriesChange: setDestinationCategories,
           onServicesChange: setServices,
           onTestimonialsChange: setTestimonials,
+          onSettingsChange: setSettings,
           onViewBooking: (bookingId) => {
             setState((current) => openBooking(current, bookingId));
           },
@@ -500,9 +505,11 @@ function renderWorkspace(
     destinationCategories: DestinationCategory[];
     services: Service[];
     testimonials: Testimonial[];
+    settings: SiteSettings;
     onDestinationCategoriesChange: (categories: DestinationCategory[]) => void;
     onServicesChange: (services: Service[]) => void;
     onTestimonialsChange: (testimonials: Testimonial[]) => void;
+    onSettingsChange: (settings: SiteSettings) => void;
     onViewBooking: (bookingId: string) => void;
     onViewPayment: (paymentId: string) => void;
     onFocusHandled: () => void;
@@ -556,7 +563,12 @@ function renderWorkspace(
   }
 
   if (state.workspace === "settings") {
-    return <SettingsPanel settings={settingsSeed} />;
+    return (
+      <SettingsPanel
+        settings={handlers.settings}
+        onSaved={handlers.onSettingsChange}
+      />
+    );
   }
 
   return null;
