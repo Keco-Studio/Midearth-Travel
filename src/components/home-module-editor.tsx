@@ -11,25 +11,45 @@ import {
 } from "@ant-design/pro-components";
 import { App, Button, Col, Input, Space, Upload } from "antd";
 import { DeleteOutlined, LinkOutlined, UploadOutlined } from "@ant-design/icons";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { AssetPreview } from "@/components/asset-preview";
 import { DestinationCategoryEditor } from "@/components/destination-category-editor";
 import { ServiceCardsEditor, TestimonialsEditor } from "@/components/home-collection-editors";
 import { FORBIDDEN_FIELD_KEYS } from "@/lib/content-rules";
 import { validateInlineImageFile } from "@/lib/inline-image-upload";
 import { getHomeModuleEditorKey, getModuleFieldViewModels } from "@/lib/module-editor";
+import type { DestinationCategory } from "@/lib/destination-categories";
+import type { Service } from "@/data/services";
+import type { Testimonial } from "@/data/testimonials";
 import type { ContentValue, FieldDefinition, HomeModuleRecord } from "@/types/cms";
 
 type HomeModuleEditorProps = {
   module: HomeModuleRecord;
   onChange: (key: string, value: ContentValue) => void;
   onImageUpload: (fieldKey: string, file: File) => Promise<string>;
+  onSupplementalDirtyChange: (
+    moduleId: HomeModuleRecord["id"],
+    dirty: boolean,
+  ) => void;
+  destinationCategories: DestinationCategory[];
+  services: Service[];
+  testimonials: Testimonial[];
+  onDestinationCategoriesChange: (categories: DestinationCategory[]) => void;
+  onServicesChange: (services: Service[]) => void;
+  onTestimonialsChange: (testimonials: Testimonial[]) => void;
 };
 
 export function HomeModuleEditor({
   module,
   onChange,
   onImageUpload,
+  onSupplementalDirtyChange,
+  destinationCategories,
+  services,
+  testimonials,
+  onDestinationCategoriesChange,
+  onServicesChange,
+  onTestimonialsChange,
 }: HomeModuleEditorProps) {
   const { message } = App.useApp();
   const fields = useMemo(
@@ -41,6 +61,10 @@ export function HomeModuleEditor({
           ),
       ),
     [module],
+  );
+  const setSupplementalDirty = useCallback(
+    (dirty: boolean) => onSupplementalDirtyChange(module.id, dirty),
+    [module.id, onSupplementalDirtyChange],
   );
 
   return (
@@ -72,9 +96,27 @@ export function HomeModuleEditor({
           />
         ))}
       </ProForm>
-      {module.id === "categoryGrid" ? <DestinationCategoryEditor /> : null}
-      {module.id === "aboutSection" ? <ServiceCardsEditor /> : null}
-      {module.id === "testimonials" ? <TestimonialsEditor /> : null}
+      {module.id === "categoryGrid" ? (
+        <DestinationCategoryEditor
+          categories={destinationCategories}
+          onDirtyChange={setSupplementalDirty}
+          onChange={onDestinationCategoriesChange}
+        />
+      ) : null}
+      {module.id === "aboutSection" ? (
+        <ServiceCardsEditor
+          records={services}
+          onDirtyChange={setSupplementalDirty}
+          onChange={onServicesChange}
+        />
+      ) : null}
+      {module.id === "testimonials" ? (
+        <TestimonialsEditor
+          records={testimonials}
+          onDirtyChange={setSupplementalDirty}
+          onChange={onTestimonialsChange}
+        />
+      ) : null}
     </>
   );
 }

@@ -3,7 +3,12 @@
 import { PageContainer, ProLayout } from "@ant-design/pro-components";
 import { App, Button, Space, Tag, Tooltip } from "antd";
 import Link from "next/link";
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { BookingsWorkspace } from "@/components/bookings-workspace";
 import { HomeModuleEditor } from "@/components/home-module-editor";
 import { PaymentsWorkspace } from "@/components/payments-workspace";
@@ -12,6 +17,8 @@ import { HomeModuleMenuItem, MenuBrandHeader, menuBrandMarkStyle } from "@/compo
 import { StatusTag } from "@/components/status-tag";
 import { ToursWorkspace } from "@/components/tours-workspace";
 import { bookingSeeds, paymentSeeds, settingsSeed, tourSeeds } from "@/data/cms-seed";
+import type { Service } from "@/data/services";
+import type { Testimonial } from "@/data/testimonials";
 import {
   applyPersistedHomeModule,
   clearWorkspaceFocus,
@@ -31,6 +38,7 @@ import {
   layoutRouteConfig,
   parseLayoutPath,
 } from "@/lib/layout-routes";
+import type { DestinationCategory } from "@/lib/destination-categories";
 import { proLayoutToken } from "@/theme/mid-earth-theme";
 import type { HomeModuleId, HomeModuleRecord } from "@/types/cms";
 
@@ -38,16 +46,40 @@ const subscribeToHydration = () => () => {};
 const getClientHydrationSnapshot = () => true;
 const getServerHydrationSnapshot = () => false;
 
-export function AdminShell() {
+type AdminShellProps = {
+  initialHomeModules: HomeModuleRecord[];
+  initialDestinationCategories: DestinationCategory[];
+  initialServices: Service[];
+  initialTestimonials: Testimonial[];
+};
+
+export function AdminShell({
+  initialHomeModules,
+  initialDestinationCategories,
+  initialServices,
+  initialTestimonials,
+}: AdminShellProps) {
   const { message } = App.useApp();
   const mounted = useSyncExternalStore(
     subscribeToHydration,
     getClientHydrationSnapshot,
     getServerHydrationSnapshot,
   );
-  const [state, setState] = useState<AdminState>(createInitialAdminState);
+  const [state, setState] = useState<AdminState>(() =>
+    mergeLoadedHomeModules(createInitialAdminState(), initialHomeModules),
+  );
   const [pendingAction, setPendingAction] = useState<"save" | "publish" | null>(null);
+  const [destinationCategories, setDestinationCategories] = useState(
+    initialDestinationCategories,
+  );
+  const [services, setServices] = useState(initialServices);
+  const [testimonials, setTestimonials] = useState(initialTestimonials);
+  const [supplementalDirtyModuleIds, setSupplementalDirtyModuleIds] = useState<
+    HomeModuleId[]
+  >([]);
   const activeModule = getActiveModule(state);
+  const hasSupplementalUnsavedChanges =
+    supplementalDirtyModuleIds.includes(activeModule.id);
   const pathname = getPathFromAdminState(state.workspace, state.selectedHomeModuleId);
   const pageTitle =
     state.workspace === "home" ? activeModule.name : getWorkspaceTitle(state);
@@ -61,35 +93,21 @@ export function AdminShell() {
     [state.homeModules],
   );
 
-  useEffect(() => {
-    if (!mounted) {
-      return;
-    }
-
-    const controller = new AbortController();
-
-    async function loadModules() {
-      try {
-        const response = await fetch("/api/admin/home-modules", {
-          signal: controller.signal,
-          cache: "no-store",
-        });
-        const payload = await readApiResponse<{ modules: HomeModuleRecord[] }>(response);
-        setState((current) => mergeLoadedHomeModules(current, payload.modules));
-      } catch (error) {
-        if (!controller.signal.aborted) {
-          message.error(getErrorMessage(error, "Homepage content could not be loaded"));
+  const handleSupplementalDirtyChange = useCallback(
+    (moduleId: HomeModuleId, dirty: boolean) => {
+      setSupplementalDirtyModuleIds((current) => {
+        if (dirty) {
+          return current.includes(moduleId) ? current : [...current, moduleId];
         }
-      }
-    }
 
-    void loadModules();
-    return () => controller.abort();
-  }, [message, mounted]);
+        return current.filter((id) => id !== moduleId);
+      });
+    },
+    [],
+  );
 
   function handleMenuClick(path: string) {
     const parsed = parseLayoutPath(path);
-
     if (parsed.workspace === "home" && parsed.moduleId) {
       setOpenKeys((keys) => (keys.includes("/home") ? keys : [...keys, "/home"]));
       setState((current) => selectHomeModule(current, parsed.moduleId as HomeModuleId));
@@ -108,6 +126,10 @@ export function AdminShell() {
     setPendingAction("save");
 
     try {
+      if (hasSupplementalUnsavedChanges) {
+        await saveSupplementalHomeData(activeModule.id);
+      }
+
       const response = await fetch(`/api/admin/home-modules/${activeModule.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -145,6 +167,50 @@ export function AdminShell() {
     } finally {
       setPendingAction(null);
     }
+  }
+
+  async function saveSupplementalHomeData(moduleId: HomeModuleId) {
+    if (moduleId === "categoryGrid") {
+      const response = await fetch("/api/admin/destination-categories", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          categories: destinationCategories.map(({ id, titleEn, titleZh }) => ({
+            id,
+            titleEn,
+            titleZh,
+          })),
+        }),
+      });
+      const payload = await readApiResponse<{
+        categories: DestinationCategory[];
+      }>(response);
+      setDestinationCategories(payload.categories);
+    }
+
+    if (moduleId === "aboutSection") {
+      const response = await fetch("/api/admin/services", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ services }),
+      });
+      const payload = await readApiResponse<{ services: Service[] }>(response);
+      setServices(payload.services);
+    }
+
+    if (moduleId === "testimonials") {
+      const response = await fetch("/api/admin/testimonials", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ testimonials }),
+      });
+      const payload = await readApiResponse<{
+        testimonials: Testimonial[];
+      }>(response);
+      setTestimonials(payload.testimonials);
+    }
+
+    handleSupplementalDirtyChange(moduleId, false);
   }
 
   async function handleImageUpload(
@@ -262,13 +328,22 @@ export function AdminShell() {
             </Tooltip>
           ) : undefined
         }
-        extra={renderPageActions(state, activeModule, {
-          onPreviewDraft: handlePreviewDraft,
-          onSaveDraft: handleSaveDraft,
-          onPublish: handlePublish,
-          pendingAction,
-        })}
-        tags={renderPageTags(state, activeModule)}
+        extra={renderPageActions(
+          state,
+          activeModule,
+          hasSupplementalUnsavedChanges,
+          {
+            onPreviewDraft: handlePreviewDraft,
+            onSaveDraft: handleSaveDraft,
+            onPublish: handlePublish,
+            pendingAction,
+          },
+        )}
+        tags={renderPageTags(
+          state,
+          activeModule,
+          hasSupplementalUnsavedChanges,
+        )}
         breadcrumb={{
           items:
             state.workspace === "home"
@@ -284,6 +359,13 @@ export function AdminShell() {
           },
           onImageUpload: (fieldKey, file) =>
             handleImageUpload(activeModule.id, fieldKey, file),
+          onSupplementalDirtyChange: handleSupplementalDirtyChange,
+          destinationCategories,
+          services,
+          testimonials,
+          onDestinationCategoriesChange: setDestinationCategories,
+          onServicesChange: setServices,
+          onTestimonialsChange: setTestimonials,
           onViewBooking: (bookingId) => {
             setState((current) => openBooking(current, bookingId));
           },
@@ -302,6 +384,7 @@ export function AdminShell() {
 function renderPageTags(
   state: AdminState,
   activeModule: ReturnType<typeof getActiveModule>,
+  hasSupplementalUnsavedChanges: boolean,
 ) {
   if (state.workspace !== "home") {
     return undefined;
@@ -322,7 +405,7 @@ function renderPageTags(
     );
   }
 
-  if (state.hasUnsavedChanges) {
+  if (state.hasUnsavedChanges || hasSupplementalUnsavedChanges) {
     tags.push(
       <Tag key="unsaved" bordered className="cms-status-tag cms-status-tag--draft">
         Unsaved changes
@@ -336,6 +419,7 @@ function renderPageTags(
 function renderPageActions(
   state: AdminState,
   activeModule: ReturnType<typeof getActiveModule>,
+  hasSupplementalUnsavedChanges: boolean,
   handlers: {
     onPreviewDraft: () => void;
     onSaveDraft: () => void;
@@ -344,7 +428,11 @@ function renderPageActions(
   },
 ) {
   if (state.workspace === "home") {
-    const publishDisabledReason = getPublishDisabledReason(state, activeModule);
+    const publishDisabledReason = getPublishDisabledReason(
+      state,
+      activeModule,
+      hasSupplementalUnsavedChanges,
+    );
     const canPublish = publishDisabledReason === null;
 
     return (
@@ -382,8 +470,9 @@ function renderPageActions(
 function getPublishDisabledReason(
   state: AdminState,
   activeModule: ReturnType<typeof getActiveModule>,
+  hasSupplementalUnsavedChanges: boolean,
 ): string | null {
-  if (state.hasUnsavedChanges) {
+  if (state.hasUnsavedChanges || hasSupplementalUnsavedChanges) {
     return "Save draft before publishing";
   }
 
@@ -404,6 +493,16 @@ function renderWorkspace(
       value: (typeof activeModule.data)[string],
     ) => void;
     onImageUpload: (fieldKey: string, file: File) => Promise<string>;
+    onSupplementalDirtyChange: (
+      moduleId: HomeModuleId,
+      dirty: boolean,
+    ) => void;
+    destinationCategories: DestinationCategory[];
+    services: Service[];
+    testimonials: Testimonial[];
+    onDestinationCategoriesChange: (categories: DestinationCategory[]) => void;
+    onServicesChange: (services: Service[]) => void;
+    onTestimonialsChange: (testimonials: Testimonial[]) => void;
     onViewBooking: (bookingId: string) => void;
     onViewPayment: (paymentId: string) => void;
     onFocusHandled: () => void;
@@ -417,6 +516,13 @@ function renderWorkspace(
           handlers.onModuleFieldChange(activeModule.id, key, value)
         }
         onImageUpload={handlers.onImageUpload}
+        onSupplementalDirtyChange={handlers.onSupplementalDirtyChange}
+        destinationCategories={handlers.destinationCategories}
+        services={handlers.services}
+        testimonials={handlers.testimonials}
+        onDestinationCategoriesChange={handlers.onDestinationCategoriesChange}
+        onServicesChange={handlers.onServicesChange}
+        onTestimonialsChange={handlers.onTestimonialsChange}
       />
     );
   }

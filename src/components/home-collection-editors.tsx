@@ -2,22 +2,30 @@
 
 import { UploadOutlined } from "@ant-design/icons";
 import { App, Button, Input, InputNumber, Space, Table, Typography, Upload } from "antd";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Service } from "@/data/services";
 import type { Testimonial } from "@/data/testimonials";
 
-export function ServiceCardsEditor() {
+type ServiceCardsEditorProps = {
+  records: Service[];
+  onChange: (records: Service[]) => void;
+  onDirtyChange: (dirty: boolean) => void;
+};
+
+export function ServiceCardsEditor({
+  records,
+  onChange,
+  onDirtyChange,
+}: ServiceCardsEditorProps) {
   const { message } = App.useApp();
-  const [records, setRecords] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
 
-  useEffect(() => loadCollection("/api/admin/services", "services", setRecords, setLoading, message), [message]);
-
   function update(id: string, key: keyof Service, value: string) {
-    setRecords((current) =>
-      current.map((record) => (record.id === id ? { ...record, [key]: value } : record)),
+    onDirtyChange(true);
+    onChange(
+      records.map((record) =>
+        record.id === id ? { ...record, [key]: value } : record,
+      ),
     );
   }
 
@@ -37,29 +45,10 @@ export function ServiceCardsEditor() {
     }
   }
 
-  async function save() {
-    setSaving(true);
-    try {
-      const response = await fetch("/api/admin/services", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ services: records }),
-      });
-      const payload = await readResponse<{ services: Service[] }>(response);
-      setRecords(payload.services);
-      message.success("Service cards saved to Supabase");
-    } catch (error) {
-      message.error(getMessage(error, "Service cards could not be saved"));
-    } finally {
-      setSaving(false);
-    }
-  }
-
   return (
-    <CollectionSection title="Service cards" saving={saving} onSave={save}>
+    <CollectionSection title="Service cards">
       <Table<Service>
         rowKey="id"
-        loading={loading}
         dataSource={records}
         pagination={false}
         scroll={{ x: 1100 }}
@@ -96,46 +85,30 @@ export function ServiceCardsEditor() {
   );
 }
 
-export function TestimonialsEditor() {
-  const { message } = App.useApp();
-  const [records, setRecords] = useState<Testimonial[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+type TestimonialsEditorProps = {
+  records: Testimonial[];
+  onChange: (records: Testimonial[]) => void;
+  onDirtyChange: (dirty: boolean) => void;
+};
 
-  useEffect(
-    () => loadCollection("/api/admin/testimonials", "testimonials", setRecords, setLoading, message),
-    [message],
-  );
-
+export function TestimonialsEditor({
+  records,
+  onChange,
+  onDirtyChange,
+}: TestimonialsEditorProps) {
   function update(id: string, key: keyof Testimonial, value: string | number) {
-    setRecords((current) =>
-      current.map((record) => (record.id === id ? { ...record, [key]: value } : record)),
+    onDirtyChange(true);
+    onChange(
+      records.map((record) =>
+        record.id === id ? { ...record, [key]: value } : record,
+      ),
     );
   }
 
-  async function save() {
-    setSaving(true);
-    try {
-      const response = await fetch("/api/admin/testimonials", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ testimonials: records }),
-      });
-      const payload = await readResponse<{ testimonials: Testimonial[] }>(response);
-      setRecords(payload.testimonials);
-      message.success("Testimonials saved to Supabase");
-    } catch (error) {
-      message.error(getMessage(error, "Testimonials could not be saved"));
-    } finally {
-      setSaving(false);
-    }
-  }
-
   return (
-    <CollectionSection title="Reviews" saving={saving} onSave={save}>
+    <CollectionSection title="Reviews">
       <Table<Testimonial>
         rowKey="id"
-        loading={loading}
         dataSource={records}
         pagination={false}
         scroll={{ x: 1000 }}
@@ -179,21 +152,14 @@ export function TestimonialsEditor() {
 
 function CollectionSection({
   title,
-  saving,
-  onSave,
   children,
 }: {
   title: string;
-  saving: boolean;
-  onSave: () => void;
   children: React.ReactNode;
 }) {
   return (
     <section className="cms-destination-name-editor">
-      <Space style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }} wrap>
-        <Typography.Title level={5} style={{ margin: 0 }}>{title}</Typography.Title>
-        <Button type="primary" loading={saving} onClick={onSave}>Save data</Button>
-      </Space>
+      <Typography.Title level={5} style={{ margin: "0 0 16px" }}>{title}</Typography.Title>
       {children}
     </section>
   );
@@ -213,26 +179,6 @@ function textColumn(
       <Input value={record[key]} onChange={(event) => update(record.id, key, event.target.value)} />
     ),
   };
-}
-
-function loadCollection<T>(
-  url: string,
-  key: string,
-  setRecords: (records: T[]) => void,
-  setLoading: (loading: boolean) => void,
-  message: { error: (content: string) => void },
-) {
-  const controller = new AbortController();
-  fetch(url, { cache: "no-store", signal: controller.signal })
-    .then((response) => readResponse<Record<string, T[]>>(response))
-    .then((payload) => setRecords(payload[key] ?? []))
-    .catch((error) => {
-      if (!controller.signal.aborted) message.error(getMessage(error, "Data could not be loaded"));
-    })
-    .finally(() => {
-      if (!controller.signal.aborted) setLoading(false);
-    });
-  return () => controller.abort();
 }
 
 async function readResponse<T>(response: Response): Promise<T> {
