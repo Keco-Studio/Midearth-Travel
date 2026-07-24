@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { LangProvider } from "@/context/lang-context";
+import { SiteSettingsProvider } from "@/context/site-settings-context";
+import { loadGlobalSettings } from "@/lib/supabase-global-settings";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -8,11 +10,13 @@ export const metadata: Metadata = {
     "Ottawa's premier travel agency specializing in all-inclusive vacation packages, bus tours to Canada and the United States, air tickets, and hotel reservations.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const settings = await loadGlobalSettings();
+
   return (
     <html lang="en" className="h-full antialiased">
       <head>
@@ -35,7 +39,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full font-sans antialiased">
-        <LangProvider>{children}</LangProvider>
+        <SiteSettingsProvider settings={settings}>
+          <LangProvider>{children}</LangProvider>
+        </SiteSettingsProvider>
       </body>
     </html>
   );

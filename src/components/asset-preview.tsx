@@ -3,7 +3,7 @@ import { isPreviewableImageUrl } from "@/lib/inline-image-upload";
 type AssetPreviewProps = {
   url: string;
   alt: string;
-  variant?: "image" | "qr";
+  variant?: "image" | "icon" | "qr";
 };
 
 export function AssetPreview({ url, alt, variant = "image" }: AssetPreviewProps) {
@@ -34,6 +34,29 @@ export function AssetPreview({ url, alt, variant = "image" }: AssetPreviewProps)
             background: "#fff",
             display: "block",
           }}
+        />
+      </div>
+    );
+  }
+
+  if (variant === "icon") {
+    return (
+      <div
+        style={{
+          display: "grid",
+          placeItems: "center",
+          width: 72,
+          height: 72,
+          overflow: "hidden",
+          borderRadius: 8,
+          border: "1px solid #efe9dd",
+          background: "#f9f6ef",
+        }}
+      >
+        <img
+          alt={alt}
+          src={url}
+          style={{ width: 48, height: 48, objectFit: "contain", display: "block" }}
         />
       </div>
     );

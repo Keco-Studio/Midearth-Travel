@@ -1,22 +1,12 @@
+"use client";
+
 import { Globe, Mail, Share2 } from "lucide-react";
+import { useSiteSettings } from "@/context/site-settings-context";
+import { getPublishedFooterLinks } from "@/lib/footer-links";
 import { getStringContent, type ContentData } from "@/lib/content-values";
 
-const tourLinks = [
-  "Canadian Tours",
-  "USA Tours",
-  "European Tours",
-  "Asian Tours",
-  "Sun Destinations",
-];
-
-const serviceLinks = [
-  "Flights",
-  "Hotels",
-  "Travel Insurance",
-  "VISA Application",
-];
-
 export function Footer({ content = {} }: { content?: ContentData }) {
+  const settings = useSiteSettings();
   const brandTitle = getStringContent(content, "brandTitle", "Midearth Travel");
   const brandDescription = getStringContent(
     content,
@@ -28,6 +18,7 @@ export function Footer({ content = {} }: { content?: ContentData }) {
     "copyrightText",
     "© 2026 Midearth Travel Inc. All rights reserved.",
   );
+  const { tourLinks, serviceLinks } = getPublishedFooterLinks(content);
 
   return (
     <footer id="contact" className="border-t border-white/10 bg-[#1A1A17] text-[#f5efe3]">
@@ -55,9 +46,9 @@ export function Footer({ content = {} }: { content?: ContentData }) {
             <h4 className="mb-4 font-semibold text-[#f5efe3]">Tours</h4>
             <ul className="space-y-3 text-sm text-[#f5efe3]/65">
               {tourLinks.map((item) => (
-                <li key={item}>
-                  <a href="#" className="transition-colors hover:text-[#f5efe3]">
-                    {item}
+                <li key={item.id}>
+                  <a href={item.href} className="transition-colors hover:text-[#f5efe3]">
+                    {item.label}
                   </a>
                 </li>
               ))}
@@ -68,9 +59,9 @@ export function Footer({ content = {} }: { content?: ContentData }) {
             <h4 className="mb-4 font-semibold text-[#f5efe3]">Services</h4>
             <ul className="space-y-3 text-sm text-[#f5efe3]/65">
               {serviceLinks.map((item) => (
-                <li key={item}>
-                  <a href="#" className="transition-colors hover:text-[#f5efe3]">
-                    {item}
+                <li key={item.id}>
+                  <a href={item.href} className="transition-colors hover:text-[#f5efe3]">
+                    {item.label}
                   </a>
                 </li>
               ))}
@@ -81,28 +72,27 @@ export function Footer({ content = {} }: { content?: ContentData }) {
             <h4 className="mb-4 font-semibold text-[#f5efe3]">Contact Us</h4>
             <ul className="space-y-3 text-sm text-[#f5efe3]/65">
               <li>
-                <a href="tel:6132365226" className="transition-colors hover:text-[#f5efe3]">
-                  613-236-5226
+                <a href={settings.primaryPhoneHref} className="transition-colors hover:text-[#f5efe3]">
+                  {settings.primaryPhoneLabel}
                 </a>
               </li>
-              <li>
-                <a href="tel:6132362323" className="transition-colors hover:text-[#f5efe3]">
-                  613-236-2323
-                </a>
-              </li>
+              {settings.secondaryPhoneLabel ? (
+                <li>
+                  <a href={settings.secondaryPhoneHref} className="transition-colors hover:text-[#f5efe3]">
+                    {settings.secondaryPhoneLabel}
+                  </a>
+                </li>
+              ) : null}
               <li>
                 <a
-                  href="mailto:info@midearth.ca"
+                  href={settings.emailHref}
                   className="transition-colors hover:text-[#f5efe3]"
                 >
-                  info@midearth.ca
+                  {settings.emailLabel}
                 </a>
               </li>
               <li>
-                <span>Bronson Avenue</span>
-              </li>
-              <li>
-                <span>Ottawa, Ontario</span>
+                <span>{settings.officeAddress}</span>
               </li>
             </ul>
           </div>

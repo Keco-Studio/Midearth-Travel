@@ -1,31 +1,33 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { heroBroadcastSeeds } from "@/data/hero-content";
 import styles from "./hero.module.css";
-
-const broadcasts = [
-  "The Shire — golden hills at dusk, perfect for a peaceful countryside tour",
-  "Helm's Deep — battle reported; guided groups rerouted via safer mountain passes",
-  "Rivendell — waterfalls in full bloom, ideal for spring photography trips",
-  "Rohan — endless green plains under open sky, horseback tours now available",
-  "Moria — low visibility in the depths; expert-led expeditions recommended",
-  "Gondor — panoramic views from the White City, sunset bookings open",
-  "Lothlórien — silver mist over the forest canopy, a rare scenic window",
-  "Grey Havens — calm seas at twilight, coastal cruises departing at dusk",
-];
 
 const INTERVAL_MS = 4200;
 
-export function HeroBroadcast() {
+export function HeroBroadcast({
+  label = "Live",
+  messages = heroBroadcastSeeds,
+}: {
+  label?: string;
+  messages?: string[];
+}) {
   const [index, setIndex] = useState(0);
+  const activeMessages = messages.length > 0 ? messages : heroBroadcastSeeds;
+  const messageCount = activeMessages.length;
 
   useEffect(() => {
+    if (messageCount < 2) {
+      return;
+    }
+
     const timer = window.setInterval(() => {
-      setIndex((current) => (current + 1) % broadcasts.length);
+      setIndex((current) => (current + 1) % messageCount);
     }, INTERVAL_MS);
 
     return () => window.clearInterval(timer);
-  }, []);
+  }, [messageCount]);
 
   return (
     <div
@@ -36,11 +38,11 @@ export function HeroBroadcast() {
     >
       <span className={styles.broadcastLabel}>
         <span className={styles.broadcastDot} aria-hidden />
-        Live
+        {label}
       </span>
       <div className={styles.broadcastViewport}>
         <p key={index} className={styles.broadcastLine}>
-          {broadcasts[index]}
+          {activeMessages[index % messageCount]}
         </p>
       </div>
     </div>

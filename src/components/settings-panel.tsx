@@ -22,20 +22,21 @@ type SettingsFormValues = {
 
 type SettingsPanelProps = {
   settings: SiteSettings;
+  onSaved: (settings: SiteSettings) => void;
 };
 
-export function SettingsPanel({ settings }: SettingsPanelProps) {
+export function SettingsPanel({ settings, onSaved }: SettingsPanelProps) {
   const { message } = App.useApp();
 
   const initialValues: SettingsFormValues = {
     siteName: settings.siteName,
-    tagline: "Travel · Ottawa",
-    primaryPhoneLabel: settings.primaryPhone,
-    primaryPhoneHref: "tel:+16132365226",
-    secondaryPhoneLabel: "613-236-2323",
-    secondaryPhoneHref: "tel:+16132362323",
-    emailLabel: settings.email,
-    emailHref: `mailto:${settings.email}`,
+    tagline: settings.tagline,
+    primaryPhoneLabel: settings.primaryPhoneLabel,
+    primaryPhoneHref: settings.primaryPhoneHref,
+    secondaryPhoneLabel: settings.secondaryPhoneLabel,
+    secondaryPhoneHref: settings.secondaryPhoneHref,
+    emailLabel: settings.emailLabel,
+    emailHref: settings.emailHref,
     officeAddress: settings.officeAddress,
   };
 
@@ -48,9 +49,23 @@ export function SettingsPanel({ settings }: SettingsPanelProps) {
         searchConfig: { submitText: "Save" },
         resetButtonProps: false,
       }}
-      onFinish={async () => {
-        message.success("Settings saved");
-        return true;
+      onFinish={async (values) => {
+        try {
+          const response = await fetch("/api/admin/settings", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ settings: values }),
+          });
+          const payload = await readResponse<{ settings: SiteSettings }>(response);
+          onSaved(payload.settings);
+          message.success("Global settings saved to Supabase");
+          return true;
+        } catch (error) {
+          message.error(
+            error instanceof Error ? error.message : "Global settings could not be saved",
+          );
+          return false;
+        }
       }}
     >
       <ProFormText
@@ -127,4 +142,14 @@ export function SettingsPanel({ settings }: SettingsPanelProps) {
       />
     </ProForm>
   );
+}
+
+async function readResponse<T>(response: Response): Promise<T> {
+  const payload = (await response.json()) as T & { error?: string };
+
+  if (!response.ok) {
+    throw new Error(payload.error ?? `Request failed (${response.status})`);
+  }
+
+  return payload;
 }

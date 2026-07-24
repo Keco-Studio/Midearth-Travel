@@ -14,8 +14,10 @@ import { DeleteOutlined, LinkOutlined, UploadOutlined } from "@ant-design/icons"
 import { useCallback, useMemo, useState } from "react";
 import { AssetPreview } from "@/components/asset-preview";
 import { DestinationCategoryEditor } from "@/components/destination-category-editor";
+import { FooterLinksEditor } from "@/components/footer-links-editor";
 import { ServiceCardsEditor, TestimonialsEditor } from "@/components/home-collection-editors";
 import { FORBIDDEN_FIELD_KEYS } from "@/lib/content-rules";
+import { FOOTER_LINK_FIELD_KEYS } from "@/lib/footer-links";
 import { validateInlineImageFile } from "@/lib/inline-image-upload";
 import { getHomeModuleEditorKey, getModuleFieldViewModels } from "@/lib/module-editor";
 import type { DestinationCategory } from "@/lib/destination-categories";
@@ -58,6 +60,12 @@ export function HomeModuleEditor({
         (field) =>
           !FORBIDDEN_FIELD_KEYS.includes(
             field.definition.key as (typeof FORBIDDEN_FIELD_KEYS)[number],
+          ) &&
+          !(
+            module.id === "footer" &&
+            FOOTER_LINK_FIELD_KEYS.includes(
+              field.definition.key as (typeof FOOTER_LINK_FIELD_KEYS)[number],
+            )
           ),
       ),
     [module],
@@ -116,6 +124,9 @@ export function HomeModuleEditor({
           onDirtyChange={setSupplementalDirty}
           onChange={onTestimonialsChange}
         />
+      ) : null}
+      {module.id === "footer" ? (
+        <FooterLinksEditor content={module.data} onChange={onChange} />
       ) : null}
     </>
   );
@@ -220,7 +231,13 @@ function FieldControl({
             maxLength={definition.maxLength}
             onError={onUploadError}
             onUpload={(file) => onImageUpload(definition.key, file)}
-            variant={definition.key.toLowerCase().includes("qr") ? "qr" : "image"}
+            variant={
+              definition.key.toLowerCase().includes("qr")
+                ? "qr"
+                : definition.key.toLowerCase().includes("iconimage")
+                  ? "icon"
+                  : "image"
+            }
           />
         </ProFormItem>
       </Col>
@@ -257,7 +274,7 @@ type InlineImageUploadProps = {
   alt: string;
   fallbackValue: string;
   maxLength?: number;
-  variant: "image" | "qr";
+  variant: "image" | "icon" | "qr";
   onError: (error: string) => void;
   onUpload: (file: File) => Promise<string>;
 };

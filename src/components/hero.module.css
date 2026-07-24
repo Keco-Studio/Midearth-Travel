@@ -259,6 +259,12 @@
     background 0.2s;
 }
 
+.cardIconImage {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
 @media (max-width: 900px) {
   .card {
     width: calc(50% - 0.45rem);
@@ -317,14 +323,8 @@
 }
 
 .cardDesc {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
   margin: 0 0 0.75rem;
   min-height: 2.6rem;
-}
-
-.cardDescLine {
   font-size: 0.72rem;
   line-height: 1.4;
   color: color-mix(in srgb, var(--hero-ink-soft) 80%, #000 100%);

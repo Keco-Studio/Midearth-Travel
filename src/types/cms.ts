@@ -103,8 +103,13 @@ export type MediaAsset = {
 
 export type SiteSettings = {
   siteName: string;
-  primaryPhone: string;
-  email: string;
+  tagline: string;
+  primaryPhoneLabel: string;
+  primaryPhoneHref: string;
+  secondaryPhoneLabel: string;
+  secondaryPhoneHref: string;
+  emailLabel: string;
+  emailHref: string;
   officeAddress: string;
 };
 

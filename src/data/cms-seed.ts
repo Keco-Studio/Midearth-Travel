@@ -4,6 +4,17 @@ import {
   mapTravelSiteSettings,
   mapTravelToursToRecords,
 } from "../lib/travel-data-mapper.ts";
+import {
+  heroBroadcastSeeds,
+  heroFeatureCardSeeds,
+} from "./hero-content.ts";
+import {
+  FOOTER_SERVICE_LINKS_KEY,
+  FOOTER_TOUR_LINKS_KEY,
+  footerServiceLinkSeeds,
+  footerTourLinkSeeds,
+  serializeFooterLinks,
+} from "../lib/footer-links.ts";
 import type {
   FieldDefinition,
   HomeModuleRecord,
@@ -47,6 +58,55 @@ function createModule(
     fields,
     data,
   };
+}
+
+function createHeroCardFields(): FieldDefinition[] {
+  return heroFeatureCardSeeds.flatMap((_, index) => {
+    const number = index + 1;
+
+    return [
+      {
+        key: `card${number}IconImage`,
+        label: `Card ${number} icon image`,
+        type: "image",
+      },
+      {
+        key: `card${number}Title`,
+        label: `Card ${number} title`,
+        type: "text",
+        required: true,
+        maxLength: 40,
+      },
+      {
+        key: `card${number}Description`,
+        label: `Card ${number} description`,
+        type: "text",
+        required: true,
+        maxLength: 100,
+      },
+      {
+        key: `card${number}Link`,
+        label: `Card ${number} link`,
+        type: "link",
+        required: true,
+      },
+    ];
+  });
+}
+
+function createHeroCardData(): Record<string, string> {
+  return Object.fromEntries(
+    heroFeatureCardSeeds.flatMap((card, index) => {
+      const number = index + 1;
+
+      return [
+        [`card${number}IconImage`, card.iconImage],
+        [`card${number}Title`, card.title],
+        [`card${number}Description`, card.description],
+        [`card${number}Link`, card.href],
+      ];
+    }),
+  );
 }
 
 export const homeModuleSeeds: HomeModuleRecord[] = [
@@ -95,6 +155,15 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
       { key: "backgroundImage", label: "Background image", type: "image", required: true },
       { key: "titleMain", label: "Main title", type: "text", required: true, maxLength: 40 },
       { key: "subtitle", label: "Subtitle", type: "text", required: true, maxLength: 80 },
+      { key: "liveLabel", label: "Live label", type: "text", required: true, maxLength: 20 },
+      {
+        key: "liveMessages",
+        label: "Live messages (one per line)",
+        type: "textarea",
+        required: true,
+        maxLength: 1200,
+      },
+      ...createHeroCardFields(),
       {
         key: "primaryButtonText",
         label: "Primary button text",
@@ -115,6 +184,9 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
       backgroundImage: "/hero/hero-coast.jpg",
       titleMain: "Midearth Travel",
       subtitle: "Your One-Stop Travel Solution",
+      liveLabel: "Live",
+      liveMessages: heroBroadcastSeeds.join("\n"),
+      ...createHeroCardData(),
       primaryButtonText: "Explore Tours",
       primaryButtonLink: "#tours",
       secondaryButtonText: "Request Quote",
@@ -271,12 +343,28 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
       { key: "brandTitle", label: "Brand title", type: "text", required: true, maxLength: 40 },
       { key: "brandDescription", label: "Brand description", type: "textarea", required: true, maxLength: 220 },
       { key: "copyrightText", label: "Copyright text", type: "text", required: true, maxLength: 120 },
+      {
+        key: FOOTER_TOUR_LINKS_KEY,
+        label: "Tour links data",
+        type: "textarea",
+        required: true,
+        maxLength: 1600,
+      },
+      {
+        key: FOOTER_SERVICE_LINKS_KEY,
+        label: "Service links data",
+        type: "textarea",
+        required: true,
+        maxLength: 1600,
+      },
     ],
     {
       brandTitle: "Midearth Travel",
       brandDescription:
         "Your one-stop travel solution. TICO certified member serving the community with professionalism and competitive prices.",
       copyrightText: "© 2026 Midearth Travel Inc. All rights reserved.",
+      [FOOTER_TOUR_LINKS_KEY]: serializeFooterLinks(footerTourLinkSeeds),
+      [FOOTER_SERVICE_LINKS_KEY]: serializeFooterLinks(footerServiceLinkSeeds),
     },
   ),
 ];

@@ -9,34 +9,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { HeroBroadcast } from "@/components/hero-broadcast";
 import { getStringContent, type ContentData } from "@/lib/content-values";
+import {
+  getHeroBroadcastContent,
+  getHeroFeatureCards,
+} from "@/lib/hero-content";
 import styles from "./hero.module.css";
 
-const featureCards = [
-  {
-    title: "Flight Booking",
-    descLines: ["Best Airfares", "Worldwide"],
-    icon: Plane,
-    href: "/#services",
-  },
-  {
-    title: "Bus Tours",
-    descLines: ["Charter & Group", "Transportation"],
-    icon: Bus,
-    href: "/tours",
-  },
-  {
-    title: "Worldwide Travel",
-    descLines: ["Worldwide Cruise", "Packages"],
-    icon: Globe,
-    href: "/tours",
-  },
-  {
-    title: "Other Services",
-    descLines: ["Canada & International", "Tours"],
-    icon: Ship,
-    href: "/#services",
-  },
-];
+const cardIcons = { Plane, Bus, Globe, Ship };
 
 export function Hero({ content = {} }: { content?: ContentData }) {
   const backgroundImage = getStringContent(content, "backgroundImage", "/hero/hero-coast.jpg");
@@ -46,6 +25,8 @@ export function Hero({ content = {} }: { content?: ContentData }) {
   const primaryButtonLink = getStringContent(content, "primaryButtonLink", "#tours");
   const secondaryButtonText = getStringContent(content, "secondaryButtonText", "Request Quote");
   const secondaryButtonLink = getStringContent(content, "secondaryButtonLink", "#contact");
+  const broadcast = getHeroBroadcastContent(content);
+  const featureCards = getHeroFeatureCards(content);
 
   return (
     <section className={styles.hero}>
@@ -70,28 +51,37 @@ export function Hero({ content = {} }: { content?: ContentData }) {
 
           <p className={styles.subtitle}>{subtitle}</p>
 
-          <HeroBroadcast />
+          <HeroBroadcast label={broadcast.label} messages={broadcast.messages} />
         </div>
 
         <div className={styles.cards}>
-          {featureCards.map((card) => (
-            <Link key={card.title} href={card.href} className={styles.card}>
-              <div className={styles.cardIcon}>
-                <card.icon size={26} aria-hidden />
-              </div>
-              <h2 className={styles.cardTitle}>{card.title}</h2>
-              <p className={styles.cardDesc}>
-                {card.descLines.map((line) => (
-                  <span key={line} className={styles.cardDescLine}>
-                    {line}
-                  </span>
-                ))}
-              </p>
-              <span className={styles.cardArrow} aria-hidden>
-                →
-              </span>
-            </Link>
-          ))}
+          {featureCards.map((card) => {
+            const CardIcon = cardIcons[card.fallbackIcon];
+
+            return (
+              <Link key={card.id} href={card.href} className={styles.card}>
+                <div className={styles.cardIcon}>
+                  {card.iconImage ? (
+                    <Image
+                      alt=""
+                      className={styles.cardIconImage}
+                      height={32}
+                      src={card.iconImage}
+                      unoptimized
+                      width={32}
+                    />
+                  ) : (
+                    <CardIcon size={26} aria-hidden />
+                  )}
+                </div>
+                <h2 className={styles.cardTitle}>{card.title}</h2>
+                <p className={styles.cardDesc}>{card.description}</p>
+                <span className={styles.cardArrow} aria-hidden>
+                  →
+                </span>
+              </Link>
+            );
+          })}
         </div>
 
         <div className={styles.actions}>
