@@ -10,8 +10,10 @@ const editorSource = readFileSync(
 const sectionTitles = [
   "Tour information",
   "Schedule and highlights",
+  "Trip essentials",
   "Pricing",
   "Tour descriptions",
+  "Policies and exclusions",
   "Media and PDF",
   "Publishing and categories",
 ];
@@ -36,6 +38,32 @@ test("tour editor preserves its section order and interaction handlers", () => {
     'htmlType="submit"',
   ]) {
     assert.ok(editorSource.includes(contract), `missing interaction contract: ${contract}`);
+  }
+});
+
+test("tour editor exposes all persisted tour detail fields", () => {
+  for (const field of [
+    'name="departureCity"',
+    'name="localizedDepartureCity"',
+    'name={["essentials", "departureTime"]}',
+    'name={["essentials", "meetingPlace"]}',
+    'name={["essentials", "localizedMeetingPlace"]}',
+    'name={["essentials", "hotels"]}',
+    'name={["essentials", "localizedHotels"]}',
+    'name={["essentials", "escortedCoach"]}',
+    'name={["essentials", "localizedEscortedCoach"]}',
+    'name="admissions"',
+    'name="localizedAdmissions"',
+    'name="cancellation"',
+    'name="localizedCancellation"',
+    'name="importantNotice"',
+    'name="localizedImportantNotice"',
+    'name="included"',
+    'name="localizedIncluded"',
+    'name="notIncluded"',
+    'name="localizedNotIncluded"',
+  ]) {
+    assert.ok(editorSource.includes(field), `missing tour detail field: ${field}`);
   }
 });
 

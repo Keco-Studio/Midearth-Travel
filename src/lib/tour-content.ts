@@ -1,5 +1,5 @@
 import { tourSeeds } from "../data/cms-seed.ts";
-import { tours, type Tour, type TourFare } from "../data/tours.ts";
+import { tours, type Tour, type TourFare, type TourPolicy } from "../data/tours.ts";
 import type { ContentStatus, TourRecord } from "../types/cms.ts";
 import { richTextToPlainText } from "./rich-text-content.ts";
 import { validateTourEditorRecord } from "./tour-editor-state.ts";
@@ -9,6 +9,39 @@ export type TourRow = {
   status: ContentStatus;
   data: TourRecord;
   updated_at: string;
+};
+
+const emptyFareFields: TourRecord["fares"] = {
+  child: "",
+  single: "",
+  double: "",
+  triple: "",
+  quad: "",
+};
+
+const emptyEssentialFields: TourRecord["essentials"] = {
+  departureTime: "",
+  meetingPlace: "",
+  localizedMeetingPlace: "",
+  hotels: "",
+  localizedHotels: "",
+  escortedCoach: "",
+  localizedEscortedCoach: "",
+};
+
+const emptyTourDetailFields = {
+  departureCity: "",
+  localizedDepartureCity: "",
+  admissions: "",
+  localizedAdmissions: "",
+  cancellation: "",
+  localizedCancellation: "",
+  importantNotice: "",
+  localizedImportantNotice: "",
+  included: "",
+  localizedIncluded: "",
+  notIncluded: "",
+  localizedNotIncluded: "",
 };
 
 export function toTourRow(record: TourRecord): TourRow {
@@ -40,15 +73,38 @@ export function mergeTourRows(rows: readonly TourRow[]): TourRecord[] {
   return merged;
 }
 
+export function isItineraryDescription(text: string): boolean {
+  return /Day\s+\d+:/i.test(text);
+}
+
+function resolvePublicDescription(
+  record: TourRecord,
+  base: Tour | undefined,
+  seed: TourRecord | undefined,
+): string {
+  const plain = richTextToPlainText(record.description);
+
+  if (isItineraryDescription(plain)) {
+    return base?.description ?? "";
+  }
+
+  const descriptionChanged = seed ? record.description !== seed.description : true;
+  if (descriptionChanged) {
+    return plain || base?.description || "";
+  }
+
+  return base?.description ?? plain;
+}
+
 export function mapTourRecordToPublicTour(record: TourRecord): Tour {
   const base = tours.find((tour) => tour.slug === record.slug);
   const seed = tourSeeds.find((tour) => tour.slug === record.slug);
-  const descriptionChanged = seed ? record.description !== seed.description : true;
-  const description = descriptionChanged
-    ? richTextToPlainText(record.description) || base?.description || ""
-    : base?.description ?? richTextToPlainText(record.description);
+  const description = resolvePublicDescription(record, base, seed);
   const highlights = splitList(record.highlights);
   const departures = splitList(record.departures);
+  const included = splitList(record.included);
+  const notIncluded = splitList(record.notIncluded);
+  const policies = mapPolicies(record);
   const fares = mapFares(record);
   const gallery = base?.gallery?.length
     ? [record.image, ...base.gallery.filter((image) => image !== base.image && image !== record.image)]
@@ -66,8 +122,18 @@ export function mapTourRecordToPublicTour(record: TourRecord): Tour {
     image: record.image,
     tags: highlights.length > 0 ? highlights : base?.tags ?? [],
     tourType: record.tourType,
+    departureCity: record.departureCity || undefined,
     departures: departures.length > 0 ? departures : undefined,
     highlights: highlights.length > 0 ? highlights : undefined,
+    essentials: {
+      departureTime: record.essentials.departureTime,
+      meetingPlace: record.essentials.meetingPlace,
+      hotels: record.essentials.hotels,
+      escortedCoach: record.essentials.escortedCoach,
+    },
+    policies: policies.length > 0 ? policies : undefined,
+    included,
+    notIncluded,
     fares: fares.length > 0 ? fares : undefined,
     featured: record.specialOffer,
     hotSale: record.specialDeals,
@@ -79,20 +145,31 @@ function normalizeStoredTour(
   row: TourRow,
   fallback?: TourRecord,
 ): TourRecord | null {
+  const storedData = row.data as Partial<TourRecord>;
   const candidate = {
-    ...(fallback ?? row.data),
-    ...row.data,
+    ...emptyTourDetailFields,
+    ...(fallback ?? {}),
+    ...storedData,
     slug: row.slug,
     status: row.status,
     updatedAt: row.updated_at,
-    fares: { ...(fallback?.fares ?? row.data.fares), ...row.data.fares },
-  };
+    fares: { ...emptyFareFields, ...fallback?.fares, ...storedData.fares },
+    essentials: {
+      ...emptyEssentialFields,
+      ...fallback?.essentials,
+      ...storedData.essentials,
+    },
+  } as TourRecord;
   const validation = validateTourEditorRecord(candidate);
   return validation.ok ? validation.value : fallback ? cloneTourRecord(fallback) : null;
 }
 
 function cloneTourRecord(record: TourRecord): TourRecord {
-  return { ...record, fares: { ...record.fares } };
+  return {
+    ...record,
+    essentials: { ...record.essentials },
+    fares: { ...record.fares },
+  };
 }
 
 function splitList(value: string): string[] {
@@ -100,6 +177,29 @@ function splitList(value: string): string[] {
     .split(/[,\n]/)
     .map((entry) => entry.trim())
     .filter(Boolean);
+}
+
+function mapPolicies(record: TourRecord): TourPolicy[] {
+  const policies: TourPolicy[] = [
+    {
+      title: "Admissions",
+      content: record.admissions,
+      icon: "ticket",
+    },
+    {
+      title: "Cancellation",
+      content: record.cancellation,
+      icon: "shield",
+    },
+    {
+      title: "Important notice",
+      content: record.importantNotice,
+      icon: "info",
+      wide: true,
+    },
+  ];
+
+  return policies.filter((policy) => Boolean(policy.content.trim()));
 }
 
 function mapFares(record: TourRecord): TourFare[] {

@@ -296,6 +296,10 @@ export function getTourDisplayTitle(tour: Tour): string {
   return tour.pageTitle ?? tour.title;
 }
 
+export function getTourNotIncluded(tour: Tour): string[] {
+  return tour.notIncluded ?? defaultTourNotIncluded;
+}
+
 export function getBookingMailto(tour: Tour): string {
   const subject = encodeURIComponent(
     `Booking request — ${getTourDisplayTitle(tour)}${tour.code ? ` (${tour.code})` : ""}`,

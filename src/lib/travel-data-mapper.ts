@@ -1,5 +1,9 @@
 import { siteSettingsSeed } from "../data/site-settings.ts";
-import { tours } from "../data/tours.ts";
+import {
+  defaultTourIncluded,
+  defaultTourNotIncluded,
+  tours,
+} from "../data/tours.ts";
 import type { MediaAsset, SiteSettings, TourRecord } from "../types/cms.ts";
 
 const uploadedAt = "2026-07-01T10:00:00Z";
@@ -16,12 +20,33 @@ export function mapTravelToursToRecords(): TourRecord[] {
     duration: tour.duration,
     localizedDuration: "",
     tourType: tour.tourType,
+    departureCity: tour.departureCity ?? "",
+    localizedDepartureCity: "",
     departures: tour.departures?.join(", ") ?? "",
     localizedDepartures: "",
     highlights: (tour.highlights ?? tour.tags).join(", "),
     localizedHighlights: "",
-    description: formatTourDescription(tour),
+    description: tour.description,
     localizedDescription: "",
+    admissions: getPolicyContent(tour, "Admissions"),
+    localizedAdmissions: "",
+    cancellation: getPolicyContent(tour, "Cancellation"),
+    localizedCancellation: "",
+    importantNotice: getPolicyContent(tour, "Important notice"),
+    localizedImportantNotice: "",
+    included: (tour.included ?? defaultTourIncluded).join("\n"),
+    localizedIncluded: "",
+    notIncluded: (tour.notIncluded ?? defaultTourNotIncluded).join("\n"),
+    localizedNotIncluded: "",
+    essentials: {
+      departureTime: tour.essentials?.departureTime ?? "",
+      meetingPlace: tour.essentials?.meetingPlace ?? "",
+      localizedMeetingPlace: "",
+      hotels: tour.essentials?.hotels ?? "",
+      localizedHotels: "",
+      escortedCoach: tour.essentials?.escortedCoach ?? "",
+      localizedEscortedCoach: "",
+    },
     fares: mapTourFares(tour.fares),
     pdfTitle: "Download PDF for tour details",
     localizedPdfTitle: "",
@@ -36,16 +61,8 @@ export function mapTravelToursToRecords(): TourRecord[] {
   }));
 }
 
-function formatTourDescription(tour: (typeof tours)[number]): string {
-  if (!tour.itinerary?.length) {
-    return tour.description;
-  }
-
-  return tour.itinerary
-    .map(({ day, title, description }) =>
-      [`Day ${day}: ${title}`, description].filter(Boolean).join("\n"),
-    )
-    .join("\n\n");
+function getPolicyContent(tour: (typeof tours)[number], title: string): string {
+  return tour.policies?.find((policy) => policy.title === title)?.content ?? "";
 }
 
 function mapTourFares(fares: (typeof tours)[number]["fares"]): TourRecord["fares"] {
