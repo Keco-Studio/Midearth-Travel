@@ -20,6 +20,8 @@ The existing `public.tours` table remains unchanged. Content continues to live i
   "localizedCancellation": "",
   "importantNotice": "Fares shown are for reference only...",
   "localizedImportantNotice": "",
+  "included": "Coach transportation throughout\nHotel accommodation (3-4 stars)\nBilingual tour leader\nSelected meals (see itinerary)\nMajor attraction admissions",
+  "localizedIncluded": "",
   "notIncluded": "International flights\nTravel insurance\nOptional excursions\nGratuities",
   "localizedNotIncluded": "",
   "essentials": {
@@ -54,7 +56,7 @@ An older row that lacks the new keys remains valid. Existing static content is u
 Add three sections to the existing vertical editor:
 
 1. `Trip essentials`: departure city/time, meeting place, hotels, and escorted coach, with English/Chinese pairs where the content is translatable. Dates and duration remain in the existing Schedule section.
-2. `Policies and exclusions`: Admissions, Cancellation, Important notice, and Not included, with English/Chinese pairs.
+2. `Policies and exclusions`: Admissions, Cancellation, Important notice, Included, and Not included, with English/Chinese pairs.
 3. Existing `Pricing`: retain the five fare inputs without changing their stored keys.
 
 Textarea fields are used for long policy text and exclusions. The new controls use the existing Ant Design form, section, grid, and responsive conventions.
@@ -64,7 +66,7 @@ Textarea fields are used for long policy text and exclusions. The new controls u
 The public mapper transfers the new CMS fields into the existing `Tour` model. The existing detail-page components render:
 
 - Admissions, Cancellation, and Important notice policy cards;
-- Not included list;
+- Included and Not included lists;
 - Trip essentials;
 - Tour fares and the departure-city subtitle.
 
