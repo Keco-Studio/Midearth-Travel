@@ -188,6 +188,69 @@ export function TourEditor({
           </Row>
         </EditorSection>
 
+        <EditorSection title="Trip essentials">
+          <Row gutter={[16, 0]}>
+            <Col xs={24} lg={12}>
+              <Form.Item name="departureCity" label="Departure city (English)">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col xs={24} lg={12}>
+              <Form.Item name="localizedDepartureCity" label="Departure city (Chinese)">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col xs={24} lg={12}>
+              <Form.Item name={["essentials", "departureTime"]} label="Departure time">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col xs={24} lg={12} />
+            <Col xs={24} lg={12}>
+              <Form.Item name={["essentials", "meetingPlace"]} label="Meeting place (English)">
+                <Input.TextArea rows={3} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} lg={12}>
+              <Form.Item
+                name={["essentials", "localizedMeetingPlace"]}
+                label="Meeting place (Chinese)"
+              >
+                <Input.TextArea rows={3} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} lg={12}>
+              <Form.Item name={["essentials", "hotels"]} label="Hotels (English)">
+                <Input.TextArea rows={3} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} lg={12}>
+              <Form.Item
+                name={["essentials", "localizedHotels"]}
+                label="Hotels (Chinese)"
+              >
+                <Input.TextArea rows={3} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} lg={12}>
+              <Form.Item
+                name={["essentials", "escortedCoach"]}
+                label="Escorted coach (English)"
+              >
+                <Input.TextArea rows={3} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} lg={12}>
+              <Form.Item
+                name={["essentials", "localizedEscortedCoach"]}
+                label="Escorted coach (Chinese)"
+              >
+                <Input.TextArea rows={3} />
+              </Form.Item>
+            </Col>
+          </Row>
+        </EditorSection>
+
         <EditorSection title="Pricing">
           <Row gutter={[16, 0]} className="cms-tour-editor-price-grid">
             <PriceField name="child" label="Child" />
@@ -205,6 +268,64 @@ export function TourEditor({
           <Form.Item name="localizedDescription" label="Description (Chinese)">
             <RichTextEditor />
           </Form.Item>
+        </EditorSection>
+
+        <EditorSection title="Policies and exclusions">
+          <Row gutter={[16, 0]}>
+            <Col xs={24} lg={12}>
+              <Form.Item name="admissions" label="Admissions (English)">
+                <Input.TextArea rows={3} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} lg={12}>
+              <Form.Item name="localizedAdmissions" label="Admissions (Chinese)">
+                <Input.TextArea rows={3} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} lg={12}>
+              <Form.Item name="cancellation" label="Cancellation (English)">
+                <Input.TextArea rows={5} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} lg={12}>
+              <Form.Item name="localizedCancellation" label="Cancellation (Chinese)">
+                <Input.TextArea rows={5} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} lg={12}>
+              <Form.Item name="importantNotice" label="Important notice (English)">
+                <Input.TextArea rows={5} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} lg={12}>
+              <Form.Item
+                name="localizedImportantNotice"
+                label="Important notice (Chinese)"
+              >
+                <Input.TextArea rows={5} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} lg={12}>
+              <Form.Item name="included" label="Included (English)">
+                <Input.TextArea rows={4} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} lg={12}>
+              <Form.Item name="localizedIncluded" label="Included (Chinese)">
+                <Input.TextArea rows={4} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} lg={12}>
+              <Form.Item name="notIncluded" label="Not included (English)">
+                <Input.TextArea rows={4} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} lg={12}>
+              <Form.Item name="localizedNotIncluded" label="Not included (Chinese)">
+                <Input.TextArea rows={4} />
+              </Form.Item>
+            </Col>
+          </Row>
         </EditorSection>
 
         <EditorSection title="Media and PDF">

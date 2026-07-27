@@ -1,5 +1,4 @@
 import {
-  ArrowLeft,
   ArrowRight,
   CalendarDays,
   Clock,
@@ -9,7 +8,6 @@ import {
   Ticket,
   Users,
 } from "lucide-react";
-import Link from "next/link";
 import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
 import { buttonVariants } from "@/components/ui/button";
@@ -17,8 +15,8 @@ import { cn } from "@/lib/utils";
 import {
   getBookingMailto,
   getTourDisplayTitle,
+  getTourNotIncluded,
   defaultTourIncluded,
-  defaultTourNotIncluded,
   type Tour,
   type TourPolicy,
 } from "@/data/tours";
@@ -34,13 +32,13 @@ function PolicyIcon({ icon }: { icon?: TourPolicy["icon"] }) {
 
 export function TourDetail({ tour }: { tour: Tour }) {
   const displayTitle = getTourDisplayTitle(tour);
-  const departureCity = tour.departureCity ?? "Ottawa";
+  const departureCity = tour.departureCity?.trim();
   const departuresLine = tour.departures?.join(" · ");
   const departuresComma = tour.departures?.join(", ");
   const bookingMailto = getBookingMailto(tour);
   const gallery = tour.gallery?.length ? tour.gallery : [tour.image];
   const included = tour.included ?? defaultTourIncluded;
-  const notIncluded = tour.notIncluded ?? defaultTourNotIncluded;
+  const notIncluded = getTourNotIncluded(tour);
 
   return (
     <main className="min-h-screen bg-background">
@@ -48,14 +46,6 @@ export function TourDetail({ tour }: { tour: Tour }) {
 
       <TourDetailHeader images={gallery} alt={displayTitle}>
           <div className="mx-auto w-full max-w-7xl">
-            <Link
-              href="/#packages"
-              className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-white/90 transition-colors hover:text-white"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to packages
-            </Link>
-
             {tour.code && (
               <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
                 Tour {tour.code}
@@ -65,9 +55,6 @@ export function TourDetail({ tour }: { tour: Tour }) {
             <h1 className="max-w-4xl text-balance text-4xl font-light tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
               {displayTitle}
             </h1>
-            <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/85 md:text-lg">
-              {tour.description}
-            </p>
 
             <div className="mt-6 flex flex-wrap gap-2">
               {tour.tags.map((tag) => (
@@ -91,7 +78,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
               </div>
               <div className="sm:col-span-2">
                 <dt className="text-xs font-medium uppercase tracking-wide text-white/60">
-                  Departures from {departureCity}
+                  {departureCity ? `Departures from ${departureCity}` : "Departures"}
                 </dt>
                 <dd className="mt-1 text-sm font-semibold text-white md:text-base">
                   {departuresLine ?? "Contact for dates"}
@@ -159,14 +146,16 @@ export function TourDetail({ tour }: { tour: Tour }) {
           </div>
 
           <div className={styles.overviewAside}>
-            <div className={styles.includedCard}>
-              <div className={styles.includedHead}>Included</div>
-              <ul className={styles.includedList}>
-                {included.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </div>
+            {included.length > 0 && (
+              <div className={styles.includedCard}>
+                <div className={styles.includedHead}>Included</div>
+                <ul className={styles.includedList}>
+                  {included.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
 
@@ -204,14 +193,16 @@ export function TourDetail({ tour }: { tour: Tour }) {
 
           <aside className="lg:col-span-4">
             <div className="space-y-6 lg:sticky lg:top-28">
-              <div className={styles.notIncludedCard}>
-                <div className={styles.notIncludedHead}>Not included</div>
-                <ul className={styles.notIncludedList}>
-                  {notIncluded.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </div>
+              {notIncluded.length > 0 && (
+                <div className={styles.notIncludedCard}>
+                  <div className={styles.notIncludedHead}>Not included</div>
+                  <ul className={styles.notIncludedList}>
+                    {notIncluded.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {tour.essentials && (
                 <div className="flex flex-col overflow-hidden rounded-xl border border-border bg-card py-0 shadow-lg">
@@ -290,7 +281,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
                 <div className="border-b border-border px-6 py-5">
                   <h3 className="text-lg font-semibold">Tour fares</h3>
                   <p className="text-xs text-muted-foreground">
-                    Per person, from {departureCity}
+                    Per person{departureCity ? `, from ${departureCity}` : ""}
                   </p>
                 </div>
 

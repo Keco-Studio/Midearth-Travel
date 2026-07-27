@@ -20,6 +20,13 @@ test("validates and trims editable tour fields", () => {
     ...record,
     title: "  Updated title  ",
     localizedTitle: "  Local title  ",
+    departureCity: "  Ottawa  ",
+    admissions: "  Subject to arrangements.  ",
+    included: "  Coach transport\nHotels  ",
+    essentials: {
+      ...record.essentials,
+      meetingPlace: "  670 Bronson Ave  ",
+    },
     fares: { ...record.fares, child: "  $100  " },
   });
 
@@ -27,6 +34,10 @@ test("validates and trims editable tour fields", () => {
   if (validation.ok) {
     assert.equal(validation.value.title, "Updated title");
     assert.equal(validation.value.localizedTitle, "Local title");
+    assert.equal(validation.value.departureCity, "Ottawa");
+    assert.equal(validation.value.admissions, "Subject to arrangements.");
+    assert.equal(validation.value.included, "Coach transport\nHotels");
+    assert.equal(validation.value.essentials.meetingPlace, "670 Bronson Ave");
     assert.equal(validation.value.fares.child, "$100");
   }
 });

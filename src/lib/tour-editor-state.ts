@@ -25,12 +25,24 @@ const stringFields = [
   "duration",
   "localizedDuration",
   "tourType",
+  "departureCity",
+  "localizedDepartureCity",
   "departures",
   "localizedDepartures",
   "highlights",
   "localizedHighlights",
   "description",
   "localizedDescription",
+  "admissions",
+  "localizedAdmissions",
+  "cancellation",
+  "localizedCancellation",
+  "importantNotice",
+  "localizedImportantNotice",
+  "included",
+  "localizedIncluded",
+  "notIncluded",
+  "localizedNotIncluded",
   "pdfTitle",
   "localizedPdfTitle",
   "pdfFileName",
@@ -104,6 +116,7 @@ export function buildTourEditorStorage(
       return {
         ...current,
         image: current.image.startsWith("blob:") ? source.image : current.image,
+        essentials: { ...current.essentials },
         fares: { ...current.fares },
       };
     }),
@@ -132,12 +145,33 @@ function trimTourRecord(record: TourRecord): TourRecord {
     duration: record.duration.trim(),
     localizedDuration: record.localizedDuration.trim(),
     tourType: record.tourType.trim(),
+    departureCity: record.departureCity.trim(),
+    localizedDepartureCity: record.localizedDepartureCity.trim(),
     departures: record.departures.trim(),
     localizedDepartures: record.localizedDepartures.trim(),
     highlights: record.highlights.trim(),
     localizedHighlights: record.localizedHighlights.trim(),
     description: normalizeRichText(record.description),
     localizedDescription: normalizeRichText(record.localizedDescription),
+    admissions: record.admissions.trim(),
+    localizedAdmissions: record.localizedAdmissions.trim(),
+    cancellation: record.cancellation.trim(),
+    localizedCancellation: record.localizedCancellation.trim(),
+    importantNotice: record.importantNotice.trim(),
+    localizedImportantNotice: record.localizedImportantNotice.trim(),
+    included: record.included.trim(),
+    localizedIncluded: record.localizedIncluded.trim(),
+    notIncluded: record.notIncluded.trim(),
+    localizedNotIncluded: record.localizedNotIncluded.trim(),
+    essentials: {
+      departureTime: record.essentials.departureTime.trim(),
+      meetingPlace: record.essentials.meetingPlace.trim(),
+      localizedMeetingPlace: record.essentials.localizedMeetingPlace.trim(),
+      hotels: record.essentials.hotels.trim(),
+      localizedHotels: record.essentials.localizedHotels.trim(),
+      escortedCoach: record.essentials.escortedCoach.trim(),
+      localizedEscortedCoach: record.essentials.localizedEscortedCoach.trim(),
+    },
     fares: {
       child: record.fares.child.trim(),
       single: record.fares.single.trim(),
@@ -169,8 +203,25 @@ function isTourRecord(value: unknown): value is TourRecord {
     (value.status === "published" ||
       value.status === "draft" ||
       value.status === "unpublished") &&
-    isFareFields(value.fares)
+    isFareFields(value.fares) &&
+    isEssentialFields(value.essentials)
   );
+}
+
+function isEssentialFields(value: unknown): value is TourRecord["essentials"] {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return [
+    "departureTime",
+    "meetingPlace",
+    "localizedMeetingPlace",
+    "hotels",
+    "localizedHotels",
+    "escortedCoach",
+    "localizedEscortedCoach",
+  ].every((field) => typeof value[field] === "string");
 }
 
 function isFareFields(value: unknown): value is TourRecord["fares"] {

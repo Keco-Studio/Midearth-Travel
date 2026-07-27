@@ -61,6 +61,16 @@ export type TourFareFields = {
   quad: string;
 };
 
+export type TourEssentialFields = {
+  departureTime: string;
+  meetingPlace: string;
+  localizedMeetingPlace: string;
+  hotels: string;
+  localizedHotels: string;
+  escortedCoach: string;
+  localizedEscortedCoach: string;
+};
+
 export type TourRecord = {
   slug: string;
   code: string;
@@ -72,12 +82,25 @@ export type TourRecord = {
   duration: string;
   localizedDuration: string;
   tourType: string;
+  departureCity: string;
+  localizedDepartureCity: string;
   departures: string;
   localizedDepartures: string;
   highlights: string;
   localizedHighlights: string;
   description: string;
   localizedDescription: string;
+  admissions: string;
+  localizedAdmissions: string;
+  cancellation: string;
+  localizedCancellation: string;
+  importantNotice: string;
+  localizedImportantNotice: string;
+  included: string;
+  localizedIncluded: string;
+  notIncluded: string;
+  localizedNotIncluded: string;
+  essentials: TourEssentialFields;
   fares: TourFareFields;
   pdfTitle: string;
   localizedPdfTitle: string;
