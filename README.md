@@ -32,6 +32,30 @@ npm run dev
 
 打开 http://localhost:3000
 
+## Stripe 支付配置
+
+支付使用 Stripe Checkout，信用卡信息始终由 Stripe 托管。先在 Stripe Dashboard 开启 Test mode 并创建 API key，然后复制环境变量：
+
+```bash
+cp .env.example .env.local
+```
+
+填写 `STRIPE_SECRET_KEY`、`STRIPE_WEBHOOK_SECRET`、`NEXT_PUBLIC_SUPABASE_URL` 和 `SUPABASE_SERVICE_ROLE_KEY`，并执行 `supabase db push` 应用 `202608190001_stripe_payments.sql`。`STRIPE_SECRET_KEY` 和 `STRIPE_WEBHOOK_SECRET` 只能放在服务端环境变量中，不能使用 `NEXT_PUBLIC_` 前缀。
+
+在 Stripe Dashboard 的 Developers → Webhooks 中添加生产地址 `https://你的域名/api/webhooks/stripe`，订阅：
+
+- `checkout.session.completed`
+- `checkout.session.async_payment_failed`
+- `checkout.session.expired`
+
+本地可以使用 Stripe CLI 转发：
+
+```bash
+stripe listen --forward-to localhost:3000/api/webhooks/stripe
+```
+
+将 CLI 输出的 `whsec_...` 写入 `.env.local` 后重启开发服务器。支付成功回跳只表示 Stripe Checkout 已完成，订单最终状态以签名 Webhook 写入 Supabase 为准。
+
 ## 修改内容
 
 - **Tour 列表/详情**：编辑 `src/data/tours.ts`

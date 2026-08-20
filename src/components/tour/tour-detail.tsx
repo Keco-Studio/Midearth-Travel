@@ -22,6 +22,7 @@ import {
 } from "@/data/tours";
 import { TourDetailHeader } from "@/components/tour/tour-detail-header";
 import { TourPdfDownload } from "@/components/tour/tour-pdf-download";
+import { TourCheckoutButton } from "@/components/tour/tour-checkout-button";
 import styles from "@/components/tour/tour-detail.module.css";
 
 function PolicyIcon({ icon }: { icon?: TourPolicy["icon"] }) {
@@ -313,6 +314,9 @@ export function TourDetail({ tour }: { tour: Tour }) {
                 )}
 
                 <div className="border-t border-border px-6 py-4">
+                  {tour.fares && tour.fares.length > 0 ? (
+                    <TourCheckoutButton tourSlug={tour.slug} fares={tour.fares} />
+                  ) : null}
                   <a
                     href={bookingMailto}
                     className={cn(

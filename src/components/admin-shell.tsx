@@ -16,7 +16,7 @@ import { SettingsPanel } from "@/components/settings-panel";
 import { HomeModuleMenuItem, MenuBrandHeader, menuBrandMarkStyle } from "@/components/cms-menu-items";
 import { StatusTag } from "@/components/status-tag";
 import { ToursWorkspace } from "@/components/tours-workspace";
-import { bookingSeeds, paymentSeeds, tourSeeds } from "@/data/cms-seed";
+import { bookingSeeds, tourSeeds } from "@/data/cms-seed";
 import type { Service } from "@/data/services";
 import type { Testimonial } from "@/data/testimonials";
 import {
@@ -40,7 +40,7 @@ import {
 } from "@/lib/layout-routes";
 import type { DestinationCategory } from "@/lib/destination-categories";
 import { proLayoutToken } from "@/theme/mid-earth-theme";
-import type { HomeModuleId, HomeModuleRecord, SiteSettings } from "@/types/cms";
+import type { HomeModuleId, HomeModuleRecord, PaymentRecord, SiteSettings } from "@/types/cms";
 
 const subscribeToHydration = () => () => {};
 const getClientHydrationSnapshot = () => true;
@@ -52,6 +52,7 @@ type AdminShellProps = {
   initialServices: Service[];
   initialTestimonials: Testimonial[];
   initialSettings: SiteSettings;
+  initialPayments: PaymentRecord[];
 };
 
 export function AdminShell({
@@ -60,6 +61,7 @@ export function AdminShell({
   initialServices,
   initialTestimonials,
   initialSettings,
+  initialPayments,
 }: AdminShellProps) {
   const { message } = App.useApp();
   const mounted = useSyncExternalStore(
@@ -367,6 +369,7 @@ export function AdminShell({
           services,
           testimonials,
           settings,
+          payments: initialPayments,
           onDestinationCategoriesChange: setDestinationCategories,
           onServicesChange: setServices,
           onTestimonialsChange: setTestimonials,
@@ -506,6 +509,7 @@ function renderWorkspace(
     services: Service[];
     testimonials: Testimonial[];
     settings: SiteSettings;
+    payments: PaymentRecord[];
     onDestinationCategoriesChange: (categories: DestinationCategory[]) => void;
     onServicesChange: (services: Service[]) => void;
     onTestimonialsChange: (testimonials: Testimonial[]) => void;
@@ -542,7 +546,7 @@ function renderWorkspace(
     return (
       <BookingsWorkspace
         bookings={bookingSeeds}
-        payments={paymentSeeds}
+        payments={handlers.payments}
         focusBookingId={state.focusBookingId}
         onFocusHandled={handlers.onFocusHandled}
         onViewPayment={handlers.onViewPayment}
@@ -553,7 +557,7 @@ function renderWorkspace(
   if (state.workspace === "payments") {
     return (
       <PaymentsWorkspace
-        payments={paymentSeeds}
+        payments={handlers.payments}
         bookings={bookingSeeds}
         focusPaymentId={state.focusPaymentId}
         onFocusHandled={handlers.onFocusHandled}
