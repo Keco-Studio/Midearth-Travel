@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "node --experimental-strip-types --test",
     "verify:admin": "node scripts/verify-admin-integration.mjs",
-    "verify:homepage": "node scripts/verify-homepage-refresh.mjs"
+    "verify:homepage": "node scripts/verify-homepage-refresh.mjs",
+    "import:tours": "npx tsx scripts/import-tours-from-xlsx.mjs"
   },
   "dependencies": {
     "@ant-design/icons": "^6.3.2",
@@ -40,6 +41,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "xlsx": "^0.18.5"
   }
 }

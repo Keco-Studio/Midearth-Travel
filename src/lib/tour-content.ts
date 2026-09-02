@@ -1,6 +1,7 @@
 import { tourSeeds } from "../data/cms-seed.ts";
 import { tours, type Tour, type TourFare, type TourPolicy } from "../data/tours.ts";
 import type { ContentStatus, TourRecord } from "../types/cms.ts";
+import { parseItineraryFromRichText } from "./tour-itinerary-parser.ts";
 import { richTextToPlainText } from "./rich-text-content.ts";
 import { validateTourEditorRecord } from "./tour-editor-state.ts";
 
@@ -106,6 +107,10 @@ export function mapTourRecordToPublicTour(record: TourRecord): Tour {
   const notIncluded = splitList(record.notIncluded);
   const policies = mapPolicies(record);
   const fares = mapFares(record);
+  const itinerary =
+    base?.itinerary && base.itinerary.length > 0
+      ? base.itinerary
+      : parseItineraryFromRichText(record.description);
   const gallery = base?.gallery?.length
     ? [record.image, ...base.gallery.filter((image) => image !== base.image && image !== record.image)]
     : [record.image];
@@ -125,6 +130,7 @@ export function mapTourRecordToPublicTour(record: TourRecord): Tour {
     departureCity: record.departureCity || undefined,
     departures: departures.length > 0 ? departures : undefined,
     highlights: highlights.length > 0 ? highlights : undefined,
+    itinerary: itinerary.length > 0 ? itinerary : undefined,
     essentials: {
       departureTime: record.essentials.departureTime,
       meetingPlace: record.essentials.meetingPlace,
