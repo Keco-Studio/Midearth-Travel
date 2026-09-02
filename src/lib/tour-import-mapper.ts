@@ -9,13 +9,11 @@ const codeToSlug = new Map(
 );
 
 /** Extra aliases for import titles that slugify differently from existing routes. */
-const titleToSlug = new Map(
-  [
-    ["southern france and italy", "southern-france-italy"],
-    ["southern france & italy", "southern-france-italy"],
-    ["highlights of japan", "highlights-of-japan"],
-  ] as const,
-);
+const titleToSlug = new Map<string, string>([
+  ["southern france and italy", "southern-france-italy"],
+  ["southern france & italy", "southern-france-italy"],
+  ["highlights of japan", "highlights-of-japan"],
+]);
 
 function normalizeHeader(header: string): string {
   return header
