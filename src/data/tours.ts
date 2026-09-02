@@ -1,6 +1,8 @@
 export type TourDay = {
   day: number;
   title: string;
+  /** Optional weekday/schedule note from source text, e.g. "Monday or Wednesday". */
+  note?: string;
   description?: string;
 };
 
@@ -44,6 +46,8 @@ export type Tour = {
   fares?: TourFare[];
   featured?: boolean;
   hotSale?: boolean;
+  busTourPackage?: boolean;
+  vacationPackage?: boolean;
   gallery?: string[];
   included?: string[];
   notIncluded?: string[];
@@ -198,18 +202,19 @@ export const tours: Tour[] = [
   },
   {
     slug: "southern-france-italy",
-    title: "Southern France & Italy",
+    code: "EU01",
+    title: "Southern France and Italy",
     region: "Europe",
     duration: "9 Days",
     description: "Paris, Lucerne, Milan, Venice, Rome, Vatican, and Nice",
     image: "/southern-france-italy-venice.jpg",
     tags: ["Paris", "Venice", "Rome", "Nice"],
-    tourType: "Group Tour",
+    tourType: "Bus Tour",
     rating: 5.0,
     reviewCount: 50,
     departureCity: "Ottawa",
-    featured: true,
-    hotSale: true,
+    featured: false,
+    hotSale: false,
   },
   {
     slug: "american-east-coast",
@@ -225,6 +230,7 @@ export const tours: Tour[] = [
   },
   {
     slug: "highlights-of-japan",
+    code: "AJ01",
     title: "Highlights of Japan",
     region: "Asia",
     duration: "6 Days",

@@ -3,10 +3,10 @@ import { getRegionBySlug } from "@/data/regions";
 import { tours, type Tour } from "@/data/tours";
 
 const regionMap: Record<string, string[]> = {
-  "north-america": ["Canada", "USA"],
+  "north-america": ["Canada", "USA", "North America"],
   asia: ["Asia"],
   europe: ["Europe"],
-  "sun-destinations": [],
+  "sun-destinations": ["Sun Destinations"],
 };
 
 export function getToursForCategory(slug: string): Tour[] {
@@ -16,6 +16,22 @@ export function getToursForCategory(slug: string): Tour[] {
 export function filterToursForCategory(sourceTours: Tour[], slug: string): Tour[] {
   if (slug === "all") return sourceTours;
 
+  if (slug === "bus-tours") {
+    return sourceTours.filter((tour) =>
+      typeof tour.busTourPackage === "boolean"
+        ? tour.busTourPackage
+        : tour.tourType === "Bus Tour",
+    );
+  }
+
+  if (slug === "vacation-packages") {
+    return sourceTours.filter((tour) =>
+      typeof tour.vacationPackage === "boolean"
+        ? tour.vacationPackage
+        : tour.tourType === "Group Tour",
+    );
+  }
+
   const meta = categoryMeta[slug];
   if (meta?.filterTourType) {
     return sourceTours.filter((t) => t.tourType === meta.filterTourType);
@@ -23,12 +39,27 @@ export function filterToursForCategory(sourceTours: Tour[], slug: string): Tour[
 
   const region = getRegionBySlug(slug);
   if (region) {
-    const regions = regionMap[slug];
-    if (regions.length === 0) return [];
-    return sourceTours.filter((t) => regions.includes(t.region));
+    const regions = regionMap[slug] ?? [];
+    const aliases = new Set(
+      [...regions, region.title].map((value) => value.trim().toLocaleLowerCase("en")),
+    );
+
+    return sourceTours.filter((tour) => {
+      if (aliases.has(tour.region.trim().toLocaleLowerCase("en"))) {
+        return true;
+      }
+
+      return (
+        slug === "sun-destinations" && tour.tourType.trim().toLocaleLowerCase("en") === "sun destinations"
+      );
+    });
   }
 
   return sourceTours;
+}
+
+export function getCategoryTourCount(sourceTours: Tour[], slug: string): number {
+  return filterToursForCategory(sourceTours, slug).length;
 }
 
 export function getTourRegions(sourceTours: Tour[] = tours): string[] {

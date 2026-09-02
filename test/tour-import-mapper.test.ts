@@ -17,6 +17,7 @@ test("slugifyTourTitle converts titles to URL slugs", () => {
 test("resolveTourSlug keeps known product codes on existing slugs", () => {
   const used = new Set<string>();
   assert.equal(resolveTourSlug("NE07", "Maritime Provinces & Gaspe", used), "maritime-provinces-and-gaspe");
+  assert.equal(resolveTourSlug("EU01", "Southern France and Italy", used), "southern-france-italy");
 });
 
 test("mapExcelRowToTourRecord maps workbook columns to TourRecord", () => {
@@ -63,7 +64,7 @@ test("mapExcelRowToTourRecord maps workbook columns to TourRecord", () => {
   assert.equal(record?.slug, "a-taste-of-cathay");
   assert.equal(record?.tourType, "Group Tour");
   assert.equal(record?.fares.quad, "$999");
-  assert.equal(record?.fares.triple, "");
+  assert.equal(record?.fares.triple, "$0");
   assert.equal(record?.specialOffer, true);
   assert.equal(record?.vacationPackage, true);
 });
@@ -77,6 +78,32 @@ test("parseItineraryFromRichText extracts day-by-day content", () => {
     { day: 1, title: "Toronto - Montreal", description: "Morning departure." },
     { day: 2, title: "Montreal", description: "City tour." },
   ]);
+});
+
+test("parseItineraryFromRichText splits route titles when Day N has no inline title", () => {
+  const itinerary = parseItineraryFromRichText(
+    "<p><strong>Day 1:</strong><br />Ottawa – Rivière-du-Loup – Campbellton Depart Ottawa in the morning and travel east.</p><p><strong>Day 2:</strong><br />Campbellton – Bathurst Visit Bathurst and continue along the coast.</p>",
+  );
+
+  assert.equal(itinerary.length, 2);
+  assert.equal(itinerary[0]?.title, "Ottawa – Rivière-du-Loup – Campbellton");
+  assert.match(itinerary[0]?.description ?? "", /^Depart Ottawa/);
+  assert.equal(itinerary[1]?.title, "Campbellton – Bathurst");
+  assert.match(itinerary[1]?.description ?? "", /^Visit Bathurst/);
+});
+
+test("parseItineraryFromRichText keeps Day 1 when weekday notes appear before the colon", () => {
+  const itinerary = parseItineraryFromRichText(
+    "<p><strong>Day 1 (Monday or Wednesday): Tokyo Arrival</strong><br />Upon arrival, meet by English-speaking assistant.</p><p><strong>Day 2: Tokyo (B)</strong><br />After breakfast, city tour.</p>",
+  );
+
+  assert.equal(itinerary.length, 2);
+  assert.equal(itinerary[0]?.day, 1);
+  assert.equal(itinerary[0]?.title, "Tokyo Arrival");
+  assert.equal(itinerary[0]?.note, "Monday or Wednesday");
+  assert.match(itinerary[0]?.description ?? "", /^Upon arrival/);
+  assert.equal(itinerary[1]?.day, 2);
+  assert.equal(itinerary[1]?.title, "Tokyo (B)");
 });
 
 test("mapTourRecordToPublicTour uses imported itinerary when static data is missing", () => {
