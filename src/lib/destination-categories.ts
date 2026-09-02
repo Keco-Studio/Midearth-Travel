@@ -1,4 +1,6 @@
 import { browseCategories, type BrowseCategory } from "../data/categories.ts";
+import { getCategoryTourCount } from "../data/tour-filters.ts";
+import type { Tour } from "../data/tours.ts";
 
 export type DestinationCategory = BrowseCategory & {
   id: string;
@@ -62,4 +64,14 @@ export function mergeDestinationCategoryRows(
       titleZh,
     };
   });
+}
+
+export function withLiveCategoryCounts(
+  categories: readonly DestinationCategory[],
+  tours: readonly Tour[],
+): DestinationCategory[] {
+  return categories.map((category) => ({
+    ...category,
+    count: getCategoryTourCount([...tours], category.slug),
+  }));
 }

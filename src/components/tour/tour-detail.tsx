@@ -128,7 +128,8 @@ export function TourDetail({ tour }: { tour: Tour }) {
                         <div className="rounded-xl border border-border bg-card p-6 shadow-sm md:p-8">
                           <h3 className="text-lg font-semibold md:text-xl">
                             <span className="text-muted-foreground">
-                              Day {day.day}:
+                              Day {day.day}
+                              {day.note ? ` (${day.note})` : ""}:
                             </span>{" "}
                             {day.title}
                           </h3>

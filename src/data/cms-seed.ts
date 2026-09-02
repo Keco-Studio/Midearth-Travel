@@ -207,7 +207,7 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
     {
       eyebrow: "Featured",
       sectionTitle: "Our Top Picks",
-      seeAllLabel: "See all 8 tours",
+      seeAllLabel: "See all {count} tours",
       seeAllLink: "/tours",
     },
   ),

@@ -11,6 +11,7 @@ import { ToursSection } from "@/components/tours-section";
 import { getBooleanContent } from "@/lib/content-values";
 import { getHomeModule } from "@/lib/home-content";
 import { loadDestinationCategories } from "@/lib/supabase-destination-categories";
+import { withLiveCategoryCounts } from "@/lib/destination-categories";
 import {
   loadHomepageServices,
   loadHomepageTestimonials,
@@ -42,13 +43,14 @@ export default async function Home() {
   const finalCta = getHomeModule(modules, "finalCta").data;
   const newsletter = getHomeModule(modules, "newsletter").data;
   const footer = getHomeModule(modules, "footer").data;
+  const categories = withLiveCategoryCounts(destinationCategories, publishedTours);
 
   return (
     <main className="min-h-screen">
       <Navbar content={navbar} />
       <Hero content={hero} />
       <ToursSection content={toursSection} tours={publishedTours} />
-      <CategoryGrid content={categoryGrid} categories={destinationCategories} />
+      <CategoryGrid content={categoryGrid} categories={categories} />
       {getBooleanContent(exploreByMonth, "isVisible", true) ? (
         <ExploreByMonthSection content={exploreByMonth} />
       ) : null}

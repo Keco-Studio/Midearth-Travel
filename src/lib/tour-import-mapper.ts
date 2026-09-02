@@ -8,6 +8,13 @@ const codeToSlug = new Map(
   tours.flatMap((tour) => (tour.code ? [[tour.code.trim().toUpperCase(), tour.slug]] : [])),
 );
 
+/** Extra aliases for import titles that slugify differently from existing routes. */
+const titleToSlug = new Map<string, string>([
+  ["southern france and italy", "southern-france-italy"],
+  ["southern france & italy", "southern-france-italy"],
+  ["highlights of japan", "highlights-of-japan"],
+]);
+
 function normalizeHeader(header: string): string {
   return header
     .replace(/\r?\n/g, "")
@@ -56,8 +63,15 @@ function readStatus(lookup: Map<string, unknown>): ContentStatus {
 }
 
 function readFare(lookup: Map<string, unknown>, key: string): string {
-  const value = readString(lookup, key);
-  if (!value || value === "0") return "";
+  const raw = lookup.get(normalizeHeader(key));
+  if (raw === undefined || raw === null || raw === "") return "";
+
+  const value = String(raw).trim();
+  if (!value) return "";
+
+  // Keep explicit zero fares so admin and public pages can show 0.
+  if (value === "0" || value === "$0") return "$0";
+
   return value.startsWith("$") ? value : `$${value}`;
 }
 
@@ -75,6 +89,9 @@ export function slugifyTourTitle(title: string): string {
 export function resolveTourSlug(code: string, title: string, usedSlugs: Set<string>): string {
   const knownSlug = codeToSlug.get(code.trim().toUpperCase());
   if (knownSlug) return knownSlug;
+
+  const titleAlias = titleToSlug.get(title.trim().toLocaleLowerCase("en"));
+  if (titleAlias) return titleAlias;
 
   const base = slugifyTourTitle(title) || slugifyTourTitle(code);
   if (!usedSlugs.has(base)) return base;

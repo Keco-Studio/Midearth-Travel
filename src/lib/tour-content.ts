@@ -1,7 +1,7 @@
 import { tourSeeds } from "../data/cms-seed.ts";
 import { tours, type Tour, type TourFare, type TourPolicy } from "../data/tours.ts";
 import type { ContentStatus, TourRecord } from "../types/cms.ts";
-import { parseItineraryFromRichText } from "./tour-itinerary-parser.ts";
+import { parseItineraryFromRichText, hasDayByDayHeading } from "./tour-itinerary-parser.ts";
 import { richTextToPlainText } from "./rich-text-content.ts";
 import { validateTourEditorRecord } from "./tour-editor-state.ts";
 
@@ -75,7 +75,7 @@ export function mergeTourRows(rows: readonly TourRow[]): TourRecord[] {
 }
 
 export function isItineraryDescription(text: string): boolean {
-  return /Day\s+\d+:/i.test(text);
+  return hasDayByDayHeading(text);
 }
 
 function resolvePublicDescription(
@@ -86,7 +86,8 @@ function resolvePublicDescription(
   const plain = richTextToPlainText(record.description);
 
   if (isItineraryDescription(plain)) {
-    return base?.description ?? "";
+    // Day-by-day HTML belongs in itinerary; keep a short card/meta blurb instead.
+    return base?.description || splitList(record.highlights).join(" · ") || "";
   }
 
   const descriptionChanged = seed ? record.description !== seed.description : true;
@@ -107,10 +108,13 @@ export function mapTourRecordToPublicTour(record: TourRecord): Tour {
   const notIncluded = splitList(record.notIncluded);
   const policies = mapPolicies(record);
   const fares = mapFares(record);
+  const importedItinerary = parseItineraryFromRichText(record.description);
   const itinerary =
-    base?.itinerary && base.itinerary.length > 0
-      ? base.itinerary
-      : parseItineraryFromRichText(record.description);
+    importedItinerary.length > 0
+      ? importedItinerary
+      : base?.itinerary && base.itinerary.length > 0
+        ? base.itinerary
+        : [];
   const gallery = base?.gallery?.length
     ? [record.image, ...base.gallery.filter((image) => image !== base.image && image !== record.image)]
     : [record.image];
@@ -143,6 +147,8 @@ export function mapTourRecordToPublicTour(record: TourRecord): Tour {
     fares: fares.length > 0 ? fares : undefined,
     featured: record.specialOffer,
     hotSale: record.specialDeals,
+    busTourPackage: record.busTourPackage,
+    vacationPackage: record.vacationPackage,
     gallery,
   };
 }
