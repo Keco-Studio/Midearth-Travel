@@ -48,6 +48,8 @@ export type Tour = {
   hotSale?: boolean;
   busTourPackage?: boolean;
   vacationPackage?: boolean;
+  /** Where to Go destination category ids when set from CMS. */
+  destinationCategoryIds?: string[];
   gallery?: string[];
   included?: string[];
   notIncluded?: string[];

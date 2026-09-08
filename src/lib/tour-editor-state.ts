@@ -1,4 +1,5 @@
 import type { TourRecord } from "../types/cms.ts";
+import { resolveTourDestinationCategoryIds } from "./tour-destination-categories.ts";
 import { normalizeRichText } from "./rich-text-content.ts";
 
 export const TOUR_EDITOR_STORAGE_KEY = "midearth-cms.tour-editor.v1";
@@ -65,7 +66,9 @@ export function validateTourEditorRecord(record: TourRecord): TourEditorValidati
 
   if (!value.title) errors.title = "Enter an English title";
   if (!value.slug) errors.slug = "Enter a slug";
-  if (!value.region) errors.region = "Enter a region";
+  if (!value.region && value.destinationCategoryIds.length === 0) {
+    errors.region = "Select at least one Where to Go category";
+  }
   if (!value.duration) errors.duration = "Enter an English duration";
   if (!value.tourType) errors.tourType = "Select a tour type";
 
@@ -133,57 +136,79 @@ export function replaceTourEditorRecord(
 }
 
 function trimTourRecord(record: TourRecord): TourRecord {
+  const essentials = record.essentials ?? {
+    departureTime: "",
+    meetingPlace: "",
+    localizedMeetingPlace: "",
+    hotels: "",
+    localizedHotels: "",
+    escortedCoach: "",
+    localizedEscortedCoach: "",
+  };
+  const fares = record.fares ?? {
+    child: "",
+    single: "",
+    double: "",
+    triple: "",
+    quad: "",
+  };
+
   return {
     ...record,
-    slug: record.slug.trim(),
-    code: record.code.trim(),
-    title: record.title.trim(),
-    localizedTitle: record.localizedTitle.trim(),
-    image: record.image.trim(),
-    region: record.region.trim(),
-    subregion: record.subregion.trim(),
-    duration: record.duration.trim(),
-    localizedDuration: record.localizedDuration.trim(),
-    tourType: record.tourType.trim(),
-    departureCity: record.departureCity.trim(),
-    localizedDepartureCity: record.localizedDepartureCity.trim(),
-    departures: record.departures.trim(),
-    localizedDepartures: record.localizedDepartures.trim(),
-    highlights: record.highlights.trim(),
-    localizedHighlights: record.localizedHighlights.trim(),
-    description: normalizeRichText(record.description),
-    localizedDescription: normalizeRichText(record.localizedDescription),
-    admissions: record.admissions.trim(),
-    localizedAdmissions: record.localizedAdmissions.trim(),
-    cancellation: record.cancellation.trim(),
-    localizedCancellation: record.localizedCancellation.trim(),
-    importantNotice: record.importantNotice.trim(),
-    localizedImportantNotice: record.localizedImportantNotice.trim(),
-    included: record.included.trim(),
-    localizedIncluded: record.localizedIncluded.trim(),
-    notIncluded: record.notIncluded.trim(),
-    localizedNotIncluded: record.localizedNotIncluded.trim(),
+    slug: safeTrim(record.slug),
+    code: safeTrim(record.code),
+    title: safeTrim(record.title),
+    localizedTitle: safeTrim(record.localizedTitle),
+    image: safeTrim(record.image),
+    region: safeTrim(record.region),
+    subregion: safeTrim(record.subregion),
+    duration: safeTrim(record.duration),
+    localizedDuration: safeTrim(record.localizedDuration),
+    tourType: safeTrim(record.tourType),
+    departureCity: safeTrim(record.departureCity),
+    localizedDepartureCity: safeTrim(record.localizedDepartureCity),
+    departures: safeTrim(record.departures),
+    localizedDepartures: safeTrim(record.localizedDepartures),
+    highlights: safeTrim(record.highlights),
+    localizedHighlights: safeTrim(record.localizedHighlights),
+    description: normalizeRichText(record.description ?? ""),
+    localizedDescription: normalizeRichText(record.localizedDescription ?? ""),
+    admissions: safeTrim(record.admissions),
+    localizedAdmissions: safeTrim(record.localizedAdmissions),
+    cancellation: safeTrim(record.cancellation),
+    localizedCancellation: safeTrim(record.localizedCancellation),
+    importantNotice: safeTrim(record.importantNotice),
+    localizedImportantNotice: safeTrim(record.localizedImportantNotice),
+    included: safeTrim(record.included),
+    localizedIncluded: safeTrim(record.localizedIncluded),
+    notIncluded: safeTrim(record.notIncluded),
+    localizedNotIncluded: safeTrim(record.localizedNotIncluded),
     essentials: {
-      departureTime: record.essentials.departureTime.trim(),
-      meetingPlace: record.essentials.meetingPlace.trim(),
-      localizedMeetingPlace: record.essentials.localizedMeetingPlace.trim(),
-      hotels: record.essentials.hotels.trim(),
-      localizedHotels: record.essentials.localizedHotels.trim(),
-      escortedCoach: record.essentials.escortedCoach.trim(),
-      localizedEscortedCoach: record.essentials.localizedEscortedCoach.trim(),
+      departureTime: safeTrim(essentials.departureTime),
+      meetingPlace: safeTrim(essentials.meetingPlace),
+      localizedMeetingPlace: safeTrim(essentials.localizedMeetingPlace),
+      hotels: safeTrim(essentials.hotels),
+      localizedHotels: safeTrim(essentials.localizedHotels),
+      escortedCoach: safeTrim(essentials.escortedCoach),
+      localizedEscortedCoach: safeTrim(essentials.localizedEscortedCoach),
     },
     fares: {
-      child: record.fares.child.trim(),
-      single: record.fares.single.trim(),
-      double: record.fares.double.trim(),
-      triple: record.fares.triple.trim(),
-      quad: record.fares.quad.trim(),
+      child: safeTrim(fares.child),
+      single: safeTrim(fares.single),
+      double: safeTrim(fares.double),
+      triple: safeTrim(fares.triple),
+      quad: safeTrim(fares.quad),
     },
-    pdfTitle: record.pdfTitle.trim(),
-    localizedPdfTitle: record.localizedPdfTitle.trim(),
-    pdfFileName: record.pdfFileName.trim(),
-    updatedAt: record.updatedAt.trim(),
+    pdfTitle: safeTrim(record.pdfTitle),
+    localizedPdfTitle: safeTrim(record.localizedPdfTitle),
+    pdfFileName: safeTrim(record.pdfFileName),
+    destinationCategoryIds: resolveTourDestinationCategoryIds(record),
+    updatedAt: safeTrim(record.updatedAt),
   };
+}
+
+function safeTrim(value: string | null | undefined): string {
+  return typeof value === "string" ? value.trim() : "";
 }
 
 function isTourRecord(value: unknown): value is TourRecord {

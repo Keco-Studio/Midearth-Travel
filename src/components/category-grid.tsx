@@ -41,7 +41,7 @@ export function CategoryGrid({
             {deck}
           </p>
         </div>
-        <div className="cat-grid">
+        <div className={`cat-grid ${styles.grid}`}>
           {categories.map((cat, i) => (
             <Link
               key={cat.id}
@@ -55,7 +55,7 @@ export function CategoryGrid({
                   fill
                   sizes={
                     i === 0
-                      ? "(max-width: 900px) 100vw, 58vw"
+                      ? "(max-width: 900px) 50vw, 58vw"
                       : i <= 2
                         ? "(max-width: 900px) 50vw, 42vw"
                         : "(max-width: 900px) 50vw, 33vw"

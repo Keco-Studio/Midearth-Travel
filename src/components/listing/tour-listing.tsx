@@ -4,11 +4,13 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
-import {
-  getTourRegions,
-  parseDurationDays,
-} from "@/data/tour-filters";
+import { parseDurationDays } from "@/data/tour-filters";
 import type { Tour } from "@/data/tours";
+import {
+  destinationCategorySeeds,
+  type DestinationCategory,
+} from "@/lib/destination-categories";
+import { getTourRegionBadge } from "@/lib/tour-destination-categories";
 import styles from "./listing.module.css";
 import { DestinationsByRegion } from "./destinations-by-region";
 import { PopularByMonth } from "./popular-by-month";
@@ -22,6 +24,7 @@ type Props = {
   image: string;
   initialTours: Tour[];
   showBrowseSections?: boolean;
+  destinationCategories?: DestinationCategory[];
 };
 
 export function TourListing({
@@ -31,25 +34,35 @@ export function TourListing({
   image,
   initialTours,
   showBrowseSections = false,
+  destinationCategories = destinationCategorySeeds,
 }: Props) {
   const [search, setSearch] = useState("");
   const [region, setRegion] = useState("all");
   const [duration, setDuration] = useState("all");
   const [sort, setSort] = useState("featured");
 
-  const regions = ["all", ...getTourRegions(initialTours)];
+  const regions = useMemo(() => {
+    const labels = new Set(
+      initialTours.map((tour) => getTourRegionBadge(tour, destinationCategories)),
+    );
+    return ["all", ...[...labels].sort((a, b) => a.localeCompare(b))];
+  }, [destinationCategories, initialTours]);
 
   const filtered = useMemo(() => {
     let list = [...initialTours];
     if (search) {
       const q = search.toLowerCase();
       list = list.filter((t) =>
-        `${t.title} ${t.tags.join(" ")} ${t.region} ${t.description}`
+        `${t.title} ${t.tags.join(" ")} ${getTourRegionBadge(t, destinationCategories)} ${t.description}`
           .toLowerCase()
           .includes(q),
       );
     }
-    if (region !== "all") list = list.filter((t) => t.region === region);
+    if (region !== "all") {
+      list = list.filter(
+        (t) => getTourRegionBadge(t, destinationCategories) === region,
+      );
+    }
     if (duration !== "all") {
       list = list.filter((t) => {
         const days = parseDurationDays(t.duration);
@@ -66,7 +79,7 @@ export function TourListing({
       );
     }
     return list;
-  }, [initialTours, search, region, duration, sort]);
+  }, [destinationCategories, initialTours, search, region, duration, sort]);
 
   return (
     <main className={styles.page}>
@@ -158,7 +171,11 @@ export function TourListing({
               ) : (
                 <div className={styles.tourGrid}>
                   {filtered.map((tour) => (
-                    <TourListingCard key={tour.slug} tour={tour} />
+                    <TourListingCard
+                      key={tour.slug}
+                      tour={tour}
+                      destinationCategories={destinationCategories}
+                    />
                   ))}
                 </div>
               )}

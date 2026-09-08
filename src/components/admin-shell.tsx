@@ -131,19 +131,23 @@ export function AdminShell({
     setPendingAction("save");
 
     try {
-      if (hasSupplementalUnsavedChanges) {
-        await saveSupplementalHomeData(activeModule.id);
-      }
+      await saveSupplementalHomeData(activeModule.id);
 
       const response = await fetch(`/api/admin/home-modules/${activeModule.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "save", module: activeModule }),
       });
-      const payload = await readApiResponse<{ module: HomeModuleRecord }>(response);
+      const payload = await readApiResponse<{
+        module: HomeModuleRecord;
+        settings?: SiteSettings;
+      }>(response);
       setState((current) =>
         applyPersistedHomeModule(current, payload.module, submittedData),
       );
+      if (payload.settings) {
+        setSettings(payload.settings);
+      }
       message.success("Draft saved to Supabase");
     } catch (error) {
       message.error(getErrorMessage(error, "Draft could not be saved"));
@@ -157,15 +161,25 @@ export function AdminShell({
     setPendingAction("publish");
 
     try {
+      // Destination names / services / testimonials must save before publish,
+      // otherwise the public site keeps old labels (e.g. "Sun Destinations").
+      await saveSupplementalHomeData(activeModule.id);
+
       const response = await fetch(`/api/admin/home-modules/${activeModule.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "publish" }),
       });
-      const payload = await readApiResponse<{ module: HomeModuleRecord }>(response);
+      const payload = await readApiResponse<{
+        module: HomeModuleRecord;
+        settings?: SiteSettings;
+      }>(response);
       setState((current) =>
         applyPersistedHomeModule(current, payload.module, submittedData),
       );
+      if (payload.settings) {
+        setSettings(payload.settings);
+      }
       message.success("Module published to the homepage");
     } catch (error) {
       message.error(getErrorMessage(error, "Module could not be published"));
@@ -191,6 +205,8 @@ export function AdminShell({
         categories: DestinationCategory[];
       }>(response);
       setDestinationCategories(payload.categories);
+      handleSupplementalDirtyChange(moduleId, false);
+      return;
     }
 
     if (moduleId === "aboutSection") {
@@ -201,6 +217,8 @@ export function AdminShell({
       });
       const payload = await readApiResponse<{ services: Service[] }>(response);
       setServices(payload.services);
+      handleSupplementalDirtyChange(moduleId, false);
+      return;
     }
 
     if (moduleId === "testimonials") {
@@ -213,9 +231,8 @@ export function AdminShell({
         testimonials: Testimonial[];
       }>(response);
       setTestimonials(payload.testimonials);
+      handleSupplementalDirtyChange(moduleId, false);
     }
-
-    handleSupplementalDirtyChange(moduleId, false);
   }
 
   async function handleImageUpload(
@@ -373,7 +390,38 @@ export function AdminShell({
           onDestinationCategoriesChange: setDestinationCategories,
           onServicesChange: setServices,
           onTestimonialsChange: setTestimonials,
-          onSettingsChange: setSettings,
+          onSettingsChange: (nextSettings, extras) => {
+            setSettings(nextSettings);
+            if (extras?.finalCtaModule) {
+              setState((current) =>
+                applyPersistedHomeModule(
+                  current,
+                  extras.finalCtaModule!,
+                  extras.finalCtaModule!.data,
+                ),
+              );
+            } else {
+              setState((current) => ({
+                ...current,
+                homeModules: current.homeModules.map((module) =>
+                  module.id === "finalCta"
+                    ? {
+                        ...module,
+                        data: {
+                          ...module.data,
+                          phoneLabel: nextSettings.primaryPhoneLabel,
+                          phoneHref: nextSettings.primaryPhoneHref,
+                          emailLabel: nextSettings.emailLabel,
+                          emailHref: nextSettings.emailHref,
+                          officeAddress: nextSettings.officeAddress,
+                          primaryButtonLink: nextSettings.primaryPhoneHref,
+                        },
+                      }
+                    : module,
+                ),
+              }));
+            }
+          },
           onViewBooking: (bookingId) => {
             setState((current) => openBooking(current, bookingId));
           },
@@ -513,7 +561,10 @@ function renderWorkspace(
     onDestinationCategoriesChange: (categories: DestinationCategory[]) => void;
     onServicesChange: (services: Service[]) => void;
     onTestimonialsChange: (testimonials: Testimonial[]) => void;
-    onSettingsChange: (settings: SiteSettings) => void;
+    onSettingsChange: (
+      settings: SiteSettings,
+      extras?: { finalCtaModule?: HomeModuleRecord | null },
+    ) => void;
     onViewBooking: (bookingId: string) => void;
     onViewPayment: (paymentId: string) => void;
     onFocusHandled: () => void;
@@ -539,7 +590,12 @@ function renderWorkspace(
   }
 
   if (state.workspace === "tours") {
-    return <ToursWorkspace tours={tourSeeds} />;
+    return (
+      <ToursWorkspace
+        tours={tourSeeds}
+        destinationCategories={handlers.destinationCategories}
+      />
+    );
   }
 
   if (state.workspace === "bookings") {

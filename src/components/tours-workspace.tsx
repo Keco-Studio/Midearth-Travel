@@ -19,6 +19,10 @@ import { useEffect, useMemo, useState } from "react";
 import { StatusTag } from "@/components/status-tag";
 import { TourEditor } from "@/components/tour-editor";
 import { TourTypeAutoComplete } from "@/components/tour-type-autocomplete";
+import {
+  destinationCategorySeeds,
+  type DestinationCategory,
+} from "@/lib/destination-categories";
 import { replaceTourEditorRecord, validateTourEditorRecord } from "@/lib/tour-editor-state";
 import { getTourTypeOptions } from "@/lib/tour-type-state";
 import { getTourStatusCounts } from "@/lib/workspace-view-models";
@@ -26,6 +30,7 @@ import type { TourRecord } from "@/types/cms";
 
 type ToursWorkspaceProps = {
   tours: TourRecord[];
+  destinationCategories?: DestinationCategory[];
 };
 
 type TourWorkspaceState = {
@@ -33,13 +38,15 @@ type TourWorkspaceState = {
   customTypes: string[];
 };
 
-export function ToursWorkspace({ tours }: ToursWorkspaceProps) {
+export function ToursWorkspace({
+  tours,
+  destinationCategories = destinationCategorySeeds,
+}: ToursWorkspaceProps) {
   const { message } = App.useApp();
   const [tourState, setTourState] = useState<TourWorkspaceState>(() =>
     createInitialTourWorkspaceState(tours),
   );
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
   const counts = getTourStatusCounts(tourState.records);
 
   const editingTour = useMemo(
@@ -62,13 +69,13 @@ export function ToursWorkspace({ tours }: ToursWorkspaceProps) {
           signal: controller.signal,
         });
         const payload = await readApiResponse<{ tours: TourRecord[] }>(response);
-        setTourState({ records: payload.tours, customTypes: [] });
+        if (!controller.signal.aborted) {
+          setTourState({ records: payload.tours, customTypes: [] });
+        }
       } catch (error) {
         if (!controller.signal.aborted) {
           message.error(getErrorMessage(error, "Tours could not be loaded"));
         }
-      } finally {
-        if (!controller.signal.aborted) setLoading(false);
       }
     }
 
@@ -266,6 +273,7 @@ export function ToursWorkspace({ tours }: ToursWorkspaceProps) {
       <TourEditor
         tour={editingTour}
         tourTypeOptions={tourTypeOptions}
+        destinationCategories={destinationCategories}
         onCancel={() => setEditingSlug(null)}
         onUpdate={handleTourUpdate}
         onImageUpload={(file) => uploadTourImage(editingTour.slug, file)}
@@ -299,7 +307,6 @@ export function ToursWorkspace({ tours }: ToursWorkspaceProps) {
             headerTitle={false}
             columns={columns}
             dataSource={tourState.records}
-            loading={loading}
             rowKey="slug"
             search={false}
             options={{ density: true, setting: true, reload: false }}

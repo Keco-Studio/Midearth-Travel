@@ -3,6 +3,7 @@ import { tours, type Tour, type TourFare, type TourPolicy } from "../data/tours.
 import type { ContentStatus, TourRecord } from "../types/cms.ts";
 import { parseItineraryFromRichText, hasDayByDayHeading } from "./tour-itinerary-parser.ts";
 import { richTextToPlainText } from "./rich-text-content.ts";
+import { resolveTourDestinationCategoryIds } from "./tour-destination-categories.ts";
 import { validateTourEditorRecord } from "./tour-editor-state.ts";
 
 export type TourRow = {
@@ -149,6 +150,7 @@ export function mapTourRecordToPublicTour(record: TourRecord): Tour {
     hotSale: record.specialDeals,
     busTourPackage: record.busTourPackage,
     vacationPackage: record.vacationPackage,
+    destinationCategoryIds: resolveTourDestinationCategoryIds(record),
     gallery,
   };
 }

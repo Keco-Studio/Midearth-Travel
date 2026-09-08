@@ -46,155 +46,115 @@ export function TourDetail({ tour }: { tour: Tour }) {
       <Navbar />
 
       <TourDetailHeader images={gallery} alt={displayTitle}>
-          <div className="mx-auto w-full max-w-7xl">
-            {tour.code && (
-              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
-                Tour {tour.code}
-              </p>
-            )}
+        <div className="mx-auto w-full max-w-7xl">
+          {tour.code && (
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
+              Tour {tour.code}
+            </p>
+          )}
 
-            <h1 className="max-w-4xl text-balance text-4xl font-light tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
-              {displayTitle}
-            </h1>
+          <h1 className="max-w-4xl text-balance text-4xl font-light tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
+            {displayTitle}
+          </h1>
 
-            <div className="mt-6 flex flex-wrap gap-2">
-              {tour.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm md:text-sm"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-
-            <dl className="mt-8 grid max-w-3xl gap-4 border-t border-white/20 pt-8 sm:grid-cols-3">
-              <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-white/60">
-                  Duration
-                </dt>
-                <dd className="mt-1 text-sm font-semibold text-white md:text-base">
-                  {tour.duration}
-                </dd>
-              </div>
-              <div className="sm:col-span-2">
-                <dt className="text-xs font-medium uppercase tracking-wide text-white/60">
-                  {departureCity ? `Departures from ${departureCity}` : "Departures"}
-                </dt>
-                <dd className="mt-1 text-sm font-semibold text-white md:text-base">
-                  {departuresLine ?? "Contact for dates"}
-                </dd>
-              </div>
-            </dl>
+          <div className="mt-6 flex flex-wrap gap-2">
+            {tour.tags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm md:text-sm"
+              >
+                {tag}
+              </span>
+            ))}
           </div>
+
+          <dl className="mt-8 grid max-w-3xl gap-4 border-t border-white/20 pt-8 sm:grid-cols-3">
+            <div>
+              <dt className="text-xs font-medium uppercase tracking-wide text-white/60">
+                Duration
+              </dt>
+              <dd className="mt-1 text-sm font-semibold text-white md:text-base">
+                {tour.duration}
+              </dd>
+            </div>
+            <div className="sm:col-span-2">
+              <dt className="text-xs font-medium uppercase tracking-wide text-white/60">
+                {departureCity
+                  ? `Departures from ${departureCity}`
+                  : "Departures"}
+              </dt>
+              <dd className="mt-1 text-sm font-semibold text-white md:text-base">
+                {departuresLine ?? "Contact for dates"}
+              </dd>
+            </div>
+          </dl>
+        </div>
       </TourDetailHeader>
 
       <div className={styles.tourBody}>
-      <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
-        <div className={styles.overviewBlock}>
-          <div className={styles.pdfDownloadSlot}>
-            <TourPdfDownload />
-          </div>
+        <div className="mx-auto max-w-7xl px-3 py-10 sm:px-6 sm:py-16 lg:px-8">
+          <div className={styles.overviewBlock}>
+            <div className={styles.pdfDownloadSlot}>
+              <TourPdfDownload />
+            </div>
 
-          <div className={styles.overviewMain}>
-            {tour.itinerary && tour.itinerary.length > 0 ? (
-              <section className={styles.dayByDaySection}>
-                <h2 className="text-3xl font-light tracking-tight md:text-4xl">
-                  Day by <span className="font-semibold">day</span>
-                </h2>
-                <p className="mt-3 max-w-2xl text-muted-foreground">
-                  A clear overview of each stage of the journey so you know what
-                  to expect on the road.
-                </p>
+            <div className={styles.overviewMain}>
+              {tour.itinerary && tour.itinerary.length > 0 ? (
+                <section className={styles.dayByDaySection}>
+                  <h2 className="text-3xl font-light tracking-tight md:text-4xl">
+                    Day by <span className="font-semibold">day</span>
+                  </h2>
+                  <p className="mt-3 max-w-2xl text-muted-foreground">
+                    A clear overview of each stage of the journey so you know
+                    what to expect on the road.
+                  </p>
 
-                <ol className="mt-10 space-y-0">
-                  {tour.itinerary.map((day, index) => (
-                    <li key={day.day} className="flex gap-4 md:gap-6">
-                      <div className="flex flex-col items-center">
-                        <span
-                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground"
-                          aria-hidden
-                        >
-                          {day.day}
-                        </span>
-                        {index < tour.itinerary!.length - 1 && (
-                          <div
-                            className="my-2 min-h-[1.25rem] w-px flex-1 bg-border"
-                            aria-hidden
-                          />
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1 pb-10 last:pb-0">
-                        <div className="rounded-xl border border-border bg-card p-6 shadow-sm md:p-8">
-                          <h3 className="text-lg font-semibold md:text-xl">
-                            <span className="text-muted-foreground">
-                              Day {day.day}
-                              {day.note ? ` (${day.note})` : ""}:
-                            </span>{" "}
-                            {day.title}
-                          </h3>
-                          {day.description && (
-                            <p className="mt-3 text-sm leading-relaxed text-muted-foreground md:text-base">
-                              {day.description}
-                            </p>
+                  <ol className={styles.dayList}>
+                    {tour.itinerary.map((day, index) => (
+                      <li key={day.day} className={styles.dayItem}>
+                        <div className={styles.dayRail}>
+                          <span className={styles.dayNumber} aria-hidden>
+                            {day.day}
+                          </span>
+                          {index < tour.itinerary!.length - 1 && (
+                            <div className={styles.dayConnector} aria-hidden />
                           )}
                         </div>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              </section>
-            ) : null}
-          </div>
+                        <div className={styles.dayContent}>
+                          <div className={styles.dayCard}>
+                            <h3 className={styles.dayTitle}>
+                              <span className="text-muted-foreground">
+                                Day {day.day}
+                                {day.note ? ` (${day.note})` : ""}:
+                              </span>{" "}
+                              {day.title}
+                            </h3>
+                            {day.description && (
+                              <p className={styles.dayDescription}>
+                                {day.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              ) : null}
+            </div>
 
-          <div className={styles.overviewAside}>
-            {included.length > 0 && (
-              <div className={styles.includedCard}>
-                <div className={styles.includedHead}>Included</div>
-                <ul className={styles.includedList}>
-                  {included.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        </div>
+            <aside className={styles.overviewAside}>
+              {included.length > 0 && (
+                <div className={styles.includedCard}>
+                  <div className={styles.includedHead}>Included</div>
+                  <ul className={styles.includedList}>
+                    {included.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
-        <div className="mt-12 grid gap-12 lg:grid-cols-12 lg:gap-10">
-          <div className="space-y-14 lg:col-span-8">
-            {tour.policies && tour.policies.length > 0 && (
-              <section
-                className="grid gap-6 md:grid-cols-2"
-                aria-label="Policies and practical information"
-              >
-                {tour.policies.map((policy) => (
-                  <div
-                    key={policy.title}
-                    className={cn(
-                      "flex flex-col gap-6 rounded-xl border border-border bg-card py-6 shadow-sm",
-                      policy.wide && "md:col-span-2",
-                    )}
-                  >
-                    <div className="px-6 pb-2">
-                      <div className="flex items-center gap-2 text-primary">
-                        <PolicyIcon icon={policy.icon} />
-                        <h3 className="text-base font-semibold">
-                          {policy.title}
-                        </h3>
-                      </div>
-                    </div>
-                    <div className="px-6 text-sm leading-relaxed text-muted-foreground">
-                      {policy.content}
-                    </div>
-                  </div>
-                ))}
-              </section>
-            )}
-          </div>
-
-          <aside className="lg:col-span-4">
-            <div className="space-y-6 lg:sticky lg:top-28">
               {notIncluded.length > 0 && (
                 <div className={styles.notIncludedCard}>
                   <div className={styles.notIncludedHead}>Not included</div>
@@ -204,6 +164,32 @@ export function TourDetail({ tour }: { tour: Tour }) {
                     ))}
                   </ul>
                 </div>
+              )}
+
+              {tour.policies && tour.policies.length > 0 && (
+                <section
+                  className={styles.policyList}
+                  aria-label="Policies and practical information"
+                >
+                  {tour.policies.map((policy) => (
+                    <div
+                      key={policy.title}
+                      className="flex flex-col gap-6 rounded-xl border border-border bg-card py-6 shadow-sm"
+                    >
+                      <div className="px-6 pb-2">
+                        <div className="flex items-center gap-2 text-primary">
+                          <PolicyIcon icon={policy.icon} />
+                          <h3 className="text-base font-semibold">
+                            {policy.title}
+                          </h3>
+                        </div>
+                      </div>
+                      <div className="px-6 text-sm leading-relaxed text-muted-foreground">
+                        {policy.content}
+                      </div>
+                    </div>
+                  ))}
+                </section>
               )}
 
               {tour.essentials && (
@@ -283,7 +269,8 @@ export function TourDetail({ tour }: { tour: Tour }) {
                 <div className="border-b border-border px-6 py-5">
                   <h3 className="text-lg font-semibold">Tour fares</h3>
                   <p className="text-xs text-muted-foreground">
-                    Per person{departureCity ? `, from ${departureCity}` : ""}
+                    Per person
+                    {departureCity ? `, from ${departureCity}` : ""}
                   </p>
                 </div>
 
@@ -316,7 +303,10 @@ export function TourDetail({ tour }: { tour: Tour }) {
 
                 <div className="border-t border-border px-6 py-4">
                   {tour.fares && tour.fares.length > 0 ? (
-                    <TourCheckoutButton tourSlug={tour.slug} fares={tour.fares} />
+                    <TourCheckoutButton
+                      tourSlug={tour.slug}
+                      fares={tour.fares}
+                    />
                   ) : null}
                   <a
                     href={bookingMailto}
@@ -338,10 +328,9 @@ export function TourDetail({ tour }: { tour: Tour }) {
                   </a>
                 </div>
               </div>
-            </div>
-          </aside>
+            </aside>
+          </div>
         </div>
-      </div>
       </div>
 
       <section
@@ -353,8 +342,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
             id="book-cta"
             className="text-3xl font-light tracking-tight md:text-4xl"
           >
-            Ready for{" "}
-            <span className="font-semibold">{displayTitle}</span>?
+            Ready for <span className="font-semibold">{displayTitle}</span>?
           </h2>
           <p className="mt-4 leading-relaxed text-muted-foreground">
             Email us to reserve your seats, or call our Ottawa office — we&apos;ll

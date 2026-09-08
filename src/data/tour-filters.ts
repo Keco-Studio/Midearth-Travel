@@ -6,7 +6,7 @@ const regionMap: Record<string, string[]> = {
   "north-america": ["Canada", "USA", "North America"],
   asia: ["Asia"],
   europe: ["Europe"],
-  "sun-destinations": ["Sun Destinations"],
+  "sun-destinations": ["Sun Destinations", "Caribbean"],
 };
 
 export function getToursForCategory(slug: string): Tour[] {
@@ -16,25 +16,29 @@ export function getToursForCategory(slug: string): Tour[] {
 export function filterToursForCategory(sourceTours: Tour[], slug: string): Tour[] {
   if (slug === "all") return sourceTours;
 
+  return sourceTours.filter((tour) => tourMatchesCategory(tour, slug));
+}
+
+function tourMatchesCategory(tour: Tour, slug: string): boolean {
+  if (Array.isArray(tour.destinationCategoryIds)) {
+    return tour.destinationCategoryIds.includes(slug);
+  }
+
   if (slug === "bus-tours") {
-    return sourceTours.filter((tour) =>
-      typeof tour.busTourPackage === "boolean"
-        ? tour.busTourPackage
-        : tour.tourType === "Bus Tour",
-    );
+    return typeof tour.busTourPackage === "boolean"
+      ? tour.busTourPackage
+      : tour.tourType === "Bus Tour";
   }
 
   if (slug === "vacation-packages") {
-    return sourceTours.filter((tour) =>
-      typeof tour.vacationPackage === "boolean"
-        ? tour.vacationPackage
-        : tour.tourType === "Group Tour",
-    );
+    return typeof tour.vacationPackage === "boolean"
+      ? tour.vacationPackage
+      : tour.tourType === "Group Tour";
   }
 
   const meta = categoryMeta[slug];
   if (meta?.filterTourType) {
-    return sourceTours.filter((t) => t.tourType === meta.filterTourType);
+    return tour.tourType === meta.filterTourType;
   }
 
   const region = getRegionBySlug(slug);
@@ -44,18 +48,17 @@ export function filterToursForCategory(sourceTours: Tour[], slug: string): Tour[
       [...regions, region.title].map((value) => value.trim().toLocaleLowerCase("en")),
     );
 
-    return sourceTours.filter((tour) => {
-      if (aliases.has(tour.region.trim().toLocaleLowerCase("en"))) {
-        return true;
-      }
+    if (aliases.has(tour.region.trim().toLocaleLowerCase("en"))) {
+      return true;
+    }
 
-      return (
-        slug === "sun-destinations" && tour.tourType.trim().toLocaleLowerCase("en") === "sun destinations"
-      );
-    });
+    return (
+      slug === "sun-destinations" &&
+      tour.tourType.trim().toLocaleLowerCase("en") === "sun destinations"
+    );
   }
 
-  return sourceTours;
+  return false;
 }
 
 export function getCategoryTourCount(sourceTours: Tour[], slug: string): number {

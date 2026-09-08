@@ -1,8 +1,12 @@
+"use client";
+
 import Link from "next/link";
+import { useSiteSettings } from "@/context/site-settings-context";
 import { site } from "@/data/site";
 import { getStringContent, type ContentData } from "@/lib/content-values";
 
 export function FinalCta({ content = {} }: { content?: ContentData }) {
+  const settings = useSiteSettings();
   const image = getStringContent(content, "image", "/final-cta-travel-flatlay.jpg");
   const eyebrow = getStringContent(content, "eyebrow", "Get in touch");
   const title = getStringContent(content, "title", "Tell us where, we'll figure out how.");
@@ -12,7 +16,28 @@ export function FinalCta({ content = {} }: { content?: ContentData }) {
     "Use the form, or call the office. Either reaches a real desk in downtown Ottawa.",
   );
   const primaryButtonText = getStringContent(content, "primaryButtonText", "Start a booking");
-  const primaryButtonLink = getStringContent(content, "primaryButtonLink", `tel:${site.phoneTel}`);
+  const phoneLabel =
+    settings.primaryPhoneLabel.trim() ||
+    getStringContent(content, "phoneLabel", "").trim() ||
+    site.phone;
+  const phoneHref =
+    settings.primaryPhoneHref.trim() ||
+    getStringContent(content, "phoneHref", "").trim() ||
+    `tel:${site.phoneTel}`;
+  const emailLabel =
+    settings.emailLabel.trim() ||
+    getStringContent(content, "emailLabel", "").trim() ||
+    site.email;
+  const emailHref =
+    settings.emailHref.trim() ||
+    getStringContent(content, "emailHref", "").trim() ||
+    `mailto:${site.email}`;
+  const officeAddress =
+    settings.officeAddress.trim() ||
+    getStringContent(content, "officeAddress", "").trim() ||
+    "Bronson Avenue, Ottawa, Ontario";
+  const primaryButtonLink =
+    getStringContent(content, "primaryButtonLink", "").trim() || phoneHref;
 
   return (
     <section className="final-cta">
@@ -23,12 +48,8 @@ export function FinalCta({ content = {} }: { content?: ContentData }) {
           </div>
           <div className="final-cta-body">
             <div className="eyebrow">— {eyebrow}</div>
-            <h2 className="section-title">
-              {title}
-            </h2>
-            <p>
-              {description}
-            </p>
+            <h2 className="section-title">{title}</h2>
+            <p>{description}</p>
             <div className="final-cta-actions">
               <Link href={primaryButtonLink}>
                 <button type="button" className="btn btn-lg btn-primary">
@@ -45,17 +66,17 @@ export function FinalCta({ content = {} }: { content?: ContentData }) {
               <div>
                 <span className="muted">Phone</span>
                 <br />
-                {site.phone}
+                <a href={phoneHref}>{phoneLabel}</a>
               </div>
               <div>
                 <span className="muted">Email</span>
                 <br />
-                {site.email}
+                <a href={emailHref}>{emailLabel}</a>
               </div>
               <div>
                 <span className="muted">Office</span>
                 <br />
-                130 Albert St, Ottawa
+                {officeAddress}
               </div>
             </div>
           </div>

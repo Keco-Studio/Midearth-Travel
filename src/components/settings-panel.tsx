@@ -6,7 +6,7 @@ import {
   ProFormTextArea,
 } from "@ant-design/pro-components";
 import { App } from "antd";
-import type { SiteSettings } from "@/types/cms";
+import type { HomeModuleRecord, SiteSettings } from "@/types/cms";
 
 type SettingsFormValues = {
   siteName: string;
@@ -22,7 +22,10 @@ type SettingsFormValues = {
 
 type SettingsPanelProps = {
   settings: SiteSettings;
-  onSaved: (settings: SiteSettings) => void;
+  onSaved: (
+    settings: SiteSettings,
+    extras?: { finalCtaModule?: HomeModuleRecord | null },
+  ) => void;
 };
 
 export function SettingsPanel({ settings, onSaved }: SettingsPanelProps) {
@@ -56,8 +59,11 @@ export function SettingsPanel({ settings, onSaved }: SettingsPanelProps) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ settings: values }),
           });
-          const payload = await readResponse<{ settings: SiteSettings }>(response);
-          onSaved(payload.settings);
+          const payload = await readResponse<{
+            settings: SiteSettings;
+            finalCtaModule?: HomeModuleRecord | null;
+          }>(response);
+          onSaved(payload.settings, { finalCtaModule: payload.finalCtaModule });
           message.success("Global settings saved to Supabase");
           return true;
         } catch (error) {
@@ -84,6 +90,7 @@ export function SettingsPanel({ settings, onSaved }: SettingsPanelProps) {
       <ProFormText
         name="primaryPhoneLabel"
         label="Primary phone label"
+        tooltip="Synced with Homepage Content → Final CTA → Phone."
         rules={[
           { required: true, message: "Primary phone label is required." },
           { max: 30, message: "Primary phone label must be 30 characters or fewer." },
@@ -92,6 +99,7 @@ export function SettingsPanel({ settings, onSaved }: SettingsPanelProps) {
       <ProFormText
         name="primaryPhoneHref"
         label="Primary phone href"
+        tooltip="Synced with Homepage Content → Final CTA → Phone link."
         rules={[
           { required: true, message: "Primary phone href is required." },
           {
@@ -118,6 +126,7 @@ export function SettingsPanel({ settings, onSaved }: SettingsPanelProps) {
       <ProFormText
         name="emailLabel"
         label="Email label"
+        tooltip="Synced with Homepage Content → Final CTA → Email."
         rules={[
           { required: true, message: "Email label is required." },
           { max: 80, message: "Email label must be 80 characters or fewer." },
@@ -126,6 +135,7 @@ export function SettingsPanel({ settings, onSaved }: SettingsPanelProps) {
       <ProFormText
         name="emailHref"
         label="Email href"
+        tooltip="Synced with Homepage Content → Final CTA → Email link."
         rules={[
           { required: true, message: "Email href is required." },
           {
@@ -137,6 +147,7 @@ export function SettingsPanel({ settings, onSaved }: SettingsPanelProps) {
       <ProFormTextArea
         name="officeAddress"
         label="Office address"
+        tooltip="Synced with Homepage Content → Final CTA → Office address."
         fieldProps={{ rows: 3 }}
         rules={[{ max: 160, message: "Office address must be 160 characters or fewer." }]}
       />

@@ -2,6 +2,8 @@ import {
   loadGlobalSettings,
   saveGlobalSettings,
 } from "@/lib/supabase-global-settings";
+import { syncContactFieldsToFinalCta } from "@/lib/office-address-sync";
+import { revalidatePublicSite } from "@/lib/revalidate-public-site";
 import type { SiteSettings } from "@/types/cms";
 
 export async function GET() {
@@ -16,7 +18,11 @@ export async function PUT(request: Request) {
       return Response.json({ error: "Invalid settings payload" }, { status: 400 });
     }
 
-    return Response.json({ settings: await saveGlobalSettings(payload.settings) });
+    const settings = await saveGlobalSettings(payload.settings);
+    const finalCtaModule = await syncContactFieldsToFinalCta(settings);
+    revalidatePublicSite();
+
+    return Response.json({ settings, finalCtaModule });
   } catch (error) {
     return Response.json(
       { error: error instanceof Error ? error.message : "Unable to save settings" },

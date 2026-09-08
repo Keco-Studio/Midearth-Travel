@@ -69,6 +69,67 @@ export async function publishHomeModule(id: HomeModuleId): Promise<HomeModuleRec
   return getMergedModule(savedRows, id, "published");
 }
 
+/** Patch Final CTA contact fields without flipping publish status. */
+export async function patchFinalCtaContactFields(contact: {
+  phoneLabel: string;
+  phoneHref: string;
+  emailLabel: string;
+  emailHref: string;
+  officeAddress: string;
+}): Promise<HomeModuleRecord> {
+  const existing = await getHomeModuleRow("finalCta");
+  const seed = getSeedModule("finalCta");
+  const baseRow = existing ?? toHomeModuleRow(seed);
+  const patch = {
+    phoneLabel: contact.phoneLabel.trim(),
+    phoneHref: contact.phoneHref.trim(),
+    emailLabel: contact.emailLabel.trim(),
+    emailHref: contact.emailHref.trim(),
+    officeAddress: contact.officeAddress.trim(),
+    primaryButtonLink: contact.phoneHref.trim(),
+  };
+  const publishedData = {
+    ...(isRecord(baseRow.published_data) ? baseRow.published_data : seed.data),
+    ...patch,
+  };
+  const draftSource = baseRow.draft_data ?? baseRow.published_data;
+  const draftData = {
+    ...(isRecord(draftSource) ? draftSource : seed.data),
+    ...patch,
+  };
+
+  const savedRows = await upsertHomeModuleRows([
+    {
+      ...baseRow,
+      fields: seed.fields,
+      published_data: publishedData,
+      draft_data: draftData,
+      updated_at: new Date().toISOString(),
+    },
+  ]);
+
+  return getMergedModule(savedRows, "finalCta", "draft");
+}
+
+/** @deprecated Use patchFinalCtaContactFields */
+export async function patchFinalCtaOfficeAddress(
+  officeAddress: string,
+): Promise<HomeModuleRecord> {
+  const modules = await loadAdminHomeModules();
+  const finalCta = modules.find((module) => module.id === "finalCta");
+  return patchFinalCtaContactFields({
+    phoneLabel: String(finalCta?.data.phoneLabel ?? ""),
+    phoneHref: String(finalCta?.data.phoneHref ?? ""),
+    emailLabel: String(finalCta?.data.emailLabel ?? ""),
+    emailHref: String(finalCta?.data.emailHref ?? ""),
+    officeAddress,
+  });
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
 export async function uploadHomeModuleImage(input: {
   moduleId: HomeModuleId;
   fieldKey: string;

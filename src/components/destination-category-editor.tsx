@@ -25,9 +25,13 @@ export function DestinationCategoryEditor({
 
   return (
     <section className="cms-destination-name-editor">
-      <Typography.Title level={5} style={{ margin: "0 0 16px" }}>
+      <Typography.Title level={5} style={{ margin: "0 0 8px" }}>
         Destination names
       </Typography.Title>
+      <Typography.Paragraph type="secondary" style={{ marginBottom: 16 }}>
+        Card images come from the first published tour in each category (Tour Library cover
+        photo). Names below update the Where to Go labels.
+      </Typography.Paragraph>
       <Table<DestinationCategory>
         rowKey="id"
         dataSource={categories}

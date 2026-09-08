@@ -110,6 +110,8 @@ export type TourRecord = {
   vacationPackage: boolean;
   travelNewsPackage: boolean;
   busTourPackage: boolean;
+  /** Where to Go destination category ids (linked to Destination names). */
+  destinationCategoryIds: string[];
   status: ContentStatus;
   updatedAt: string;
 };

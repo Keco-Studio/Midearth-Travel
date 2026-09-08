@@ -1,3 +1,36 @@
 .section {
   background-color: #f5efe3;
 }
+
+/* Mobile: 2 columns × 3 rows, all equal cards. Desktop keeps globals.css layout. */
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-auto-rows: minmax(160px, 42vw) !important;
+    gap: 10px !important;
+  }
+
+  .grid :global(.cat-card),
+  .grid :global(.cat-card-0),
+  .grid :global(.cat-card-1),
+  .grid :global(.cat-card-2),
+  .grid :global(.cat-card-3),
+  .grid :global(.cat-card-4),
+  .grid :global(.cat-card-5) {
+    grid-area: auto !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
+  }
+
+  .grid :global(.cat-card-body) {
+    padding: 14px !important;
+  }
+
+  .grid :global(.cat-card-title) {
+    font-size: clamp(16px, 4.2vw, 22px) !important;
+  }
+
+  .grid :global(.cat-card-arrow) {
+    font-size: 18px !important;
+  }
+}
