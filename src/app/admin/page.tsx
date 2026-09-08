@@ -7,6 +7,7 @@ import {
 } from "@/lib/supabase-home-collections";
 import { loadAdminHomeModules } from "@/lib/supabase-home-content";
 import { loadGlobalSettings } from "@/lib/supabase-global-settings";
+import { withSyncedFinalCtaContactFields } from "@/lib/office-address-sync";
 import { loadPaymentOrders } from "@/lib/supabase-payments";
 
 export default async function AdminPage() {
@@ -29,7 +30,7 @@ export default async function AdminPage() {
   return (
     <AdminShell
       initialDestinationCategories={destinationCategories}
-      initialHomeModules={homeModules}
+      initialHomeModules={withSyncedFinalCtaContactFields(homeModules, settings)}
       initialServices={services}
       initialSettings={settings}
       initialTestimonials={testimonials}

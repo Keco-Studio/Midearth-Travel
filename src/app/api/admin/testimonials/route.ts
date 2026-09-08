@@ -2,6 +2,7 @@ import {
   loadHomepageTestimonials,
   saveHomepageTestimonials,
 } from "@/lib/supabase-home-collections";
+import { revalidatePublicSite } from "@/lib/revalidate-public-site";
 import type { Testimonial } from "@/data/testimonials";
 
 export async function GET() {
@@ -14,9 +15,9 @@ export async function PUT(request: Request) {
     if (!Array.isArray(payload.testimonials)) {
       return Response.json({ error: "Invalid testimonial payload" }, { status: 400 });
     }
-    return Response.json({
-      testimonials: await saveHomepageTestimonials(payload.testimonials),
-    });
+    const testimonials = await saveHomepageTestimonials(payload.testimonials);
+    revalidatePublicSite();
+    return Response.json({ testimonials });
   } catch (error) {
     return Response.json(
       { error: error instanceof Error ? error.message : "Unable to save testimonials" },

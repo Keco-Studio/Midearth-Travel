@@ -1,7 +1,9 @@
 import { EXPECTED_HOME_MODULE_IDS } from "@/lib/content-rules";
 import { canonicalizeHomeModule } from "@/lib/home-content";
+import { syncContactFieldsToGlobalSettings } from "@/lib/office-address-sync";
+import { revalidatePublicSite } from "@/lib/revalidate-public-site";
 import { publishHomeModule, saveHomeModuleDraft } from "@/lib/supabase-home-content";
-import type { HomeModuleId, HomeModuleRecord } from "@/types/cms";
+import type { HomeModuleId, HomeModuleRecord, SiteSettings } from "@/types/cms";
 
 type UpdatePayload =
   | { action: "save"; module: HomeModuleRecord }
@@ -39,12 +41,15 @@ export async function PUT(
       }
 
       const savedModule = await saveHomeModuleDraft(canonicalModule);
-      return Response.json({ module: savedModule });
+      const settings = await syncContactFromFinalCta(savedModule);
+      return Response.json({ module: savedModule, settings });
     }
 
     if (payload.action === "publish") {
       const publishedModule = await publishHomeModule(rawId);
-      return Response.json({ module: publishedModule });
+      const settings = await syncContactFromFinalCta(publishedModule);
+      revalidatePublicSite();
+      return Response.json({ module: publishedModule, settings });
     }
 
     return Response.json({ error: "Unsupported homepage module action" }, { status: 400 });
@@ -54,6 +59,16 @@ export async function PUT(
       { status: 500 },
     );
   }
+}
+
+async function syncContactFromFinalCta(
+  module: HomeModuleRecord,
+): Promise<SiteSettings | undefined> {
+  if (module.id !== "finalCta") {
+    return undefined;
+  }
+
+  return syncContactFieldsToGlobalSettings(module);
 }
 
 function isHomeModuleId(value: string): value is HomeModuleId {

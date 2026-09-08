@@ -5,10 +5,22 @@ import {
   getTourDisplayPrice,
   type Tour,
 } from "@/data/tours";
+import {
+  destinationCategorySeeds,
+  type DestinationCategory,
+} from "@/lib/destination-categories";
+import { getTourRegionBadge } from "@/lib/tour-destination-categories";
 
-export function TourCard({ tour }: { tour: Tour }) {
+export function TourCard({
+  tour,
+  destinationCategories = destinationCategorySeeds,
+}: {
+  tour: Tour;
+  destinationCategories?: DestinationCategory[];
+}) {
   const price = getTourDisplayPrice(tour);
   const priceFrom = price.startsWith("from ");
+  const regionBadge = getTourRegionBadge(tour, destinationCategories);
 
   return (
     <article className="tour-card">
@@ -22,7 +34,7 @@ export function TourCard({ tour }: { tour: Tour }) {
           className="object-cover"
         />
         {tour.code ? <div className="tour-card-code">{tour.code}</div> : null}
-        <div className="tour-card-region">{tour.region}</div>
+        <div className="tour-card-region">{regionBadge}</div>
       </Link>
       <div className="tour-card-body">
         <div className="tour-card-meta">

@@ -1,5 +1,6 @@
 import { tours } from "../data/tours.ts";
 import type { ContentStatus, TourRecord } from "../types/cms.ts";
+import { deriveDestinationCategoryIds } from "./tour-destination-categories.ts";
 import { normalizeRichText } from "./rich-text-content.ts";
 
 export type ExcelTourRow = Record<string, unknown>;
@@ -134,7 +135,7 @@ export function mapExcelRowToTourRecord(
     readString(lookup, "region").toLowerCase() === "sun destinations";
   const vacationPackage = readBoolean(lookup, "vacationPackage", "vacation package");
 
-  return {
+  const record: TourRecord = {
     slug,
     code,
     title,
@@ -197,8 +198,14 @@ export function mapExcelRowToTourRecord(
     vacationPackage: vacationPackage || (!busTour && !sunDestination),
     travelNewsPackage: readBoolean(lookup, "Explore by Month", "explore by month"),
     busTourPackage: busTour,
+    destinationCategoryIds: [],
     status: readStatus(lookup),
     updatedAt: readString(lookup, "updatedAt", "updated at") || updatedAt,
+  };
+
+  return {
+    ...record,
+    destinationCategoryIds: deriveDestinationCategoryIds(record),
   };
 }
 

@@ -3,6 +3,8 @@ import { categoryMeta } from "@/data/categories";
 import { filterToursForCategory } from "@/data/tour-filters";
 import { loadPublishedTours } from "@/lib/supabase-tours";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "All Tours | Midearth Travel",
   description: categoryMeta.all.summary,

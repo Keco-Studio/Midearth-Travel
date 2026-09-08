@@ -1,5 +1,5 @@
 import { browseCategories, type BrowseCategory } from "../data/categories.ts";
-import { getCategoryTourCount } from "../data/tour-filters.ts";
+import { filterToursForCategory } from "../data/tour-filters.ts";
 import type { Tour } from "../data/tours.ts";
 
 export type DestinationCategory = BrowseCategory & {
@@ -66,12 +66,21 @@ export function mergeDestinationCategoryRows(
   });
 }
 
+/** Live trip counts + cover image from the first tour in each Where to Go category. */
 export function withLiveCategoryCounts(
   categories: readonly DestinationCategory[],
   tours: readonly Tour[],
 ): DestinationCategory[] {
-  return categories.map((category) => ({
-    ...category,
-    count: getCategoryTourCount([...tours], category.slug),
-  }));
+  const sourceTours = [...tours];
+
+  return categories.map((category) => {
+    const categoryTours = filterToursForCategory(sourceTours, category.slug);
+    const coverImage = categoryTours[0]?.image?.trim();
+
+    return {
+      ...category,
+      count: categoryTours.length,
+      image: coverImage || category.image,
+    };
+  });
 }

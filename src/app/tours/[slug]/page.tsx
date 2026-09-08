@@ -2,14 +2,11 @@ import { notFound } from "next/navigation";
 import { TourDetail } from "@/components/tour/tour-detail";
 import { loadPublishedTours } from "@/lib/supabase-tours";
 
+export const dynamic = "force-dynamic";
+
 type Props = {
   params: Promise<{ slug: string }>;
 };
-
-export async function generateStaticParams() {
-  const { tours } = await import("@/data/tours");
-  return tours.map((t) => ({ slug: t.slug }));
-}
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;

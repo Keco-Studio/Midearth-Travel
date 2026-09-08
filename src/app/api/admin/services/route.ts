@@ -1,4 +1,5 @@
 import { loadHomepageServices, saveHomepageServices } from "@/lib/supabase-home-collections";
+import { revalidatePublicSite } from "@/lib/revalidate-public-site";
 import type { Service } from "@/data/services";
 
 export async function GET() {
@@ -11,7 +12,9 @@ export async function PUT(request: Request) {
     if (!Array.isArray(payload.services)) {
       return Response.json({ error: "Invalid service payload" }, { status: 400 });
     }
-    return Response.json({ services: await saveHomepageServices(payload.services) });
+    const services = await saveHomepageServices(payload.services);
+    revalidatePublicSite();
+    return Response.json({ services });
   } catch (error) {
     return Response.json(
       { error: error instanceof Error ? error.message : "Unable to save services" },

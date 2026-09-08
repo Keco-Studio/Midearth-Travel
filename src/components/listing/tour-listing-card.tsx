@@ -2,13 +2,25 @@ import Image from "next/image";
 import Link from "next/link";
 import { getTourPriceLabel } from "@/data/tour-filters";
 import type { RegionListingCard } from "@/data/destinations-by-region";
+import {
+  destinationCategorySeeds,
+  type DestinationCategory,
+} from "@/lib/destination-categories";
+import { getTourRegionBadge } from "@/lib/tour-destination-categories";
 import styles from "./listing.module.css";
 
-export function TourListingCard({ tour }: { tour: RegionListingCard }) {
+export function TourListingCard({
+  tour,
+  destinationCategories = destinationCategorySeeds,
+}: {
+  tour: RegionListingCard;
+  destinationCategories?: DestinationCategory[];
+}) {
   const price = getTourPriceLabel(tour);
   const priceFrom = price.startsWith("from ");
   const highlights = tour.highlights ?? tour.tags;
   const href = tour.href ?? `/tours/${tour.slug}`;
+  const regionBadge = getTourRegionBadge(tour, destinationCategories);
 
   return (
     <article className={styles.tourCard}>
@@ -22,7 +34,7 @@ export function TourListingCard({ tour }: { tour: RegionListingCard }) {
           className={styles.tourCardImg}
         />
         {tour.code && <div className={styles.tourCardCode}>{tour.code}</div>}
-        <div className={styles.tourCardRegion}>{tour.region}</div>
+        <div className={styles.tourCardRegion}>{regionBadge}</div>
       </Link>
       <div className={styles.tourCardBody}>
         <div className={styles.tourCardMeta}>

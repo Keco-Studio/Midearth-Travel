@@ -2,18 +2,24 @@ import Link from "next/link";
 import { TourCard } from "@/components/tour-card";
 import { getFeaturedTours, tours as staticTours, type Tour } from "@/data/tours";
 import { getStringContent, type ContentData } from "@/lib/content-values";
+import {
+  destinationCategorySeeds,
+  type DestinationCategory,
+} from "@/lib/destination-categories";
 import styles from "./tours-section.module.css";
 
 export function ToursSection({
   content = {},
   tours,
+  destinationCategories = destinationCategorySeeds,
 }: {
   content?: ContentData;
   tours?: Tour[];
+  destinationCategories?: DestinationCategory[];
 }) {
   const sourceTours = tours ?? staticTours;
   const featuredTours = tours
-    ? sourceTours.filter((tour) => tour.featured).slice(0, 4)
+    ? sourceTours.filter((tour) => tour.featured)
     : getFeaturedTours();
   const eyebrow = getStringContent(content, "eyebrow", "Featured");
   const sectionTitle = getStringContent(content, "sectionTitle", "Our Top Picks");
@@ -37,7 +43,11 @@ export function ToursSection({
         </div>
         <div className="tour-grid">
           {featuredTours.map((tour) => (
-            <TourCard key={tour.slug} tour={tour} />
+            <TourCard
+              key={tour.slug}
+              tour={tour}
+              destinationCategories={destinationCategories}
+            />
           ))}
         </div>
       </div>

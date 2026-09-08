@@ -19,16 +19,23 @@ import {
   Upload,
   Select,
 } from "antd";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { TourTypeAutoComplete } from "@/components/tour-type-autocomplete";
+import {
+  applyDestinationCategoryAssignments,
+  resolveTourDestinationCategoryIds,
+} from "@/lib/tour-destination-categories";
+import type { DestinationCategory } from "@/lib/destination-categories";
+import { destinationCategorySeeds } from "@/lib/destination-categories";
 import { validateInlineImageFile } from "@/lib/inline-image-upload";
 import type { TourRecord } from "@/types/cms";
 
 type TourEditorProps = {
   tour: TourRecord;
   tourTypeOptions: string[];
+  destinationCategories?: DestinationCategory[];
   onCancel: () => void;
   onUpdate: (tour: TourRecord) => void;
   onImageUpload: (file: File) => Promise<string>;
@@ -43,7 +50,6 @@ const statusOptions = [
 const requiredRules = {
   title: [{ required: true, whitespace: true, message: "Enter an English title" }],
   slug: [{ required: true, whitespace: true, message: "Enter a slug" }],
-  region: [{ required: true, whitespace: true, message: "Enter a region" }],
   duration: [{ required: true, whitespace: true, message: "Enter an English duration" }],
   tourType: [{ required: true, whitespace: true, message: "Enter or select a tour type" }],
 };
@@ -51,6 +57,7 @@ const requiredRules = {
 export function TourEditor({
   tour,
   tourTypeOptions,
+  destinationCategories = destinationCategorySeeds,
   onCancel,
   onUpdate,
   onImageUpload,
@@ -60,6 +67,14 @@ export function TourEditor({
   const [imagePreview, setImagePreview] = useState(tour.image || "/file.svg");
   const [pdfFileName, setPdfFileName] = useState(tour.pdfFileName);
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  const initialValues = useMemo(
+    () => ({
+      ...tour,
+      destinationCategoryIds: resolveTourDestinationCategoryIds(tour),
+    }),
+    [tour],
+  );
 
   async function handleImageSelection(file: File) {
     const validation = validateInlineImageFile(file);
@@ -96,21 +111,51 @@ export function TourEditor({
     form.setFieldValue("pdfFileName", "");
   }
 
+  function handleFinish(values: TourRecord) {
+    const merged: TourRecord = {
+      ...tour,
+      ...values,
+      essentials: {
+        ...tour.essentials,
+        ...values.essentials,
+      },
+      fares: {
+        ...tour.fares,
+        ...values.fares,
+      },
+      destinationCategoryIds:
+        values.destinationCategoryIds ?? tour.destinationCategoryIds ?? [],
+    };
+    onUpdate(applyDestinationCategoryAssignments(merged, destinationCategories));
+  }
+
   return (
     <div className="cms-tour-editor">
       <Form<TourRecord>
         className="cms-tour-editor-form"
         form={form}
         layout="vertical"
-        initialValues={tour}
+        initialValues={initialValues}
         requiredMark="optional"
-        onFinish={onUpdate}
+        onFinish={handleFinish}
       >
         <Form.Item name="image" hidden>
           <Input />
         </Form.Item>
         <Form.Item name="pdfFileName" hidden>
           <Input />
+        </Form.Item>
+        <Form.Item name="region" hidden>
+          <Input />
+        </Form.Item>
+        <Form.Item name="destinationCategoryIds" hidden>
+          <Select mode="multiple" options={[]} />
+        </Form.Item>
+        <Form.Item name="busTourPackage" valuePropName="checked" hidden>
+          <Switch />
+        </Form.Item>
+        <Form.Item name="vacationPackage" valuePropName="checked" hidden>
+          <Switch />
         </Form.Item>
 
         <EditorSection title="Tour information">
@@ -138,11 +183,6 @@ export function TourEditor({
             <Col xs={24} md={8}>
               <Form.Item name="tourType" label="Tour type" rules={requiredRules.tourType}>
                 <TourTypeAutoComplete options={tourTypeOptions} />
-              </Form.Item>
-            </Col>
-            <Col xs={24} md={12}>
-              <Form.Item name="region" label="Package region" rules={requiredRules.region}>
-                <Input />
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>
@@ -401,17 +441,26 @@ export function TourEditor({
 
         <EditorSection title="Publishing and categories">
           <Row gutter={[16, 8]} className="cms-tour-editor-publishing-grid">
-            <ToggleField name="specialOffer" label="Special offer package" />
-            <ToggleField name="specialDeals" label="Special deals package" />
-            <ToggleField name="vacationPackage" label="Vacation package" />
-            <ToggleField name="travelNewsPackage" label="Travel news package" />
-            <ToggleField name="busTourPackage" label="Bus tour package" />
+            <ToggleField
+              name="specialOffer"
+              label="Our Top Picks"
+              tooltip="Show this tour on the homepage Our Top Picks section. No limit on how many can be featured."
+            />
+            <Col span={24}>
+              <Typography.Text type="secondary">
+                Where to Go — linked to Destination names (rename there and labels update here)
+              </Typography.Text>
+            </Col>
+            <DestinationCategoryToggles categories={destinationCategories} />
+            <Form.Item name="specialDeals" valuePropName="checked" hidden>
+              <Switch />
+            </Form.Item>
+            <Form.Item name="travelNewsPackage" valuePropName="checked" hidden>
+              <Switch />
+            </Form.Item>
             <Col xs={24} md={12} lg={8} className="cms-tour-editor-publishing-controls">
               <Form.Item name="status" label="Status">
                 <Select options={statusOptions} />
-              </Form.Item>
-              <Form.Item label="Order">
-                <Input defaultValue="1" inputMode="numeric" />
               </Form.Item>
             </Col>
           </Row>
@@ -453,25 +502,61 @@ function PriceField({ name, label }: { name: keyof TourRecord["fares"]; label: s
 function ToggleField({
   name,
   label,
+  tooltip,
 }: {
-  name:
-    | "specialOffer"
-    | "specialDeals"
-    | "vacationPackage"
-    | "travelNewsPackage"
-    | "busTourPackage";
+  name: "specialOffer" | "specialDeals" | "travelNewsPackage";
   label: string;
+  tooltip?: string;
 }) {
   return (
     <Col xs={24} md={12} lg={8}>
       <Form.Item
         name={name}
         label={label}
+        tooltip={tooltip}
         valuePropName="checked"
         className="cms-tour-editor-toggle"
       >
         <Switch checkedChildren="Yes" unCheckedChildren="No" />
       </Form.Item>
     </Col>
+  );
+}
+
+function DestinationCategoryToggles({
+  categories,
+}: {
+  categories: DestinationCategory[];
+}) {
+  const form = Form.useFormInstance<TourRecord>();
+  const selected = (Form.useWatch("destinationCategoryIds", form) as string[] | undefined) ?? [];
+
+  return (
+    <>
+      {categories.map((category) => {
+        const checked = selected.includes(category.id);
+        return (
+          <Col xs={24} md={12} lg={8} key={category.id}>
+            <Form.Item
+              label={category.titleEn}
+              tooltip="Synced with Destination names in the homepage Category Grid module"
+              className="cms-tour-editor-toggle"
+            >
+              <Switch
+                checked={checked}
+                checkedChildren="Yes"
+                unCheckedChildren="No"
+                onChange={(nextChecked) => {
+                  const nextIds = nextChecked
+                    ? [...selected, category.id]
+                    : selected.filter((id) => id !== category.id);
+                  form.setFieldValue("destinationCategoryIds", [...new Set(nextIds)]);
+                }}
+              />
+            </Form.Item>
+          </Col>
+        );
+      })}
+    </>
   );
 }

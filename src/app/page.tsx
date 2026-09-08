@@ -19,6 +19,8 @@ import {
 import { loadPublishedHomeModules } from "@/lib/supabase-home-content";
 import { loadPublishedTours } from "@/lib/supabase-tours";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const [
     modules,
@@ -49,7 +51,11 @@ export default async function Home() {
     <main className="min-h-screen">
       <Navbar content={navbar} />
       <Hero content={hero} />
-      <ToursSection content={toursSection} tours={publishedTours} />
+      <ToursSection
+        content={toursSection}
+        tours={publishedTours}
+        destinationCategories={categories}
+      />
       <CategoryGrid content={categoryGrid} categories={categories} />
       {getBooleanContent(exploreByMonth, "isVisible", true) ? (
         <ExploreByMonthSection content={exploreByMonth} />
