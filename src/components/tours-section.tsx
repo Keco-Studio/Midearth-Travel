@@ -23,10 +23,7 @@ export function ToursSection({
     : getFeaturedTours();
   const eyebrow = getStringContent(content, "eyebrow", "Featured");
   const sectionTitle = getStringContent(content, "sectionTitle", "Our Top Picks");
-  const seeAllTemplate = getStringContent(content, "seeAllLabel", "See all {count} tours");
-  const seeAllLabel = seeAllTemplate.includes("{count}")
-    ? seeAllTemplate.replaceAll("{count}", String(sourceTours.length))
-    : seeAllTemplate;
+  const seeAllLabel = `See all ${sourceTours.length} tours`;
   const seeAllLink = getStringContent(content, "seeAllLink", "/tours");
 
   return (

@@ -199,13 +199,11 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
     [
       { key: "eyebrow", label: "Eyebrow", type: "text", maxLength: 30 },
       { key: "sectionTitle", label: "Section title", type: "text", required: true, maxLength: 40 },
-      { key: "seeAllLabel", label: "See all label", type: "text", maxLength: 40, helper: "Optional: include {count} to inject the tour total." },
       { key: "seeAllLink", label: "See all link", type: "link", required: true },
     ],
     {
       eyebrow: "Featured",
       sectionTitle: "Our Top Picks",
-      seeAllLabel: "See all {count} tours",
       seeAllLink: "/tours",
     },
   ),
