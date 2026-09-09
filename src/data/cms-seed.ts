@@ -84,12 +84,6 @@ function createHeroCardFields(): FieldDefinition[] {
         required: true,
         maxLength: 100,
       },
-      {
-        key: `card${number}Link`,
-        label: `Card ${number} link`,
-        type: "link",
-        required: true,
-      },
     ];
   });
 }
@@ -103,7 +97,6 @@ function createHeroCardData(): Record<string, string> {
         [`card${number}IconImage`, card.iconImage],
         [`card${number}Title`, card.title],
         [`card${number}Description`, card.description],
-        [`card${number}Link`, card.href],
       ];
     }),
   );

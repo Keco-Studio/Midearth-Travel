@@ -17,7 +17,7 @@ export const heroFeatureCardSeeds = [
     iconImage: "",
     title: "Flight Booking",
     description: "Best Airfares Worldwide",
-    href: "/#services",
+    href: "/services/flights",
   },
   {
     icon: "Bus" as const,

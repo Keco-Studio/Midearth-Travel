@@ -23,7 +23,6 @@ test("hero cards use one editable description and image icon", () => {
     card1IconImage: "https://example.com/cruise-icon.png",
     card1Title: "Cruise Booking",
     card1Description: "Ocean journeys worldwide",
-    card1Link: "/tours/cruises",
   });
 
   assert.deepEqual(cards[0], {
@@ -32,7 +31,7 @@ test("hero cards use one editable description and image icon", () => {
     iconImage: "https://example.com/cruise-icon.png",
     title: "Cruise Booking",
     description: "Ocean journeys worldwide",
-    href: "/tours/cruises",
+    href: "/#services",
   });
   assert.equal(cards[1]?.fallbackIcon, "Bus");
   assert.equal(cards[1]?.iconImage, "");
