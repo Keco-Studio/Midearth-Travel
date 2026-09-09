@@ -26,7 +26,7 @@ export function ToursSection({
   const seeAllTemplate = getStringContent(content, "seeAllLabel", "See all {count} tours");
   const seeAllLabel = seeAllTemplate.includes("{count}")
     ? seeAllTemplate.replaceAll("{count}", String(sourceTours.length))
-    : `See all ${sourceTours.length} tours`;
+    : seeAllTemplate;
   const seeAllLink = getStringContent(content, "seeAllLink", "/tours");
 
   return (

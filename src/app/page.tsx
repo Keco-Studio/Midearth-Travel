@@ -8,7 +8,6 @@ import { Navbar } from "@/components/navbar";
 import { Newsletter } from "@/components/newsletter";
 import { TestimonialsSection } from "@/components/testimonials-section";
 import { ToursSection } from "@/components/tours-section";
-import { getBooleanContent } from "@/lib/content-values";
 import { getHomeModule } from "@/lib/home-content";
 import { loadDestinationCategories } from "@/lib/supabase-destination-categories";
 import { withLiveCategoryCounts } from "@/lib/destination-categories";
@@ -57,18 +56,12 @@ export default async function Home() {
         destinationCategories={categories}
       />
       <CategoryGrid content={categoryGrid} categories={categories} />
-      {getBooleanContent(exploreByMonth, "isVisible", true) ? (
-        <ExploreByMonthSection content={exploreByMonth} />
-      ) : null}
-      {getBooleanContent(aboutSection, "isVisible", true) ? (
-        <AboutSection content={aboutSection} services={homepageServices} />
-      ) : null}
-      {getBooleanContent(testimonialContent, "isVisible", true) ? (
-        <TestimonialsSection
-          content={testimonialContent}
-          testimonials={homepageTestimonials}
-        />
-      ) : null}
+      <ExploreByMonthSection content={exploreByMonth} tours={publishedTours} />
+      <AboutSection content={aboutSection} services={homepageServices} />
+      <TestimonialsSection
+        content={testimonialContent}
+        testimonials={homepageTestimonials}
+      />
       <FinalCta content={finalCta} />
       <Newsletter content={newsletter} />
       <Footer content={footer} />

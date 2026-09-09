@@ -1,6 +1,10 @@
 import { EXPECTED_HOME_MODULE_IDS } from "@/lib/content-rules";
 import { canonicalizeHomeModule } from "@/lib/home-content";
-import { syncContactFieldsToGlobalSettings } from "@/lib/office-address-sync";
+import {
+  syncContactFieldsToFinalCta,
+  syncContactFieldsToGlobalSettings,
+  syncSharedPhonesToModules,
+} from "@/lib/office-address-sync";
 import { revalidatePublicSite } from "@/lib/revalidate-public-site";
 import { publishHomeModule, saveHomeModuleDraft } from "@/lib/supabase-home-content";
 import type { HomeModuleId, HomeModuleRecord, SiteSettings } from "@/types/cms";
@@ -41,15 +45,15 @@ export async function PUT(
       }
 
       const savedModule = await saveHomeModuleDraft(canonicalModule);
-      const settings = await syncContactFromFinalCta(savedModule);
-      return Response.json({ module: savedModule, settings });
+      const linked = await syncLinkedModules(savedModule);
+      return Response.json({ module: savedModule, ...linked });
     }
 
     if (payload.action === "publish") {
       const publishedModule = await publishHomeModule(rawId);
-      const settings = await syncContactFromFinalCta(publishedModule);
+      const linked = await syncLinkedModules(publishedModule);
       revalidatePublicSite();
-      return Response.json({ module: publishedModule, settings });
+      return Response.json({ module: publishedModule, ...linked });
     }
 
     return Response.json({ error: "Unsupported homepage module action" }, { status: 400 });
@@ -61,14 +65,25 @@ export async function PUT(
   }
 }
 
-async function syncContactFromFinalCta(
-  module: HomeModuleRecord,
-): Promise<SiteSettings | undefined> {
-  if (module.id !== "finalCta") {
-    return undefined;
+async function syncLinkedModules(module: HomeModuleRecord): Promise<{
+  settings?: SiteSettings;
+  linkedModules?: HomeModuleRecord[];
+}> {
+  if (
+    module.id === "finalCta" ||
+    module.id === "newsletter" ||
+    module.id === "footer"
+  ) {
+    const settings = await syncContactFieldsToGlobalSettings(module);
+    if (module.id === "newsletter" || module.id === "footer") {
+      const linkedModules = await syncSharedPhonesToModules(settings);
+      await syncContactFieldsToFinalCta(settings);
+      return { settings, linkedModules };
+    }
+    return { settings };
   }
 
-  return syncContactFieldsToGlobalSettings(module);
+  return {};
 }
 
 function isHomeModuleId(value: string): value is HomeModuleId {

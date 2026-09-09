@@ -2,12 +2,13 @@ import { canonicalizeSiteSettings } from "@/lib/global-settings";
 import {
   loadAdminHomeModules,
   patchFinalCtaContactFields,
+  patchHomeModuleDataFields,
 } from "@/lib/supabase-home-content";
 import {
   loadGlobalSettings,
   saveGlobalSettings,
 } from "@/lib/supabase-global-settings";
-import type { ContentValue, HomeModuleRecord, SiteSettings } from "@/types/cms";
+import type { ContentValue, HomeModuleId, HomeModuleRecord, SiteSettings } from "@/types/cms";
 
 export type FinalCtaContactFields = {
   phoneLabel: string;
@@ -15,6 +16,13 @@ export type FinalCtaContactFields = {
   emailLabel: string;
   emailHref: string;
   officeAddress: string;
+};
+
+export type SharedPhoneFields = {
+  primaryPhoneLabel: string;
+  primaryPhoneHref: string;
+  secondaryPhoneLabel: string;
+  secondaryPhoneHref: string;
 };
 
 export function contactFieldsFromSettings(
@@ -26,6 +34,15 @@ export function contactFieldsFromSettings(
     emailLabel: settings.emailLabel.trim(),
     emailHref: settings.emailHref.trim(),
     officeAddress: settings.officeAddress.trim(),
+  };
+}
+
+export function sharedPhonesFromSettings(settings: SiteSettings): SharedPhoneFields {
+  return {
+    primaryPhoneLabel: settings.primaryPhoneLabel.trim(),
+    primaryPhoneHref: settings.primaryPhoneHref.trim(),
+    secondaryPhoneLabel: settings.secondaryPhoneLabel.trim(),
+    secondaryPhoneHref: settings.secondaryPhoneHref.trim(),
   };
 }
 
@@ -41,24 +58,44 @@ export function contactFieldsFromFinalCta(
   };
 }
 
+export function sharedPhonesFromModule(module: HomeModuleRecord): SharedPhoneFields {
+  return {
+    primaryPhoneLabel: String(module.data.primaryPhoneLabel ?? "").trim(),
+    primaryPhoneHref: String(module.data.primaryPhoneHref ?? "").trim(),
+    secondaryPhoneLabel: String(module.data.secondaryPhoneLabel ?? "").trim(),
+    secondaryPhoneHref: String(module.data.secondaryPhoneHref ?? "").trim(),
+  };
+}
+
 export function withSyncedFinalCtaContactFields(
   modules: HomeModuleRecord[],
   settings: SiteSettings,
 ): HomeModuleRecord[] {
   const contact = contactFieldsFromSettings(settings);
+  const phones = sharedPhonesFromSettings(settings);
 
   return modules.map((module) => {
-    if (module.id !== "finalCta") {
-      return module;
+    if (module.id === "finalCta") {
+      return {
+        ...module,
+        data: {
+          ...module.data,
+          ...contactToModuleData(contact, module.data),
+        },
+      };
     }
 
-    return {
-      ...module,
-      data: {
-        ...module.data,
-        ...contactToModuleData(contact, module.data),
-      },
-    };
+    if (module.id === "newsletter" || module.id === "footer") {
+      return {
+        ...module,
+        data: {
+          ...module.data,
+          ...phones,
+        },
+      };
+    }
+
+    return module;
   });
 }
 
@@ -100,9 +137,27 @@ export async function syncContactFieldsToFinalCta(
   return patchFinalCtaContactFields(contact);
 }
 
+export async function syncSharedPhonesToModules(
+  settings: SiteSettings,
+): Promise<HomeModuleRecord[]> {
+  const phones = sharedPhonesFromSettings(settings);
+  const updated: HomeModuleRecord[] = [];
+
+  for (const id of ["newsletter", "footer"] as const) {
+    const module = await patchHomeModuleDataFields(id, phones);
+    updated.push(module);
+  }
+
+  return updated;
+}
+
 export async function syncContactFieldsToGlobalSettings(
   module: HomeModuleRecord,
 ): Promise<SiteSettings> {
+  if (module.id === "newsletter" || module.id === "footer") {
+    return syncSharedPhonesModuleToSettings(module);
+  }
+
   const contact = contactFieldsFromFinalCta(module);
   const settings = await loadGlobalSettings();
   const next = canonicalizeSiteSettings({
@@ -120,6 +175,33 @@ export async function syncContactFieldsToGlobalSettings(
     next.emailLabel === settings.emailLabel &&
     next.emailHref === settings.emailHref &&
     next.officeAddress === settings.officeAddress
+  ) {
+    return settings;
+  }
+
+  return saveGlobalSettings(next);
+}
+
+async function syncSharedPhonesModuleToSettings(
+  module: HomeModuleRecord,
+): Promise<SiteSettings> {
+  const phones = sharedPhonesFromModule(module);
+  const settings = await loadGlobalSettings();
+  const next = canonicalizeSiteSettings({
+    ...settings,
+    primaryPhoneLabel: phones.primaryPhoneLabel || settings.primaryPhoneLabel,
+    primaryPhoneHref: phones.primaryPhoneHref || settings.primaryPhoneHref,
+    secondaryPhoneLabel:
+      phones.secondaryPhoneLabel || settings.secondaryPhoneLabel,
+    secondaryPhoneHref:
+      phones.secondaryPhoneHref || settings.secondaryPhoneHref,
+  });
+
+  if (
+    next.primaryPhoneLabel === settings.primaryPhoneLabel &&
+    next.primaryPhoneHref === settings.primaryPhoneHref &&
+    next.secondaryPhoneLabel === settings.secondaryPhoneLabel &&
+    next.secondaryPhoneHref === settings.secondaryPhoneHref
   ) {
     return settings;
   }
@@ -171,7 +253,6 @@ function contactToModuleData(
     emailLabel: contact.emailLabel || String(existing.emailLabel ?? ""),
     emailHref: contact.emailHref || String(existing.emailHref ?? ""),
     officeAddress: contact.officeAddress || String(existing.officeAddress ?? ""),
-    // Keep the booking CTA phone link aligned with the primary phone.
     primaryButtonLink: phoneHref || String(existing.primaryButtonLink ?? ""),
   };
 }
@@ -188,3 +269,5 @@ function sameContactFields(
     left.officeAddress === right.officeAddress
   );
 }
+
+export type PhoneSyncModuleId = Extract<HomeModuleId, "newsletter" | "footer">;

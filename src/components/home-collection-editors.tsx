@@ -1,10 +1,14 @@
 "use client";
 
-import { UploadOutlined } from "@ant-design/icons";
+import { DeleteOutlined, PlusOutlined, UploadOutlined } from "@ant-design/icons";
 import { App, Button, Input, InputNumber, Space, Table, Typography, Upload } from "antd";
 import { useState } from "react";
 import type { Service } from "@/data/services";
 import type { Testimonial } from "@/data/testimonials";
+import {
+  createEmptyTestimonial,
+  MAX_HOMEPAGE_TESTIMONIALS,
+} from "@/lib/home-collections";
 
 type ServiceCardsEditorProps = {
   records: Service[];
@@ -96,6 +100,8 @@ export function TestimonialsEditor({
   onChange,
   onDirtyChange,
 }: TestimonialsEditorProps) {
+  const { message } = App.useApp();
+
   function update(id: string, key: keyof Testimonial, value: string | number) {
     onDirtyChange(true);
     onChange(
@@ -105,8 +111,38 @@ export function TestimonialsEditor({
     );
   }
 
+  function addReview() {
+    if (records.length >= MAX_HOMEPAGE_TESTIMONIALS) {
+      message.warning(`You can add at most ${MAX_HOMEPAGE_TESTIMONIALS} reviews`);
+      return;
+    }
+    onDirtyChange(true);
+    onChange([...records, createEmptyTestimonial()]);
+  }
+
+  function removeReview(id: string) {
+    if (records.length <= 1) {
+      message.warning("Keep at least one review");
+      return;
+    }
+    onDirtyChange(true);
+    onChange(records.filter((record) => record.id !== id));
+  }
+
   return (
-    <CollectionSection title="Reviews">
+    <CollectionSection
+      title="Reviews"
+      extra={
+        <Button
+          disabled={records.length >= MAX_HOMEPAGE_TESTIMONIALS}
+          icon={<PlusOutlined />}
+          onClick={addReview}
+          type="dashed"
+        >
+          Add review
+        </Button>
+      }
+    >
       <Table<Testimonial>
         rowKey="id"
         dataSource={records}
@@ -144,6 +180,18 @@ export function TestimonialsEditor({
               <Input.TextArea rows={3} value={record.text} onChange={(event) => update(record.id, "text", event.target.value)} />
             ),
           },
+          {
+            title: "",
+            width: 64,
+            render: (_, record) => (
+              <Button
+                danger
+                disabled={records.length <= 1}
+                icon={<DeleteOutlined />}
+                onClick={() => removeReview(record.id)}
+              />
+            ),
+          },
         ]}
       />
     </CollectionSection>
@@ -153,13 +201,26 @@ export function TestimonialsEditor({
 function CollectionSection({
   title,
   children,
+  extra,
 }: {
   title: string;
   children: React.ReactNode;
+  extra?: React.ReactNode;
 }) {
   return (
     <section className="cms-destination-name-editor">
-      <Typography.Title level={5} style={{ margin: "0 0 16px" }}>{title}</Typography.Title>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+          marginBottom: 16,
+        }}
+      >
+        <Typography.Title level={5} style={{ margin: 0 }}>{title}</Typography.Title>
+        {extra}
+      </div>
       {children}
     </section>
   );

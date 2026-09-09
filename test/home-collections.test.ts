@@ -27,20 +27,36 @@ test("applies stored service card fields to fixed service slots", () => {
   assert.equal(result[0].image, row.image);
 });
 
-test("applies stored review fields and clamps ratings to one through five", () => {
-  const row: TestimonialRow = {
-    id: "r1",
-    name: "Updated reviewer",
-    source: "Website",
-    rating: 9,
-    text: "Updated review",
-    sort_order: 1,
-    updated_at: "2026-07-23T14:00:00Z",
-  };
-  const result = mergeTestimonialRows([row]);
+test("keeps custom reviews beyond seed slots", () => {
+  const rows: TestimonialRow[] = [
+    {
+      id: "r1",
+      name: "Updated reviewer",
+      source: "Website",
+      rating: 9,
+      text: "Updated review",
+      sort_order: 1,
+      updated_at: "2026-07-23T14:00:00Z",
+    },
+    {
+      id: "custom-1",
+      name: "New guest",
+      source: "TripAdvisor",
+      rating: 4,
+      text: "Great trip",
+      sort_order: 2,
+      updated_at: "2026-07-23T14:00:00Z",
+    },
+  ];
+  const result = mergeTestimonialRows(rows);
 
-  assert.equal(result.length, testimonials.length);
+  assert.equal(result.length, 2);
   assert.equal(result[0].name, "Updated reviewer");
   assert.equal(result[0].rating, 5);
-  assert.equal(result[0].text, "Updated review");
+  assert.equal(result[1].id, "custom-1");
+});
+
+test("falls back to seeded reviews when no rows exist", () => {
+  const result = mergeTestimonialRows([]);
+  assert.equal(result.length, testimonials.length);
 });

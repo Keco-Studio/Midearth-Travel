@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import { useLang } from "@/context/lang-context";
+import { useNavbarContent } from "@/context/navbar-content-context";
 import { useSiteSettings } from "@/context/site-settings-context";
 import { getStringContent, type ContentData } from "@/lib/content-values";
 
@@ -30,8 +31,10 @@ import { getStringContent, type ContentData } from "@/lib/content-values";
 //   );
 // }
 
-export function Navbar({ content = {} }: { content?: ContentData }) {
+export function Navbar({ content }: { content?: ContentData }) {
   const settings = useSiteSettings();
+  const sharedContent = useNavbarContent();
+  const resolvedContent = content && Object.keys(content).length > 0 ? content : sharedContent;
   const pathname = usePathname();
   const { lang, setLang } = useLang();
   const [scrolled, setScrolled] = useState(false);
@@ -42,16 +45,12 @@ export function Navbar({ content = {} }: { content?: ContentData }) {
     pathname === "/" || /^\/tours\/[^/]+$/.test(pathname);
   const transparent = hasHeroOverlay && !scrolled;
   const logoAlt = getStringContent(
-    content,
+    resolvedContent,
     "logoAlt",
     `${settings.siteName} ${settings.tagline}`,
   );
-  const bookNowLabel = getStringContent(content, "bookNowLabel", "Book Now");
-  const bookNowLink = getStringContent(
-    content,
-    "bookNowLink",
-    settings.primaryPhoneHref,
-  );
+  const bookNowLabel = getStringContent(resolvedContent, "bookNowLabel", "Book Now");
+  const bookNowLink = settings.primaryPhoneHref.trim() || "tel:+16132365226";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -73,21 +72,21 @@ export function Navbar({ content = {} }: { content?: ContentData }) {
   }, [drawerOpen, pathname]);
 
   const nav = [
-    { key: "home", label: getStringContent(content, "homeLabel", "Home"), href: "/" },
+    { key: "home", label: getStringContent(resolvedContent, "homeLabel", "Home"), href: "/" },
     {
       key: "routes",
-      label: getStringContent(content, "destinationsLabel", "Destinations"),
+      label: getStringContent(resolvedContent, "destinationsLabel", "Destinations"),
       href: "/#destinations",
       // mega: "routes" as const,
     },
     {
       key: "services",
-      label: getStringContent(content, "servicesLabel", "Services"),
+      label: getStringContent(resolvedContent, "servicesLabel", "Services"),
       href: "/#about",
     },
     {
       key: "contact",
-      label: getStringContent(content, "contactLabel", "Contact"),
+      label: getStringContent(resolvedContent, "contactLabel", "Contact"),
       href: "/#contact",
     },
   ];

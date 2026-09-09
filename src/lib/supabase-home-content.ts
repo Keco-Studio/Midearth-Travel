@@ -77,17 +77,24 @@ export async function patchFinalCtaContactFields(contact: {
   emailHref: string;
   officeAddress: string;
 }): Promise<HomeModuleRecord> {
-  const existing = await getHomeModuleRow("finalCta");
-  const seed = getSeedModule("finalCta");
-  const baseRow = existing ?? toHomeModuleRow(seed);
-  const patch = {
+  return patchHomeModuleDataFields("finalCta", {
     phoneLabel: contact.phoneLabel.trim(),
     phoneHref: contact.phoneHref.trim(),
     emailLabel: contact.emailLabel.trim(),
     emailHref: contact.emailHref.trim(),
     officeAddress: contact.officeAddress.trim(),
     primaryButtonLink: contact.phoneHref.trim(),
-  };
+  });
+}
+
+/** Patch selected draft+published fields on a homepage module without flipping status. */
+export async function patchHomeModuleDataFields(
+  id: HomeModuleId,
+  patch: Record<string, string | number | boolean>,
+): Promise<HomeModuleRecord> {
+  const existing = await getHomeModuleRow(id);
+  const seed = getSeedModule(id);
+  const baseRow = existing ?? toHomeModuleRow(seed);
   const publishedData = {
     ...(isRecord(baseRow.published_data) ? baseRow.published_data : seed.data),
     ...patch,
@@ -108,7 +115,7 @@ export async function patchFinalCtaContactFields(contact: {
     },
   ]);
 
-  return getMergedModule(savedRows, "finalCta", "draft");
+  return getMergedModule(savedRows, id, "draft");
 }
 
 /** @deprecated Use patchFinalCtaContactFields */

@@ -23,6 +23,7 @@ import {
   destinationCategorySeeds,
   type DestinationCategory,
 } from "@/lib/destination-categories";
+import { createEmptyTourRecord } from "@/lib/create-empty-tour";
 import { replaceTourEditorRecord, validateTourEditorRecord } from "@/lib/tour-editor-state";
 import { getTourTypeOptions } from "@/lib/tour-type-state";
 import { getTourStatusCounts } from "@/lib/workspace-view-models";
@@ -82,6 +83,16 @@ export function ToursWorkspace({
     void loadTours();
     return () => controller.abort();
   }, [message]);
+
+  function openNewTour() {
+    const draft = createEmptyTourRecord(tourState.records.map((tour) => tour.slug));
+    setTourState((current) => ({
+      ...current,
+      records: [draft, ...current.records],
+    }));
+    setEditingSlug(draft.slug);
+    message.success("New tour draft opened — fill in details and save");
+  }
 
   function resolveTourType(rawValue: string): { tourType: string; isNew: boolean } | null {
     const trimmed = rawValue.trim();
@@ -317,7 +328,7 @@ export function ToursWorkspace({
                 key="new-tour"
                 type="primary"
                 className="cms-primary-action"
-                onClick={() => message.success("New tour form opened")}
+                onClick={openNewTour}
               >
                 New Tour
               </Button>,
@@ -328,7 +339,7 @@ export function ToursWorkspace({
                   <Button
                     type="primary"
                     className="cms-primary-action"
-                    onClick={() => message.success("New tour form opened")}
+                    onClick={openNewTour}
                   >
                     New Tour
                   </Button>

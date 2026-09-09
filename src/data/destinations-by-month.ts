@@ -1,4 +1,7 @@
 export type MonthDestination = {
+  id?: string;
+  /** Tour Library slug — name/region/tag/image/link are resolved from the tour. */
+  tourSlug?: string;
   name: string;
   region: string;
   tag: string;
