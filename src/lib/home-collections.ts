@@ -21,6 +21,8 @@ export type TestimonialRow = {
   updated_at: string;
 };
 
+export const MAX_HOMEPAGE_TESTIMONIALS = 20;
+
 export function mergeServiceRows(rows: readonly ServiceRow[]): Service[] {
   const byId = new Map(rows.map((row) => [row.id, row]));
   return services.map((seed) => {
@@ -40,19 +42,23 @@ export function mergeServiceRows(rows: readonly ServiceRow[]): Service[] {
 export function mergeTestimonialRows(
   rows: readonly TestimonialRow[],
 ): Testimonial[] {
-  const byId = new Map(rows.map((row) => [row.id, row]));
-  return testimonials.map((seed) => {
-    const row = byId.get(seed.id);
-    return row
-      ? {
-          id: seed.id,
-          name: row.name.trim() || seed.name,
-          source: row.source.trim() || seed.source,
-          rating: Math.min(5, Math.max(1, Math.round(row.rating))),
-          text: row.text.trim() || seed.text,
-        }
-      : { ...seed };
-  });
+  if (rows.length === 0) {
+    return testimonials.map((seed) => ({ ...seed }));
+  }
+
+  const seedsById = new Map(testimonials.map((seed) => [seed.id, seed]));
+  return [...rows]
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map((row) => {
+      const seed = seedsById.get(row.id);
+      return {
+        id: row.id,
+        name: row.name.trim() || seed?.name || "Anonymous",
+        source: row.source.trim() || seed?.source || "Review",
+        rating: Math.min(5, Math.max(1, Math.round(row.rating))),
+        text: row.text.trim() || seed?.text || "",
+      };
+    });
 }
 
 export function serviceToRow(service: Service, index: number): ServiceRow {
@@ -71,5 +77,15 @@ export function testimonialToRow(
     ...testimonial,
     sort_order: index + 1,
     updated_at: new Date().toISOString(),
+  };
+}
+
+export function createEmptyTestimonial(): Testimonial {
+  return {
+    id: `review-${Date.now()}`,
+    name: "New reviewer",
+    source: "Google Review",
+    rating: 5,
+    text: "",
   };
 }

@@ -3,6 +3,7 @@ import "server-only";
 import { services, type Service } from "@/data/services";
 import { testimonials, type Testimonial } from "@/data/testimonials";
 import {
+  MAX_HOMEPAGE_TESTIMONIALS,
   mergeServiceRows,
   mergeTestimonialRows,
   serviceToRow,
@@ -62,15 +63,21 @@ export async function loadHomepageTestimonials(): Promise<Testimonial[]> {
 export async function saveHomepageTestimonials(
   input: Testimonial[],
 ): Promise<Testimonial[]> {
-  const byId = new Map(input.map((testimonial) => [testimonial.id, testimonial]));
-  const canonical = testimonials.map((seed) => {
-    const value = byId.get(seed.id);
-    if (!value) throw new Error(`Missing testimonial: ${seed.id}`);
-    const name = value.name.trim();
-    const source = value.source.trim();
-    const text = value.text.trim();
+  if (!Array.isArray(input) || input.length === 0) {
+    throw new Error("At least one review is required");
+  }
+  if (input.length > MAX_HOMEPAGE_TESTIMONIALS) {
+    throw new Error(`You can publish at most ${MAX_HOMEPAGE_TESTIMONIALS} reviews`);
+  }
+
+  const canonical = input.map((value, index) => {
+    const id = value.id?.trim();
+    const name = value.name?.trim() ?? "";
+    const source = value.source?.trim() ?? "";
+    const text = value.text?.trim() ?? "";
     const rating = Math.min(5, Math.max(1, Math.round(value.rating)));
 
+    if (!id) throw new Error(`Review #${index + 1} is missing an id`);
     if (!name || !source || !text) {
       throw new Error("Reviewer name, source, and review text are required");
     }
@@ -78,10 +85,18 @@ export async function saveHomepageTestimonials(
       throw new Error("Testimonial content is too long");
     }
 
-    return { id: seed.id, name, source, rating, text };
+    return { id, name, source, rating, text };
   });
 
   await upsert("homepage_testimonials", canonical.map(testimonialToRow));
+  const keepIds = canonical.map((entry) => entry.id);
+  if (keepIds.length > 0) {
+    const encoded = keepIds.map(encodeURIComponent).join(",");
+    await request<unknown[]>(
+      `/rest/v1/homepage_testimonials?id=not.in.(${encoded})`,
+      { method: "DELETE" },
+    );
+  }
   return mergeTestimonialRows(await list<TestimonialRow>("homepage_testimonials"));
 }
 
@@ -118,12 +133,8 @@ async function ensureServices(): Promise<ServiceRow[]> {
 
 async function ensureTestimonials(): Promise<TestimonialRow[]> {
   const rows = await list<TestimonialRow>("homepage_testimonials");
-  const ids = new Set(rows.map((row) => row.id));
-  const missing = testimonials
-    .filter((testimonial) => !ids.has(testimonial.id))
-    .map(testimonialToRow);
-  if (missing.length > 0) {
-    await upsert("homepage_testimonials", missing);
+  if (rows.length === 0) {
+    await upsert("homepage_testimonials", testimonials.map(testimonialToRow));
     return list<TestimonialRow>("homepage_testimonials");
   }
   return rows;
@@ -152,7 +163,10 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     cache: "no-store",
   });
   if (!response.ok) throw new Error((await response.text()) || "Supabase request failed");
-  return response.json() as Promise<T>;
+  if (response.status === 204) return [] as T;
+  const text = await response.text();
+  if (!text) return [] as T;
+  return JSON.parse(text) as T;
 }
 
 function getConfig() {

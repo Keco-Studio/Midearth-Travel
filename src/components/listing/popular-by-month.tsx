@@ -3,13 +3,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
-import { destinationsByMonth } from "@/data/destinations-by-month";
+import {
+  destinationsByMonth,
+  type MonthEntry,
+} from "@/data/destinations-by-month";
 import styles from "./browse-sections.module.css";
 
 type PopularByMonthProps = {
   eyebrow?: string;
   title?: ReactNode;
   subtitle?: ReactNode;
+  months?: MonthEntry[];
 };
 
 export function PopularByMonth({
@@ -22,9 +26,11 @@ export function PopularByMonth({
     </>
   ),
   subtitle,
+  months = destinationsByMonth,
 }: PopularByMonthProps) {
-  const [active, setActive] = useState(destinationsByMonth[0].month);
-  const panel = destinationsByMonth.find((m) => m.month === active)!;
+  const source = months.length > 0 ? months : destinationsByMonth;
+  const [active, setActive] = useState(source[0].month);
+  const panel = source.find((m) => m.month === active) ?? source[0];
 
   return (
     <div className={styles.browseBlock}>
@@ -35,7 +41,7 @@ export function PopularByMonth({
       </div>
 
       <div className={styles.monthTabs} role="tablist" aria-label="Month">
-        {destinationsByMonth.map((item) => (
+        {source.map((item) => (
           <button
             key={item.month}
             type="button"
@@ -53,7 +59,7 @@ export function PopularByMonth({
         <div className={styles.destGrid}>
           {panel.destinations.map((dest) => (
             <Link
-              key={dest.name}
+              key={`${panel.month}-${dest.id ?? dest.tourSlug ?? dest.name}`}
               href={dest.href ?? "/#contact"}
               className={styles.destCard}
             >

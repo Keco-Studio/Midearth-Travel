@@ -24,7 +24,10 @@ type SettingsPanelProps = {
   settings: SiteSettings;
   onSaved: (
     settings: SiteSettings,
-    extras?: { finalCtaModule?: HomeModuleRecord | null },
+    extras?: {
+      finalCtaModule?: HomeModuleRecord | null;
+      linkedModules?: HomeModuleRecord[];
+    },
   ) => void;
 };
 
@@ -62,8 +65,12 @@ export function SettingsPanel({ settings, onSaved }: SettingsPanelProps) {
           const payload = await readResponse<{
             settings: SiteSettings;
             finalCtaModule?: HomeModuleRecord | null;
+            linkedModules?: HomeModuleRecord[];
           }>(response);
-          onSaved(payload.settings, { finalCtaModule: payload.finalCtaModule });
+          onSaved(payload.settings, {
+            finalCtaModule: payload.finalCtaModule,
+            linkedModules: payload.linkedModules,
+          });
           message.success("Global settings saved to Supabase");
           return true;
         } catch (error) {

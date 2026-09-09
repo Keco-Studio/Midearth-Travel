@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { LangProvider } from "@/context/lang-context";
+import { NavbarContentProvider } from "@/context/navbar-content-context";
 import { SiteSettingsProvider } from "@/context/site-settings-context";
+import { getHomeModule } from "@/lib/home-content";
+import { loadPublishedHomeModules } from "@/lib/supabase-home-content";
 import { loadGlobalSettings } from "@/lib/supabase-global-settings";
 import "./globals.css";
 
@@ -15,7 +18,11 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const settings = await loadGlobalSettings();
+  const [settings, modules] = await Promise.all([
+    loadGlobalSettings(),
+    loadPublishedHomeModules().catch(() => []),
+  ]);
+  const navbarContent = getHomeModule(modules, "navbar").data;
 
   return (
     <html lang="en" className="h-full antialiased">
@@ -40,7 +47,9 @@ export default async function RootLayout({
       </head>
       <body className="min-h-full font-sans antialiased">
         <SiteSettingsProvider settings={settings}>
-          <LangProvider>{children}</LangProvider>
+          <NavbarContentProvider content={navbarContent}>
+            <LangProvider>{children}</LangProvider>
+          </NavbarContentProvider>
         </SiteSettingsProvider>
       </body>
     </html>

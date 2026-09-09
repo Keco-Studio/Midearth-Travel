@@ -2,7 +2,10 @@ import {
   loadGlobalSettings,
   saveGlobalSettings,
 } from "@/lib/supabase-global-settings";
-import { syncContactFieldsToFinalCta } from "@/lib/office-address-sync";
+import {
+  syncContactFieldsToFinalCta,
+  syncSharedPhonesToModules,
+} from "@/lib/office-address-sync";
 import { revalidatePublicSite } from "@/lib/revalidate-public-site";
 import type { SiteSettings } from "@/types/cms";
 
@@ -20,9 +23,10 @@ export async function PUT(request: Request) {
 
     const settings = await saveGlobalSettings(payload.settings);
     const finalCtaModule = await syncContactFieldsToFinalCta(settings);
+    const linkedModules = await syncSharedPhonesToModules(settings);
     revalidatePublicSite();
 
-    return Response.json({ settings, finalCtaModule });
+    return Response.json({ settings, finalCtaModule, linkedModules });
   } catch (error) {
     return Response.json(
       { error: error instanceof Error ? error.message : "Unable to save settings" },

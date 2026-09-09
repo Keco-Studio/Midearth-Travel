@@ -141,10 +141,15 @@ export function AdminShell({
       const payload = await readApiResponse<{
         module: HomeModuleRecord;
         settings?: SiteSettings;
+        linkedModules?: HomeModuleRecord[];
       }>(response);
-      setState((current) =>
-        applyPersistedHomeModule(current, payload.module, submittedData),
-      );
+      setState((current) => {
+        let next = applyPersistedHomeModule(current, payload.module, submittedData);
+        for (const linked of payload.linkedModules ?? []) {
+          next = applyPersistedHomeModule(next, linked, linked.data);
+        }
+        return next;
+      });
       if (payload.settings) {
         setSettings(payload.settings);
       }
@@ -173,10 +178,15 @@ export function AdminShell({
       const payload = await readApiResponse<{
         module: HomeModuleRecord;
         settings?: SiteSettings;
+        linkedModules?: HomeModuleRecord[];
       }>(response);
-      setState((current) =>
-        applyPersistedHomeModule(current, payload.module, submittedData),
-      );
+      setState((current) => {
+        let next = applyPersistedHomeModule(current, payload.module, submittedData);
+        for (const linked of payload.linkedModules ?? []) {
+          next = applyPersistedHomeModule(next, linked, linked.data);
+        }
+        return next;
+      });
       if (payload.settings) {
         setSettings(payload.settings);
       }
@@ -392,35 +402,62 @@ export function AdminShell({
           onTestimonialsChange: setTestimonials,
           onSettingsChange: (nextSettings, extras) => {
             setSettings(nextSettings);
-            if (extras?.finalCtaModule) {
-              setState((current) =>
-                applyPersistedHomeModule(
-                  current,
-                  extras.finalCtaModule!,
-                  extras.finalCtaModule!.data,
-                ),
-              );
-            } else {
-              setState((current) => ({
-                ...current,
-                homeModules: current.homeModules.map((module) =>
-                  module.id === "finalCta"
-                    ? {
-                        ...module,
-                        data: {
-                          ...module.data,
-                          phoneLabel: nextSettings.primaryPhoneLabel,
-                          phoneHref: nextSettings.primaryPhoneHref,
-                          emailLabel: nextSettings.emailLabel,
-                          emailHref: nextSettings.emailHref,
-                          officeAddress: nextSettings.officeAddress,
-                          primaryButtonLink: nextSettings.primaryPhoneHref,
-                        },
-                      }
-                    : module,
-                ),
-              }));
-            }
+            setState((current) => {
+              let next = current;
+              if (extras?.finalCtaModule) {
+                next = applyPersistedHomeModule(
+                  next,
+                  extras.finalCtaModule,
+                  extras.finalCtaModule.data,
+                );
+              } else {
+                next = {
+                  ...next,
+                  homeModules: next.homeModules.map((module) =>
+                    module.id === "finalCta"
+                      ? {
+                          ...module,
+                          data: {
+                            ...module.data,
+                            phoneLabel: nextSettings.primaryPhoneLabel,
+                            phoneHref: nextSettings.primaryPhoneHref,
+                            emailLabel: nextSettings.emailLabel,
+                            emailHref: nextSettings.emailHref,
+                            officeAddress: nextSettings.officeAddress,
+                            primaryButtonLink: nextSettings.primaryPhoneHref,
+                          },
+                        }
+                      : module,
+                  ),
+                };
+              }
+
+              for (const module of extras?.linkedModules ?? []) {
+                next = applyPersistedHomeModule(next, module, module.data);
+              }
+
+              if (!extras?.linkedModules?.length) {
+                next = {
+                  ...next,
+                  homeModules: next.homeModules.map((module) =>
+                    module.id === "newsletter" || module.id === "footer"
+                      ? {
+                          ...module,
+                          data: {
+                            ...module.data,
+                            primaryPhoneLabel: nextSettings.primaryPhoneLabel,
+                            primaryPhoneHref: nextSettings.primaryPhoneHref,
+                            secondaryPhoneLabel: nextSettings.secondaryPhoneLabel,
+                            secondaryPhoneHref: nextSettings.secondaryPhoneHref,
+                          },
+                        }
+                      : module,
+                  ),
+                };
+              }
+
+              return next;
+            });
           },
           onViewBooking: (bookingId) => {
             setState((current) => openBooking(current, bookingId));
@@ -563,7 +600,10 @@ function renderWorkspace(
     onTestimonialsChange: (testimonials: Testimonial[]) => void;
     onSettingsChange: (
       settings: SiteSettings,
-      extras?: { finalCtaModule?: HomeModuleRecord | null },
+      extras?: {
+        finalCtaModule?: HomeModuleRecord | null;
+        linkedModules?: HomeModuleRecord[];
+      },
     ) => void;
     onViewBooking: (bookingId: string) => void;
     onViewPayment: (paymentId: string) => void;
