@@ -41,7 +41,7 @@ export function AboutSection({
               <Link
                 key={svc.id}
                 className={styles.svcCard}
-                href={`/?service=${encodeURIComponent(svc.slug)}#contact`}
+                href={`/services/${svc.slug}`}
               >
                 <div className={styles.svcCardImg}>
                   <Image

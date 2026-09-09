@@ -22,10 +22,10 @@ export const footerTourLinkSeeds: FooterLink[] = [
 ];
 
 export const footerServiceLinkSeeds: FooterLink[] = [
-  { id: "flights", label: "Flights", href: "/#about" },
-  { id: "hotels", label: "Hotels", href: "/#about" },
-  { id: "travel-insurance", label: "Travel Insurance", href: "/#about" },
-  { id: "visa-application", label: "VISA Application", href: "/#about" },
+  { id: "flights", label: "Flights", href: "/services/flights" },
+  { id: "hotels", label: "Hotels", href: "/services/hotels" },
+  { id: "travel-insurance", label: "Travel Insurance", href: "/services/travel-insurance" },
+  { id: "visa-application", label: "Visa Application", href: "/services/visa-application" },
 ];
 
 export function serializeFooterLinks(links: FooterLink[]): string {
