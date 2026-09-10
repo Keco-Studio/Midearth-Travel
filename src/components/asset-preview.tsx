@@ -45,18 +45,23 @@ export function AssetPreview({ url, alt, variant = "image" }: AssetPreviewProps)
         style={{
           display: "grid",
           placeItems: "center",
-          width: 72,
-          height: 72,
+          width: 56,
+          height: 56,
           overflow: "hidden",
-          borderRadius: 8,
-          border: "1px solid #efe9dd",
-          background: "#f9f6ef",
+          borderRadius: 999,
+          border: "1px solid #1f4d3f",
+          background: "linear-gradient(145deg, #1f4d3f, #163530)",
         }}
       >
         <img
           alt={alt}
           src={url}
-          style={{ width: 48, height: 48, objectFit: "contain", display: "block" }}
+          style={{
+            width: 28,
+            height: 28,
+            objectFit: "contain",
+            display: "block",
+          }}
         />
       </div>
     );

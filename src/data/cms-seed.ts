@@ -64,7 +64,8 @@ function createHeroCardFields(): FieldDefinition[] {
         key: `card${number}IconImage`,
         label: `Card ${number} icon image`,
         type: "image",
-        helper: `Optional override. Default matches the site icon (${heroFeatureCardSeeds[index]?.icon ?? "icon"}).`,
+        helper:
+          "Default is the same white icon used on the homepage. Replace by uploading a white/transparent PNG or SVG.",
       },
       {
         key: `card${number}Title`,
