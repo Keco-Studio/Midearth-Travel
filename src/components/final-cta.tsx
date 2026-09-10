@@ -21,33 +21,24 @@ export function FinalCta({ content = {} }: { content?: ContentData }) {
     getStringContent(content, "phoneLabel", "").trim() ||
     site.phone;
   const phoneHref =
-    settings.primaryPhoneHref.trim() ||
-    getStringContent(content, "phoneHref", "").trim() ||
-    `tel:${site.phoneTel}`;
+    settings.primaryPhoneHref.trim() || `tel:${site.phoneTel}`;
   const emailLabel =
     settings.emailLabel.trim() ||
     getStringContent(content, "emailLabel", "").trim() ||
     site.email;
   const emailHref =
-    settings.emailHref.trim() ||
-    getStringContent(content, "emailHref", "").trim() ||
-    `mailto:${site.email}`;
+    settings.emailHref.trim() || `mailto:${site.email}`;
   const officeAddress =
     settings.officeAddress.trim() ||
     getStringContent(content, "officeAddress", "").trim() ||
     "Bronson Avenue, Ottawa, Ontario";
-  const primaryButtonLink =
-    getStringContent(content, "primaryButtonLink", "").trim() || phoneHref;
+  const primaryButtonLink = phoneHref;
   const secondaryButtonText = getStringContent(
     content,
     "secondaryButtonText",
     "Send a message",
   );
-  const secondaryButtonLink = getStringContent(
-    content,
-    "secondaryButtonLink",
-    "/#contact",
-  );
+  const secondaryButtonLink = "/#contact";
 
   return (
     <section className="final-cta">

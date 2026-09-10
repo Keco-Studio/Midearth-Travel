@@ -17,13 +17,13 @@ import {
   updateHomeModuleField,
 } from "../src/lib/admin-state.ts";
 
-test("starts in the home workspace with hero selected", () => {
+test("starts in the home workspace with Navigation selected", () => {
   const state = createInitialAdminState();
 
   assert.equal(state.workspace, "home");
   assert.equal(state.expandedWorkspace, "home");
-  assert.equal(state.selectedHomeModuleId, "hero");
-  assert.equal(getActiveModule(state).id, "hero");
+  assert.equal(state.selectedHomeModuleId, "navbar");
+  assert.equal(getActiveModule(state).id, "navbar");
 });
 
 test("updates workspace title when switching sections", () => {
@@ -87,7 +87,7 @@ test("saving a draft marks the active module as draft and increments draft versi
 });
 
 test("loads persisted modules without overwriting the module being edited", () => {
-  const state = createInitialAdminState();
+  const state = selectHomeModule(createInitialAdminState(), "hero");
   const loadedModules = state.homeModules.map((module) =>
     module.id === "hero"
       ? { ...module, data: { ...module.data, titleMain: "Loaded hero" } }
@@ -146,7 +146,7 @@ test("ignores an async image result after navigation instead of changing another
 });
 
 test("preserves edits made while a save request is in flight", () => {
-  const initialState = createInitialAdminState();
+  const initialState = selectHomeModule(createInitialAdminState(), "hero");
   const submittedModule = {
     ...getActiveModule(initialState),
     data: { ...getActiveModule(initialState).data, titleMain: "Submitted" },

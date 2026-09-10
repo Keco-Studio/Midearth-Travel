@@ -12,7 +12,6 @@ import {
   Image,
   Row,
   Space,
-  Spin,
   Statistic,
   Typography,
 } from "antd";
@@ -51,7 +50,6 @@ export function ToursWorkspace({
     createInitialTourWorkspaceState(tours),
   );
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
-  const [ready, setReady] = useState(tours.length > 0);
   const counts = getTourStatusCounts(tourState.records);
 
   const editingTour = useMemo(
@@ -66,7 +64,6 @@ export function ToursWorkspace({
 
   useEffect(() => {
     setTourState(createInitialTourWorkspaceState(tours));
-    if (tours.length > 0) setReady(true);
   }, [tours]);
 
   useEffect(() => {
@@ -84,12 +81,10 @@ export function ToursWorkspace({
         if (!controller.signal.aborted) {
           setTourState({ records: payload.tours, customTypes: [] });
           onToursChange?.(payload.tours);
-          setReady(true);
         }
       } catch (error) {
         if (!controller.signal.aborted) {
           message.error(getErrorMessage(error, "Tours could not be loaded"));
-          setReady(true);
         }
       }
     }
@@ -301,20 +296,6 @@ export function ToursWorkspace({
         onUpdate={handleTourUpdate}
         onImageUpload={(file) => uploadTourImage(editingTour.slug, file)}
       />
-    );
-  }
-
-  if (!ready) {
-    return (
-      <div
-        style={{
-          minHeight: 320,
-          display: "grid",
-          placeItems: "center",
-        }}
-      >
-        <Spin size="large" tip="Loading tours…" />
-      </div>
     );
   }
 

@@ -14,28 +14,28 @@ export type HeroCardIconName = "Plane" | "Bus" | "Globe" | "Ship";
 export const heroFeatureCardSeeds = [
   {
     icon: "Plane" as const,
-    iconImage: "",
+    iconImage: "/icons/plane.svg",
     title: "Flight Booking",
     description: "Best Airfares Worldwide",
     href: "/services/flights",
   },
   {
     icon: "Bus" as const,
-    iconImage: "",
+    iconImage: "/icons/bus.svg",
     title: "Bus Tours",
     description: "Charter & Group Transportation",
-    href: "/tours",
+    href: "/tours/category/bus-tours",
   },
   {
     icon: "Globe" as const,
-    iconImage: "",
+    iconImage: "/icons/globe.svg",
     title: "Worldwide Travel",
     description: "Worldwide Cruise Packages",
     href: "/tours",
   },
   {
     icon: "Ship" as const,
-    iconImage: "",
+    iconImage: "/icons/ship.svg",
     title: "Other Services",
     description: "Canada & International Tours",
     href: "/#services",

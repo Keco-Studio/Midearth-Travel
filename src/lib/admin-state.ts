@@ -27,7 +27,7 @@ export function createInitialAdminState(): AdminState {
   return {
     workspace: "home",
     expandedWorkspace: "home",
-    selectedHomeModuleId: "hero",
+    selectedHomeModuleId: "navbar",
     homeModules: homeModuleSeeds,
     hasUnsavedChanges: false,
     focusBookingId: null,

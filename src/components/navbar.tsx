@@ -53,9 +53,12 @@ export function Navbar({ content }: { content?: ContentData }) {
   const logoImageSolid = getStringContent(resolvedContent, "logoImageSolid", "").trim();
   const bookNowLabel = getStringContent(resolvedContent, "bookNowLabel", "Book Now");
   const bookNowLink =
-    getStringContent(resolvedContent, "bookNowLink", "").trim() ||
-    settings.primaryPhoneHref.trim() ||
-    "tel:+16132365226";
+    settings.primaryPhoneHref.trim() || "tel:+16132365226";
+  const phoneLabel =
+    getStringContent(resolvedContent, "primaryPhoneLabel", "").trim() ||
+    settings.primaryPhoneLabel.trim() ||
+    "613-236-5226";
+  const phoneHref = settings.primaryPhoneHref.trim() || "tel:+16132365226";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -80,23 +83,23 @@ export function Navbar({ content }: { content?: ContentData }) {
     {
       key: "home",
       label: getStringContent(resolvedContent, "homeLabel", "Home"),
-      href: getStringContent(resolvedContent, "homeHref", "/"),
+      href: "/",
     },
     {
       key: "routes",
       label: getStringContent(resolvedContent, "destinationsLabel", "Destinations"),
-      href: getStringContent(resolvedContent, "destinationsHref", "/#destinations"),
+      href: "/#destinations",
       // mega: "routes" as const,
     },
     {
       key: "services",
       label: getStringContent(resolvedContent, "servicesLabel", "Services"),
-      href: getStringContent(resolvedContent, "servicesHref", "/#about"),
+      href: "/#about",
     },
     {
       key: "contact",
       label: getStringContent(resolvedContent, "contactLabel", "Contact"),
-      href: getStringContent(resolvedContent, "contactHref", "/#contact"),
+      href: "/#contact",
     },
   ];
 
@@ -139,7 +142,7 @@ export function Navbar({ content }: { content?: ContentData }) {
 
         <div className="header-right">
           <div className="header-contact">
-            <a href={settings.primaryPhoneHref}>{settings.primaryPhoneLabel}</a>
+            <a href={phoneHref}>{phoneLabel}</a>
           </div>
           <button
             className="header-pill"
@@ -232,7 +235,7 @@ export function Navbar({ content }: { content?: ContentData }) {
                 Admin Portal
               </Link>
               <div className="drawer-contact">
-                <div>{settings.primaryPhoneLabel}</div>
+                <div>{phoneLabel}</div>
                 <div>{settings.emailLabel}</div>
               </div>
             </div>

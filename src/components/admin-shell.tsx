@@ -436,11 +436,8 @@ export function AdminShell({
                           data: {
                             ...module.data,
                             phoneLabel: nextSettings.primaryPhoneLabel,
-                            phoneHref: nextSettings.primaryPhoneHref,
                             emailLabel: nextSettings.emailLabel,
-                            emailHref: nextSettings.emailHref,
                             officeAddress: nextSettings.officeAddress,
-                            primaryButtonLink: nextSettings.primaryPhoneHref,
                           },
                         }
                       : module,
@@ -456,15 +453,15 @@ export function AdminShell({
                 next = {
                   ...next,
                   homeModules: next.homeModules.map((module) =>
-                    module.id === "newsletter" || module.id === "footer"
+                    module.id === "navbar" ||
+                    module.id === "newsletter" ||
+                    module.id === "footer"
                       ? {
                           ...module,
                           data: {
                             ...module.data,
                             primaryPhoneLabel: nextSettings.primaryPhoneLabel,
-                            primaryPhoneHref: nextSettings.primaryPhoneHref,
                             secondaryPhoneLabel: nextSettings.secondaryPhoneLabel,
-                            secondaryPhoneHref: nextSettings.secondaryPhoneHref,
                           },
                         }
                       : module,
@@ -642,6 +639,7 @@ function renderWorkspace(
         destinationCategories={handlers.destinationCategories}
         services={handlers.services}
         testimonials={handlers.testimonials}
+        tours={handlers.tours}
         onDestinationCategoriesChange={handlers.onDestinationCategoriesChange}
         onServicesChange={handlers.onServicesChange}
         onTestimonialsChange={handlers.onTestimonialsChange}

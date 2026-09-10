@@ -85,7 +85,17 @@ export function canonicalizeHomeModule(
   }
 
   const data = seed.fields.reduce<Record<string, ContentValue>>((result, field) => {
-    const value = candidate.data[field.key] ?? seed.data[field.key] ?? defaultFieldValue(field);
+    let value = candidate.data[field.key] ?? seed.data[field.key] ?? defaultFieldValue(field);
+    const seedValue = seed.data[field.key];
+    if (
+      field.type === "image" &&
+      typeof value === "string" &&
+      !value.trim() &&
+      typeof seedValue === "string" &&
+      seedValue.trim()
+    ) {
+      value = seedValue;
+    }
     validateContentValue(field, value);
     result[field.key] = value;
     return result;
