@@ -43,11 +43,9 @@ export function getHeroFeatureCards(
     return {
       id: `hero-card-${number}`,
       fallbackIcon: seed.icon,
-      iconImage: getStringContent(
-        content,
-        `card${number}IconImage`,
+      iconImage:
+        getStringContent(content, `card${number}IconImage`, seed.iconImage).trim() ||
         seed.iconImage,
-      ),
       title: getStringContent(content, `card${number}Title`, seed.title),
       description: getStringContent(
         content,
