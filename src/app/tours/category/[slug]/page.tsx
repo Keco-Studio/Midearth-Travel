@@ -16,9 +16,10 @@ export async function generateMetadata({ params }: Props) {
   if (!meta) return { title: "Category Not Found" };
   const categories = await loadDestinationCategories();
   const title = getDestinationCategoryTitle(slug, categories);
+  const category = categories.find((item) => item.slug === slug || item.id === slug);
   return {
     title: `${title} | Midearth Travel`,
-    description: meta.summary,
+    description: category?.summary?.trim() || meta.summary,
   };
 }
 
@@ -32,13 +33,14 @@ export default async function TourCategoryPage({ params }: Props) {
     loadDestinationCategories(),
   ]);
   const title = getDestinationCategoryTitle(slug, categories);
+  const category = categories.find((item) => item.slug === slug || item.id === slug);
 
   return (
     <TourListing
       eyebrow="Category"
       title={title}
-      summary={meta.summary}
-      image={meta.image}
+      summary={category?.summary?.trim() || meta.summary}
+      image={category?.image?.trim() || meta.image}
       initialTours={filterToursForCategory(tours, slug)}
       showBrowseSections={slug === "bus-tours"}
       destinationCategories={categories}

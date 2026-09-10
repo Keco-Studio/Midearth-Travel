@@ -70,11 +70,17 @@ export function ExploreByMonthEditor({
 
   const tourOptions = useMemo<TourOption[]>(
     () =>
-      tours
+      [...tours]
         .filter((tour) => tour.status === "published" || tour.status === "draft")
+        .sort((a, b) => {
+          const aFlag = a.travelNewsPackage ? 0 : 1;
+          const bFlag = b.travelNewsPackage ? 0 : 1;
+          if (aFlag !== bFlag) return aFlag - bFlag;
+          return a.title.localeCompare(b.title);
+        })
         .map((tour) => ({
           value: tour.slug,
-          label: `${tour.title} (${tour.slug})`,
+          label: `${tour.travelNewsPackage ? "★ " : ""}${tour.title} (${tour.slug})`,
           region: tour.region,
           tourType: tour.tourType,
         })),

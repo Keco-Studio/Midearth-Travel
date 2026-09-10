@@ -1,16 +1,17 @@
 import { notFound } from "next/navigation";
 import { ServiceDetailPage } from "@/components/services/service-detail-page";
 import {
-  getServicePage,
-  getServicePageSlugs,
-  serviceNavItems,
+  SERVICE_WHATSAPP_LABEL,
+  SERVICE_WHATSAPP_QR,
+  serviceToPageContent,
+  servicesToNavItems,
 } from "@/data/service-pages";
+import { getStringContent } from "@/lib/content-values";
+import { getHomeModule } from "@/lib/home-content";
+import { loadHomepageServices } from "@/lib/supabase-home-collections";
+import { loadPublishedHomeModules } from "@/lib/supabase-home-content";
 
 export const dynamic = "force-dynamic";
-
-export function generateStaticParams() {
-  return getServicePageSlugs().map((slug) => ({ slug }));
-}
 
 export async function generateMetadata({
   params,
@@ -18,12 +19,13 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const page = getServicePage(slug);
-  if (!page) return {};
+  const services = await loadHomepageServices();
+  const service = services.find((item) => item.slug === slug);
+  if (!service) return {};
 
   return {
-    title: page.metaTitle,
-    description: page.metaDescription,
+    title: service.page.metaTitle,
+    description: service.page.metaDescription,
   };
 }
 
@@ -33,8 +35,43 @@ export default async function ServicePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const content = getServicePage(slug);
-  if (!content) notFound();
+  const [services, modules] = await Promise.all([
+    loadHomepageServices(),
+    loadPublishedHomeModules(),
+  ]);
+  const service = services.find((item) => item.slug === slug);
+  if (!service) notFound();
 
-  return <ServiceDetailPage content={content} navItems={serviceNavItems} />;
+  const aboutSection = getHomeModule(modules, "aboutSection").data;
+  const content = serviceToPageContent(service);
+  const sharedSignOff = getStringContent(
+    aboutSection,
+    "servicePageSignOff",
+    content.signOff,
+  );
+
+  return (
+    <ServiceDetailPage
+      content={{
+        ...content,
+        signOff: sharedSignOff.trim() || content.signOff,
+      }}
+      navItems={servicesToNavItems(services)}
+      whatsappLabel={getStringContent(
+        aboutSection,
+        "whatsappLabel",
+        SERVICE_WHATSAPP_LABEL,
+      )}
+      whatsappQrImage={getStringContent(
+        aboutSection,
+        "whatsappQrImage",
+        SERVICE_WHATSAPP_QR,
+      )}
+      backgroundImage={getStringContent(
+        aboutSection,
+        "servicePageBackgroundImage",
+        "",
+      )}
+    />
+  );
 }

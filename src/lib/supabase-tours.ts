@@ -76,6 +76,43 @@ export async function uploadTourImage(input: {
   return `${config.url}/storage/v1/object/public/${TOUR_MEDIA_BUCKET}/${encodedPath}`;
 }
 
+export async function uploadTourPdf(input: {
+  slug: string;
+  file: File;
+}): Promise<string> {
+  const config = getSupabaseConfig();
+  const objectPath = createStorageObjectPath("tours", `${input.slug}-pdf`, input.file.name);
+  const encodedPath = objectPath.split("/").map(encodeURIComponent).join("/");
+  const contentType = input.file.type || "application/pdf";
+  if (!contentType.toLocaleLowerCase("en").includes("pdf")) {
+    throw new Error("Select a PDF file");
+  }
+  if (input.file.size > 20 * 1024 * 1024) {
+    throw new Error("PDF must be 20 MB or smaller");
+  }
+
+  const response = await fetch(
+    `${config.url}/storage/v1/object/${TOUR_MEDIA_BUCKET}/${encodedPath}`,
+    {
+      method: "POST",
+      headers: {
+        apikey: config.key,
+        Authorization: `Bearer ${config.key}`,
+        "Content-Type": contentType,
+        "x-upsert": "false",
+      },
+      body: input.file,
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(await getSupabaseError(response, "Tour PDF upload failed"));
+  }
+
+  return `${config.url}/storage/v1/object/public/${TOUR_MEDIA_BUCKET}/${encodedPath}`;
+}
+
 async function ensureTourRows(): Promise<TourRow[]> {
   const rows = await listTourRows();
   const storedSlugs = new Set(rows.map((row) => row.slug));

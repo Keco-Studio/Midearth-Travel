@@ -149,7 +149,7 @@ test("rejects invalid required, typed, and link values before persistence", () =
           isVisible: "yes",
         },
       }),
-    /Visible on public site must be a boolean/,
+    /Show on homepage must be a boolean/,
   );
   assert.throws(
     () =>

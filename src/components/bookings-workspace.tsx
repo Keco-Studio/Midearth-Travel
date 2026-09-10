@@ -13,6 +13,7 @@ type BookingsWorkspaceProps = {
   focusBookingId?: string | null;
   onFocusHandled?: () => void;
   onViewPayment?: (paymentId: string) => void;
+  onBookingsChange?: (bookings: BookingRecord[]) => void;
 };
 
 const sourceLabels: Record<BookingSource, string> = {
@@ -44,10 +45,11 @@ export function BookingsWorkspace({
   focusBookingId,
   onFocusHandled,
   onViewPayment,
+  onBookingsChange,
 }: BookingsWorkspaceProps) {
   const { message } = App.useApp();
   const [localSelectedId, setLocalSelectedId] = useState<string | null>(null);
-  const [loading] = useState(false);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
   const counts = getBookingStatusCounts(bookings);
   const focusedBookingExists =
     focusBookingId !== null &&
@@ -74,6 +76,37 @@ export function BookingsWorkspace({
     },
     [onFocusHandled],
   );
+
+  async function markContacted() {
+    if (!selectedBooking || selectedBooking.status !== "new") return;
+    setUpdatingId(selectedBooking.id);
+    try {
+      const response = await fetch("/api/admin/bookings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selectedBooking.id, status: "contacted" }),
+      });
+      const payload = (await response.json()) as {
+        booking?: BookingRecord;
+        error?: string;
+      };
+      if (!response.ok || !payload.booking) {
+        throw new Error(payload.error ?? "Unable to update booking");
+      }
+      onBookingsChange?.(
+        bookings.map((booking) =>
+          booking.id === payload.booking!.id ? payload.booking! : booking,
+        ),
+      );
+      message.success("Booking marked as contacted");
+    } catch (error) {
+      message.error(
+        error instanceof Error ? error.message : "Unable to update booking",
+      );
+    } finally {
+      setUpdatingId(null);
+    }
+  }
 
   const columns: ProColumns<BookingRecord>[] = useMemo(
     () => [
@@ -148,7 +181,7 @@ export function BookingsWorkspace({
           <ProTable<BookingRecord>
             columns={columns}
             dataSource={bookings}
-            loading={loading}
+            loading={updatingId !== null}
             rowKey="id"
             search={false}
             options={{ density: true, setting: true, reload: false }}
@@ -170,8 +203,9 @@ export function BookingsWorkspace({
                     key="mark-contacted"
                     type="primary"
                     className="cms-primary-action"
-                    disabled={markContactedDisabledReason !== null}
-                    onClick={() => message.success("Booking marked as contacted")}
+                    disabled={markContactedDisabledReason !== null || updatingId !== null}
+                    loading={updatingId === selectedBooking?.id}
+                    onClick={() => void markContacted()}
                   >
                     Mark contacted
                   </Button>

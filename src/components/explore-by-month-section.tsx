@@ -2,7 +2,11 @@
 
 import { PopularByMonth } from "@/components/listing/popular-by-month";
 import { useLang } from "@/context/lang-context";
-import { getStringContent, type ContentData } from "@/lib/content-values";
+import {
+  getBooleanContent,
+  getStringContent,
+  type ContentData,
+} from "@/lib/content-values";
 import {
   getExploreByMonthEntries,
   resolveExploreByMonthEntries,
@@ -18,18 +22,36 @@ export function ExploreByMonthSection({
   tours?: Tour[];
 }) {
   const { lang } = useLang();
+
+  if (getBooleanContent(content, "isVisible", true) === false) {
+    return null;
+  }
+
   const months = resolveExploreByMonthEntries(
     getExploreByMonthEntries(content),
     tours,
   );
 
+  const eyebrow =
+    lang === "zh"
+      ? getStringContent(content, "eyebrowZh", "按月份浏览")
+      : `— ${getStringContent(content, "eyebrowEn", "Explore by Month")}`;
+  const title =
+    lang === "zh"
+      ? getStringContent(content, "titleZh", "按月份浏览")
+      : getStringContent(content, "titleEn", "When to Go");
+  const subtitle =
+    lang === "zh"
+      ? getStringContent(content, "subtitleZh", "Explore by Month")
+      : getStringContent(content, "subtitleEn", "Explore by Month");
+
   return (
     <section id="explore-by-month" className={styles.section}>
       <div className="browse-container">
         <PopularByMonth
-          eyebrow={lang === "zh" ? "按月份浏览" : `— ${getStringContent(content, "eyebrowEn", "Explore by Month")}`}
-          title={lang === "zh" ? "按月份浏览" : getStringContent(content, "titleEn", "When to Go")}
-          subtitle={lang === "zh" ? "Explore by Month" : getStringContent(content, "subtitleEn", "Explore by Month")}
+          eyebrow={eyebrow}
+          title={title}
+          subtitle={subtitle}
           months={months}
         />
       </div>

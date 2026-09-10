@@ -7,6 +7,7 @@ export function revalidatePublicSite(options?: { tourSlug?: string }) {
   revalidatePath("/tours");
   revalidatePath("/tours/category", "layout");
   revalidatePath("/routes", "layout");
+  revalidatePath("/services", "layout");
 
   if (options?.tourSlug) {
     revalidatePath(`/tours/${options.tourSlug}`);

@@ -1,24 +1,58 @@
 "use client";
 
 import { Globe, Mail, Share2 } from "lucide-react";
+import { useFooterContent } from "@/context/footer-content-context";
 import { useSiteSettings } from "@/context/site-settings-context";
 import { getPublishedFooterLinks } from "@/lib/footer-links";
 import { getStringContent, type ContentData } from "@/lib/content-values";
 
-export function Footer({ content = {} }: { content?: ContentData }) {
+export function Footer({ content }: { content?: ContentData }) {
   const settings = useSiteSettings();
-  const brandTitle = getStringContent(content, "brandTitle", "Midearth Travel");
+  const sharedContent = useFooterContent();
+  const resolved =
+    content && Object.keys(content).length > 0 ? content : sharedContent;
+
+  const brandTitle = getStringContent(resolved, "brandTitle", "Midearth Travel");
   const brandDescription = getStringContent(
-    content,
+    resolved,
     "brandDescription",
     "Your one-stop travel solution. TICO certified member serving the community with professionalism and competitive prices.",
   );
   const copyrightText = getStringContent(
-    content,
+    resolved,
     "copyrightText",
     "© 2026 Midearth Travel Inc. All rights reserved.",
   );
-  const { tourLinks, serviceLinks } = getPublishedFooterLinks(content);
+  const { tourLinks, serviceLinks } = getPublishedFooterLinks(resolved);
+
+  const socialLinks = [
+    {
+      id: "website",
+      Icon: Globe,
+      href: getStringContent(resolved, "socialWebsiteUrl", "").trim(),
+      label: "Website",
+    },
+    {
+      id: "facebook",
+      Icon: Share2,
+      href: getStringContent(resolved, "socialFacebookUrl", "").trim(),
+      label: "Facebook",
+    },
+    {
+      id: "email",
+      Icon: Mail,
+      href:
+        getStringContent(resolved, "socialEmailUrl", "").trim() ||
+        settings.emailHref,
+      label: "Email",
+    },
+    {
+      id: "other",
+      Icon: Share2,
+      href: getStringContent(resolved, "socialOtherUrl", "").trim(),
+      label: "Social",
+    },
+  ].filter((item) => item.href && item.href !== "#");
 
   return (
     <footer id="contact" className="border-t border-white/10 bg-[#1A1A17] text-[#f5efe3]">
@@ -29,17 +63,22 @@ export function Footer({ content = {} }: { content?: ContentData }) {
             <p className="text-sm leading-relaxed text-[#f5efe3]/65">
               {brandDescription}
             </p>
-            <div className="flex gap-4">
-              {[Globe, Share2, Mail, Share2].map((Icon, i) => (
-                <a
-                  key={i}
-                  href="#"
-                  className="text-[#f5efe3]/50 transition-colors hover:text-[#f5efe3]"
-                >
-                  <Icon className="h-5 w-5" />
-                </a>
-              ))}
-            </div>
+            {socialLinks.length > 0 ? (
+              <div className="flex gap-4">
+                {socialLinks.map(({ id, Icon, href, label }) => (
+                  <a
+                    key={id}
+                    href={href}
+                    aria-label={label}
+                    className="text-[#f5efe3]/50 transition-colors hover:text-[#f5efe3]"
+                    target={href.startsWith("http") ? "_blank" : undefined}
+                    rel={href.startsWith("http") ? "noreferrer" : undefined}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </a>
+                ))}
+              </div>
+            ) : null}
           </div>
 
           <div>

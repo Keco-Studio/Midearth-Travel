@@ -44,6 +44,7 @@ export function createEmptyTourRecord(existingSlugs: readonly string[] = []): To
     pdfTitle: "",
     localizedPdfTitle: "",
     pdfFileName: "",
+    galleryImages: "",
     specialOffer: false,
     specialDeals: false,
     vacationPackage: false,

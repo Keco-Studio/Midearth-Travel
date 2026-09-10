@@ -120,13 +120,14 @@ export function mergeHomeModuleRows(
     const candidate: HomeModuleRecord = {
       id: seed.id,
       index: seed.index,
-      name: row.name,
-      description: row.description,
+      name: seed.name,
+      description: seed.description,
       status: row.status,
       publishedVersion: row.published_version,
       draftVersion: row.draft_version,
       updatedAt: row.updated_at,
-      fields: Array.isArray(row.fields) ? row.fields : seed.fields,
+      // Always use seed field schema so new CMS fields appear without a DB field rewrite.
+      fields: seed.fields,
       data: isContentRecord(storedData) ? storedData : seed.data,
     };
 

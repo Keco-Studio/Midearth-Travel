@@ -12,7 +12,9 @@ export async function GET() {
 export async function PUT(request: Request) {
   try {
     const payload = (await request.json()) as {
-      categories?: Array<Pick<DestinationCategory, "id" | "titleEn" | "titleZh">>;
+      categories?: Array<
+        Pick<DestinationCategory, "id" | "titleEn" | "titleZh" | "summary" | "image">
+      >;
     };
 
     if (!Array.isArray(payload.categories)) {

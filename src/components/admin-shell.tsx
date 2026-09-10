@@ -16,7 +16,7 @@ import { SettingsPanel } from "@/components/settings-panel";
 import { HomeModuleMenuItem, MenuBrandHeader, menuBrandMarkStyle } from "@/components/cms-menu-items";
 import { StatusTag } from "@/components/status-tag";
 import { ToursWorkspace } from "@/components/tours-workspace";
-import { bookingSeeds, tourSeeds } from "@/data/cms-seed";
+import { bookingSeeds } from "@/data/cms-seed";
 import type { Service } from "@/data/services";
 import type { Testimonial } from "@/data/testimonials";
 import {
@@ -40,7 +40,7 @@ import {
 } from "@/lib/layout-routes";
 import type { DestinationCategory } from "@/lib/destination-categories";
 import { proLayoutToken } from "@/theme/mid-earth-theme";
-import type { HomeModuleId, HomeModuleRecord, PaymentRecord, SiteSettings } from "@/types/cms";
+import type { BookingRecord, HomeModuleId, HomeModuleRecord, PaymentRecord, SiteSettings, TourRecord } from "@/types/cms";
 
 const subscribeToHydration = () => () => {};
 const getClientHydrationSnapshot = () => true;
@@ -53,6 +53,8 @@ type AdminShellProps = {
   initialTestimonials: Testimonial[];
   initialSettings: SiteSettings;
   initialPayments: PaymentRecord[];
+  initialBookings?: BookingRecord[];
+  initialTours?: TourRecord[];
 };
 
 export function AdminShell({
@@ -62,6 +64,8 @@ export function AdminShell({
   initialTestimonials,
   initialSettings,
   initialPayments,
+  initialBookings = bookingSeeds,
+  initialTours = [],
 }: AdminShellProps) {
   const { message } = App.useApp();
   const mounted = useSyncExternalStore(
@@ -79,6 +83,10 @@ export function AdminShell({
   const [services, setServices] = useState(initialServices);
   const [testimonials, setTestimonials] = useState(initialTestimonials);
   const [settings, setSettings] = useState(initialSettings);
+  const [bookings, setBookings] = useState(
+    initialBookings.length > 0 ? initialBookings : bookingSeeds,
+  );
+  const [tours, setTours] = useState(initialTours);
   const [supplementalDirtyModuleIds, setSupplementalDirtyModuleIds] = useState<
     HomeModuleId[]
   >([]);
@@ -204,11 +212,15 @@ export function AdminShell({
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          categories: destinationCategories.map(({ id, titleEn, titleZh }) => ({
-            id,
-            titleEn,
-            titleZh,
-          })),
+          categories: destinationCategories.map(
+            ({ id, titleEn, titleZh, summary, image }) => ({
+              id,
+              titleEn,
+              titleZh,
+              summary,
+              image,
+            }),
+          ),
         }),
       });
       const payload = await readApiResponse<{
@@ -397,9 +409,13 @@ export function AdminShell({
           testimonials,
           settings,
           payments: initialPayments,
+          bookings,
+          tours,
           onDestinationCategoriesChange: setDestinationCategories,
           onServicesChange: setServices,
           onTestimonialsChange: setTestimonials,
+          onBookingsChange: setBookings,
+          onToursChange: setTours,
           onSettingsChange: (nextSettings, extras) => {
             setSettings(nextSettings);
             setState((current) => {
@@ -595,9 +611,13 @@ function renderWorkspace(
     testimonials: Testimonial[];
     settings: SiteSettings;
     payments: PaymentRecord[];
+    bookings: BookingRecord[];
+    tours: TourRecord[];
     onDestinationCategoriesChange: (categories: DestinationCategory[]) => void;
     onServicesChange: (services: Service[]) => void;
     onTestimonialsChange: (testimonials: Testimonial[]) => void;
+    onBookingsChange: (bookings: BookingRecord[]) => void;
+    onToursChange: (tours: TourRecord[]) => void;
     onSettingsChange: (
       settings: SiteSettings,
       extras?: {
@@ -632,8 +652,9 @@ function renderWorkspace(
   if (state.workspace === "tours") {
     return (
       <ToursWorkspace
-        tours={tourSeeds}
+        tours={handlers.tours}
         destinationCategories={handlers.destinationCategories}
+        onToursChange={handlers.onToursChange}
       />
     );
   }
@@ -641,11 +662,12 @@ function renderWorkspace(
   if (state.workspace === "bookings") {
     return (
       <BookingsWorkspace
-        bookings={bookingSeeds}
+        bookings={handlers.bookings}
         payments={handlers.payments}
         focusBookingId={state.focusBookingId}
         onFocusHandled={handlers.onFocusHandled}
         onViewPayment={handlers.onViewPayment}
+        onBookingsChange={handlers.onBookingsChange}
       />
     );
   }
@@ -654,7 +676,7 @@ function renderWorkspace(
     return (
       <PaymentsWorkspace
         payments={handlers.payments}
-        bookings={bookingSeeds}
+        bookings={handlers.bookings}
         focusPaymentId={state.focusPaymentId}
         onFocusHandled={handlers.onFocusHandled}
         onViewBooking={handlers.onViewBooking}

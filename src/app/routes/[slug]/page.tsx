@@ -21,9 +21,10 @@ export async function generateMetadata({ params }: Props) {
   if (!region) return { title: "Region Not Found" };
   const categories = await loadDestinationCategories();
   const title = getDestinationCategoryTitle(slug, categories);
+  const category = categories.find((item) => item.slug === slug || item.id === slug);
   return {
     title: `${title} Tours | Midearth Travel`,
-    description: region.summary,
+    description: category?.summary?.trim() || region.summary,
   };
 }
 
@@ -38,13 +39,14 @@ export default async function RouteRegionPage({ params }: Props) {
     loadDestinationCategories(),
   ]);
   const title = getDestinationCategoryTitle(slug, categories);
+  const category = categories.find((item) => item.slug === slug || item.id === slug);
 
   return (
     <TourListing
       eyebrow="Region"
       title={title}
-      summary={region.summary}
-      image={region.image}
+      summary={category?.summary?.trim() || region.summary}
+      image={category?.image?.trim() || region.image}
       initialTours={filterToursForCategory(tours, slug)}
       destinationCategories={categories}
     />

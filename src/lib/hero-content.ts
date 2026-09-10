@@ -54,7 +54,7 @@ export function getHeroFeatureCards(
         `card${number}Description`,
         seed.description,
       ),
-      href: seed.href,
+      href: getStringContent(content, `card${number}Link`, seed.href),
     };
   });
 }

@@ -6,6 +6,7 @@ import { Footer } from "@/components/footer";
 import { Hero } from "@/components/hero";
 import { Navbar } from "@/components/navbar";
 import { Newsletter } from "@/components/newsletter";
+import { PackagesSection } from "@/components/packages-section";
 import { TestimonialsSection } from "@/components/testimonials-section";
 import { ToursSection } from "@/components/tours-section";
 import { getHomeModule } from "@/lib/home-content";
@@ -55,6 +56,7 @@ export default async function Home() {
         tours={publishedTours}
         destinationCategories={categories}
       />
+      <PackagesSection tours={publishedTours} />
       <CategoryGrid content={categoryGrid} categories={categories} />
       <ExploreByMonthSection content={exploreByMonth} tours={publishedTours} />
       <AboutSection content={aboutSection} services={homepageServices} />

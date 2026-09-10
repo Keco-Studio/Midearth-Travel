@@ -12,6 +12,7 @@ import {
   Image,
   Row,
   Space,
+  Spin,
   Statistic,
   Typography,
 } from "antd";
@@ -32,6 +33,7 @@ import type { TourRecord } from "@/types/cms";
 type ToursWorkspaceProps = {
   tours: TourRecord[];
   destinationCategories?: DestinationCategory[];
+  onToursChange?: (tours: TourRecord[]) => void;
 };
 
 type TourWorkspaceState = {
@@ -42,12 +44,14 @@ type TourWorkspaceState = {
 export function ToursWorkspace({
   tours,
   destinationCategories = destinationCategorySeeds,
+  onToursChange,
 }: ToursWorkspaceProps) {
   const { message } = App.useApp();
   const [tourState, setTourState] = useState<TourWorkspaceState>(() =>
     createInitialTourWorkspaceState(tours),
   );
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
+  const [ready, setReady] = useState(tours.length > 0);
   const counts = getTourStatusCounts(tourState.records);
 
   const editingTour = useMemo(
@@ -61,6 +65,13 @@ export function ToursWorkspace({
   );
 
   useEffect(() => {
+    setTourState(createInitialTourWorkspaceState(tours));
+    if (tours.length > 0) setReady(true);
+  }, [tours]);
+
+  useEffect(() => {
+    if (tours.length > 0) return;
+
     const controller = new AbortController();
 
     async function loadTours() {
@@ -72,24 +83,29 @@ export function ToursWorkspace({
         const payload = await readApiResponse<{ tours: TourRecord[] }>(response);
         if (!controller.signal.aborted) {
           setTourState({ records: payload.tours, customTypes: [] });
+          onToursChange?.(payload.tours);
+          setReady(true);
         }
       } catch (error) {
         if (!controller.signal.aborted) {
           message.error(getErrorMessage(error, "Tours could not be loaded"));
+          setReady(true);
         }
       }
     }
 
     void loadTours();
     return () => controller.abort();
-  }, [message]);
+  }, [message, onToursChange, tours.length]);
+
+  function syncRecords(nextRecords: TourRecord[], customTypes = tourState.customTypes) {
+    setTourState({ records: nextRecords, customTypes });
+    onToursChange?.(nextRecords);
+  }
 
   function openNewTour() {
     const draft = createEmptyTourRecord(tourState.records.map((tour) => tour.slug));
-    setTourState((current) => ({
-      ...current,
-      records: [draft, ...current.records],
-    }));
+    syncRecords([draft, ...tourState.records]);
     setEditingSlug(draft.slug);
     message.success("New tour draft opened — fill in details and save");
   }
@@ -132,13 +148,11 @@ export function ToursWorkspace({
 
     try {
       const saved = await persistTour({ ...current, tourType: resolved.tourType });
-      setTourState((state) => ({
-        records: replaceTourEditorRecord(state.records, saved),
-        customTypes:
-          resolved.isNew && !state.customTypes.includes(resolved.tourType)
-            ? [...state.customTypes, resolved.tourType]
-            : state.customTypes,
-      }));
+      const nextCustomTypes =
+        resolved.isNew && !tourState.customTypes.includes(resolved.tourType)
+          ? [...tourState.customTypes, resolved.tourType]
+          : tourState.customTypes;
+      syncRecords(replaceTourEditorRecord(tourState.records, saved), nextCustomTypes);
       message.success("Tour type saved to Supabase");
     } catch (error) {
       message.error(getErrorMessage(error, "Tour type could not be saved"));
@@ -167,13 +181,11 @@ export function ToursWorkspace({
     };
     try {
       const saved = await persistTour(updatedRecord);
-      setTourState((state) => ({
-        customTypes:
-          resolved.isNew && !state.customTypes.includes(resolved.tourType)
-            ? [...state.customTypes, resolved.tourType]
-            : state.customTypes,
-        records: replaceTourEditorRecord(state.records, saved),
-      }));
+      const nextCustomTypes =
+        resolved.isNew && !tourState.customTypes.includes(resolved.tourType)
+          ? [...tourState.customTypes, resolved.tourType]
+          : tourState.customTypes;
+      syncRecords(replaceTourEditorRecord(tourState.records, saved), nextCustomTypes);
       setEditingSlug(null);
       message.success("Tour updated in Supabase");
     } catch (error) {
@@ -289,6 +301,20 @@ export function ToursWorkspace({
         onUpdate={handleTourUpdate}
         onImageUpload={(file) => uploadTourImage(editingTour.slug, file)}
       />
+    );
+  }
+
+  if (!ready) {
+    return (
+      <div
+        style={{
+          minHeight: 320,
+          display: "grid",
+          placeItems: "center",
+        }}
+      >
+        <Spin size="large" tip="Loading tours…" />
+      </div>
     );
   }
 

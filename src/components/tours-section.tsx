@@ -6,6 +6,11 @@ import {
   destinationCategorySeeds,
   type DestinationCategory,
 } from "@/lib/destination-categories";
+import {
+  FEATURED_TOUR_SLUGS_KEY,
+  parseFeaturedSlugs,
+  pickFeaturedTours,
+} from "@/lib/featured-tours";
 import styles from "./tours-section.module.css";
 
 export function ToursSection({
@@ -18,9 +23,12 @@ export function ToursSection({
   destinationCategories?: DestinationCategory[];
 }) {
   const sourceTours = tours ?? staticTours;
+  const featuredSlugs = parseFeaturedSlugs(content[FEATURED_TOUR_SLUGS_KEY]);
   const featuredTours = tours
-    ? sourceTours.filter((tour) => tour.featured)
-    : getFeaturedTours();
+    ? pickFeaturedTours(sourceTours, featuredSlugs)
+    : featuredSlugs.length > 0
+      ? pickFeaturedTours(staticTours, featuredSlugs)
+      : getFeaturedTours();
   const eyebrow = getStringContent(content, "eyebrow", "Featured");
   const sectionTitle = getStringContent(content, "sectionTitle", "Our Top Picks");
   const seeAllLabel = `See all ${sourceTours.length} tours`;

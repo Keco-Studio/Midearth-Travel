@@ -1,10 +1,16 @@
 import { Calendar, Star, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { getHotSaleTours } from "@/data/tours";
+import { getHotSaleTours, type Tour } from "@/data/tours";
 
-export function PackagesSection() {
-  const packages = getHotSaleTours();
+export function PackagesSection({ tours }: { tours?: Tour[] }) {
+  const packages = tours
+    ? tours.filter((tour) => tour.hotSale)
+    : getHotSaleTours();
+
+  if (packages.length === 0) {
+    return null;
+  }
 
   return (
     <section id="packages" className="bg-[#fdfaf4] py-14 md:py-24 lg:py-32">

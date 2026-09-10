@@ -44,6 +44,7 @@ const emptyTourDetailFields = {
   localizedIncluded: "",
   notIncluded: "",
   localizedNotIncluded: "",
+  galleryImages: "",
 };
 
 export function toTourRow(record: TourRecord): TourRow {
@@ -99,14 +100,31 @@ function resolvePublicDescription(
   return base?.description ?? plain;
 }
 
+export function resolvePdfUrl(fileName: string): string | undefined {
+  const trimmed = fileName.trim();
+  if (!trimmed) return undefined;
+  if (
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("https://") ||
+    trimmed.startsWith("/")
+  ) {
+    return trimmed;
+  }
+  return `/pdfs/${encodeURIComponent(trimmed)}`;
+}
+
 export function mapTourRecordToPublicTour(record: TourRecord): Tour {
   const base = tours.find((tour) => tour.slug === record.slug);
   const seed = tourSeeds.find((tour) => tour.slug === record.slug);
   const description = resolvePublicDescription(record, base, seed);
   const highlights = splitList(record.highlights);
+  const localizedHighlights = splitList(record.localizedHighlights);
   const departures = splitList(record.departures);
+  const localizedDepartures = splitList(record.localizedDepartures);
   const included = splitList(record.included);
+  const localizedIncluded = splitList(record.localizedIncluded);
   const notIncluded = splitList(record.notIncluded);
+  const localizedNotIncluded = splitList(record.localizedNotIncluded);
   const policies = mapPolicies(record);
   const fares = mapFares(record);
   const importedItinerary = parseItineraryFromRichText(record.description);
@@ -116,9 +134,24 @@ export function mapTourRecordToPublicTour(record: TourRecord): Tour {
       : base?.itinerary && base.itinerary.length > 0
         ? base.itinerary
         : [];
-  const gallery = base?.gallery?.length
-    ? [record.image, ...base.gallery.filter((image) => image !== base.image && image !== record.image)]
-    : [record.image];
+  const galleryUrls = record.galleryImages
+    .split(/\r?\n/)
+    .map((url) => url.trim())
+    .filter(Boolean);
+  const gallery =
+    galleryUrls.length > 0
+      ? [
+          record.image,
+          ...galleryUrls.filter((url) => url !== record.image),
+        ].filter((url, index, all) => all.indexOf(url) === index)
+      : base?.gallery?.length
+        ? [
+            record.image,
+            ...base.gallery.filter(
+              (image) => image !== base.image && image !== record.image,
+            ),
+          ]
+        : [record.image];
 
   return {
     ...base,
@@ -126,25 +159,51 @@ export function mapTourRecordToPublicTour(record: TourRecord): Tour {
     code: record.code || undefined,
     title: record.title,
     pageTitle: record.title,
+    localizedTitle: record.localizedTitle.trim() || undefined,
     region: record.region,
+    subregion: record.subregion.trim() || undefined,
     duration: record.duration,
+    localizedDuration: record.localizedDuration.trim() || undefined,
     description,
+    localizedDescription:
+      richTextToPlainText(record.localizedDescription).trim() || undefined,
     image: record.image,
     tags: highlights.length > 0 ? highlights : base?.tags ?? [],
     tourType: record.tourType,
     departureCity: record.departureCity || undefined,
+    localizedDepartureCity: record.localizedDepartureCity.trim() || undefined,
     departures: departures.length > 0 ? departures : undefined,
+    localizedDepartures:
+      localizedDepartures.length > 0 ? localizedDepartures : undefined,
     highlights: highlights.length > 0 ? highlights : undefined,
+    localizedHighlights:
+      localizedHighlights.length > 0 ? localizedHighlights : undefined,
     itinerary: itinerary.length > 0 ? itinerary : undefined,
     essentials: {
       departureTime: record.essentials.departureTime,
       meetingPlace: record.essentials.meetingPlace,
+      ...(record.essentials.localizedMeetingPlace.trim()
+        ? { localizedMeetingPlace: record.essentials.localizedMeetingPlace.trim() }
+        : {}),
       hotels: record.essentials.hotels,
+      ...(record.essentials.localizedHotels.trim()
+        ? { localizedHotels: record.essentials.localizedHotels.trim() }
+        : {}),
       escortedCoach: record.essentials.escortedCoach,
+      ...(record.essentials.localizedEscortedCoach.trim()
+        ? {
+            localizedEscortedCoach:
+              record.essentials.localizedEscortedCoach.trim(),
+          }
+        : {}),
     },
     policies: policies.length > 0 ? policies : undefined,
     included,
+    localizedIncluded:
+      localizedIncluded.length > 0 ? localizedIncluded : undefined,
     notIncluded,
+    localizedNotIncluded:
+      localizedNotIncluded.length > 0 ? localizedNotIncluded : undefined,
     fares: fares.length > 0 ? fares : undefined,
     featured: record.specialOffer,
     hotSale: record.specialDeals,
@@ -152,6 +211,9 @@ export function mapTourRecordToPublicTour(record: TourRecord): Tour {
     vacationPackage: record.vacationPackage,
     destinationCategoryIds: resolveTourDestinationCategoryIds(record),
     gallery,
+    pdfTitle: record.pdfTitle.trim() || undefined,
+    localizedPdfTitle: record.localizedPdfTitle.trim() || undefined,
+    pdfUrl: resolvePdfUrl(record.pdfFileName),
   };
 }
 

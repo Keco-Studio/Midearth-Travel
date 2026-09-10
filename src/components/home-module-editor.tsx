@@ -15,10 +15,12 @@ import { useCallback, useMemo, useState } from "react";
 import { AssetPreview } from "@/components/asset-preview";
 import { DestinationCategoryEditor } from "@/components/destination-category-editor";
 import { ExploreByMonthEditor } from "@/components/explore-by-month-editor";
+import { FeaturedToursPicker } from "@/components/featured-tours-picker";
 import { FooterLinksEditor } from "@/components/footer-links-editor";
 import { ServiceCardsEditor, TestimonialsEditor } from "@/components/home-collection-editors";
 import { FORBIDDEN_FIELD_KEYS } from "@/lib/content-rules";
 import { EXPLORE_MONTHS_DATA_KEY } from "@/lib/explore-by-month";
+import { FEATURED_TOUR_SLUGS_KEY } from "@/lib/featured-tours";
 import { FOOTER_LINK_FIELD_KEYS } from "@/lib/footer-links";
 import { validateInlineImageFile } from "@/lib/inline-image-upload";
 import { getHomeModuleEditorKey, getModuleFieldViewModels } from "@/lib/module-editor";
@@ -72,6 +74,10 @@ export function HomeModuleEditor({
           !(
             module.id === "exploreByMonth" &&
             field.definition.key === EXPLORE_MONTHS_DATA_KEY
+          ) &&
+          !(
+            module.id === "toursSection" &&
+            field.definition.key === FEATURED_TOUR_SLUGS_KEY
           ),
       ),
     [module],
@@ -110,6 +116,9 @@ export function HomeModuleEditor({
           />
         ))}
       </ProForm>
+      {module.id === "toursSection" ? (
+        <FeaturedToursPicker content={module.data} onChange={onChange} />
+      ) : null}
       {module.id === "categoryGrid" ? (
         <DestinationCategoryEditor
           categories={destinationCategories}

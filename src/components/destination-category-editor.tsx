@@ -9,16 +9,24 @@ type DestinationCategoryEditorProps = {
   onDirtyChange: (dirty: boolean) => void;
 };
 
+type EditableKey = "titleEn" | "titleZh" | "summary" | "image";
+
 export function DestinationCategoryEditor({
   categories,
   onChange,
   onDirtyChange,
 }: DestinationCategoryEditorProps) {
-  function updateName(id: string, key: "titleEn" | "titleZh", value: string) {
+  function updateField(id: string, key: EditableKey, value: string) {
     onDirtyChange(true);
     onChange(
       categories.map((category) =>
-        category.id === id ? { ...category, [key]: value } : category,
+        category.id === id
+          ? {
+              ...category,
+              [key]: value,
+              ...(key === "titleEn" ? { title: value } : {}),
+            }
+          : category,
       ),
     );
   }
@@ -29,34 +37,61 @@ export function DestinationCategoryEditor({
         Destination names
       </Typography.Title>
       <Typography.Paragraph type="secondary" style={{ marginBottom: 16 }}>
-        Card images come from the first published tour in each category (Tour Library cover
-        photo). Names below update the Where to Go labels.
+        Optional summary and image URL override listing pages. When image is left as the
+        default seed, homepage cards still prefer the first published tour cover.
       </Typography.Paragraph>
       <Table<DestinationCategory>
         rowKey="id"
         dataSource={categories}
         pagination={false}
         size="middle"
+        scroll={{ x: true }}
         columns={[
           {
             title: "English name",
             dataIndex: "titleEn",
+            width: 160,
             render: (_, record) => (
               <Input
                 maxLength={80}
                 value={record.titleEn}
-                onChange={(event) => updateName(record.id, "titleEn", event.target.value)}
+                onChange={(event) => updateField(record.id, "titleEn", event.target.value)}
               />
             ),
           },
           {
             title: "中文名称",
             dataIndex: "titleZh",
+            width: 140,
             render: (_, record) => (
               <Input
                 maxLength={80}
                 value={record.titleZh}
-                onChange={(event) => updateName(record.id, "titleZh", event.target.value)}
+                onChange={(event) => updateField(record.id, "titleZh", event.target.value)}
+              />
+            ),
+          },
+          {
+            title: "Summary",
+            dataIndex: "summary",
+            width: 260,
+            render: (_, record) => (
+              <Input.TextArea
+                rows={2}
+                maxLength={300}
+                value={record.summary ?? ""}
+                onChange={(event) => updateField(record.id, "summary", event.target.value)}
+              />
+            ),
+          },
+          {
+            title: "Image URL",
+            dataIndex: "image",
+            width: 220,
+            render: (_, record) => (
+              <Input
+                value={record.image}
+                onChange={(event) => updateField(record.id, "image", event.target.value)}
               />
             ),
           },

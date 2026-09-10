@@ -67,6 +67,7 @@ export function TourEditor({
   const [imagePreview, setImagePreview] = useState(tour.image || "/file.svg");
   const [pdfFileName, setPdfFileName] = useState(tour.pdfFileName);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
 
   const initialValues = useMemo(
     () => ({
@@ -100,9 +101,38 @@ export function TourEditor({
     form.setFieldValue("image", "");
   }
 
-  function handlePdfSelection(file: File) {
-    setPdfFileName(file.name);
-    form.setFieldValue("pdfFileName", file.name);
+  async function handlePdfSelection(file: File) {
+    if (!file.type.toLocaleLowerCase("en").includes("pdf") && !file.name.toLowerCase().endsWith(".pdf")) {
+      message.error("Select a PDF file");
+      return Upload.LIST_IGNORE;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      message.error("PDF must be 20 MB or smaller");
+      return Upload.LIST_IGNORE;
+    }
+
+    setUploadingPdf(true);
+    try {
+      const formData = new FormData();
+      formData.set("slug", tour.slug);
+      formData.set("kind", "pdf");
+      formData.set("file", file);
+      const response = await fetch("/api/admin/tours/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const payload = (await response.json()) as { url?: string; error?: string };
+      if (!response.ok || !payload.url) {
+        throw new Error(payload.error ?? "Tour PDF upload failed");
+      }
+      setPdfFileName(payload.url);
+      form.setFieldValue("pdfFileName", payload.url);
+      message.success("PDF uploaded");
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : "Tour PDF upload failed");
+    } finally {
+      setUploadingPdf(false);
+    }
     return Upload.LIST_IGNORE;
   }
 
@@ -402,6 +432,14 @@ export function TourEditor({
                   Remove image
                 </Button>
               </Space>
+              <Form.Item
+                name="galleryImages"
+                label="Gallery images"
+                style={{ marginTop: 16 }}
+                extra="One image URL per line. Cover image is always first on the tour page."
+              >
+                <Input.TextArea rows={4} placeholder={"https://...\n/path/to/image.jpg"} />
+              </Form.Item>
             </Col>
             <Col xs={24} lg={14}>
               <Row gutter={[16, 0]}>
@@ -425,13 +463,22 @@ export function TourEditor({
               </div>
               <Space wrap>
                 <Upload
-                  accept="application/pdf"
+                  accept="application/pdf,.pdf"
                   showUploadList={false}
-                  beforeUpload={handlePdfSelection}
+                  beforeUpload={(file) => {
+                    void handlePdfSelection(file);
+                    return Upload.LIST_IGNORE;
+                  }}
                 >
-                  <Button icon={<UploadOutlined />}>Choose PDF</Button>
+                  <Button icon={<UploadOutlined />} loading={uploadingPdf}>
+                    Upload PDF
+                  </Button>
                 </Upload>
-                <Button icon={<DeleteOutlined />} disabled={!pdfFileName} onClick={removePdf}>
+                <Button
+                  icon={<DeleteOutlined />}
+                  disabled={!pdfFileName || uploadingPdf}
+                  onClick={removePdf}
+                >
                   Remove PDF
                 </Button>
               </Space>
@@ -446,18 +493,18 @@ export function TourEditor({
               label="Our Top Picks"
               tooltip="Show this tour on the homepage Our Top Picks section. No limit on how many can be featured."
             />
+            <ToggleField name="specialDeals" label="Hot sale" />
+            <ToggleField
+              name="travelNewsPackage"
+              label="Explore by Month package"
+              tooltip="Mark tours that should be offered as Explore-by-Month destinations."
+            />
             <Col span={24}>
               <Typography.Text type="secondary">
                 Where to Go — linked to Destination names (rename there and labels update here)
               </Typography.Text>
             </Col>
             <DestinationCategoryToggles categories={destinationCategories} />
-            <Form.Item name="specialDeals" valuePropName="checked" hidden>
-              <Switch />
-            </Form.Item>
-            <Form.Item name="travelNewsPackage" valuePropName="checked" hidden>
-              <Switch />
-            </Form.Item>
             <Col xs={24} md={12} lg={8} className="cms-tour-editor-publishing-controls">
               <Form.Item name="status" label="Status">
                 <Select options={statusOptions} />

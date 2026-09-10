@@ -24,23 +24,33 @@ export type Tour = {
   title: string;
   /** Hero / page heading (original site often uses "and" instead of "&") */
   pageTitle?: string;
+  localizedTitle?: string;
   region: string;
+  subregion?: string;
   duration: string;
+  localizedDuration?: string;
   description: string;
+  localizedDescription?: string;
   image: string;
   tags: string[];
   tourType: string;
   rating?: number;
   reviewCount?: number;
   departures?: string[];
+  localizedDepartures?: string[];
   departureCity?: string;
+  localizedDepartureCity?: string;
   highlights?: string[];
+  localizedHighlights?: string[];
   itinerary?: TourDay[];
   essentials?: {
     departureTime?: string;
     meetingPlace?: string;
+    localizedMeetingPlace?: string;
     hotels?: string;
+    localizedHotels?: string;
     escortedCoach?: string;
+    localizedEscortedCoach?: string;
   };
   policies?: TourPolicy[];
   fares?: TourFare[];
@@ -52,7 +62,12 @@ export type Tour = {
   destinationCategoryIds?: string[];
   gallery?: string[];
   included?: string[];
+  localizedIncluded?: string[];
   notIncluded?: string[];
+  localizedNotIncluded?: string[];
+  pdfTitle?: string;
+  localizedPdfTitle?: string;
+  pdfUrl?: string;
 };
 
 export const defaultTourIncluded = [

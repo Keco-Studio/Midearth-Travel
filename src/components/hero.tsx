@@ -27,6 +27,20 @@ export function Hero({ content = {} }: { content?: ContentData }) {
   const secondaryButtonLink = getStringContent(content, "secondaryButtonLink", "#contact");
   const broadcast = getHeroBroadcastContent(content);
   const featureCards = getHeroFeatureCards(content);
+  const stats = [
+    {
+      value: getStringContent(content, "stat1Value", "20+"),
+      label: getStringContent(content, "stat1Label", "Years Experience"),
+    },
+    {
+      value: getStringContent(content, "stat2Value", "TICO"),
+      label: getStringContent(content, "stat2Label", "Certified Member"),
+    },
+    {
+      value: getStringContent(content, "stat3Value", "5.0"),
+      label: getStringContent(content, "stat3Label", "Google Rating"),
+    },
+  ];
 
   return (
     <section className={styles.hero}>
@@ -98,11 +112,7 @@ export function Hero({ content = {} }: { content?: ContentData }) {
         </div>
 
         <div className={styles.stats}>
-          {[
-            { value: "20+", label: "Years Experience" },
-            { value: "TICO", label: "Certified Member" },
-            { value: "5.0", label: "Google Rating" },
-          ].map((stat) => (
+          {stats.map((stat) => (
             <div key={stat.label} className={styles.stat}>
               <div className={styles.statValue}>{stat.value}</div>
               <div className={styles.statLabel}>{stat.label}</div>
