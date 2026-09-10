@@ -18,11 +18,19 @@ import styles from "./service-page.module.css";
 export function ServiceDetailPage({
   content,
   navItems,
+  whatsappLabel = SERVICE_WHATSAPP_LABEL,
+  whatsappQrImage = SERVICE_WHATSAPP_QR,
+  backgroundImage,
 }: {
   content: ServicePageContent;
   navItems: ServiceNavItem[];
+  whatsappLabel?: string;
+  whatsappQrImage?: string;
+  backgroundImage?: string;
 }) {
   const settings = useSiteSettings();
+  const resolvedBackground =
+    backgroundImage?.trim() || SERVICE_BACKGROUND_IMAGE;
 
   return (
     <div className={styles.page}>
@@ -30,7 +38,7 @@ export function ServiceDetailPage({
       <main className={styles.main}>
         <div className={styles.bg} aria-hidden>
           <Image
-            src={SERVICE_BACKGROUND_IMAGE}
+            src={resolvedBackground}
             alt=""
             fill
             priority
@@ -84,7 +92,7 @@ export function ServiceDetailPage({
             <div className={styles.contactRow}>
               <div className={styles.qrWrap}>
                 <Image
-                  src={SERVICE_WHATSAPP_QR}
+                  src={whatsappQrImage}
                   alt="WhatsApp QR code"
                   width={148}
                   height={148}
@@ -93,7 +101,7 @@ export function ServiceDetailPage({
                 />
               </div>
               <div className={styles.contactMeta}>
-                <p className={styles.whatsappHint}>{SERVICE_WHATSAPP_LABEL}</p>
+                <p className={styles.whatsappHint}>{whatsappLabel}</p>
                 <p className={styles.contactLine}>
                   Phone:{" "}
                   <a href={settings.primaryPhoneHref}>{settings.primaryPhoneLabel}</a>

@@ -1,11 +1,16 @@
 import "server-only";
 
-import { services, type Service } from "@/data/services";
+import {
+  MAX_HOMEPAGE_SERVICES,
+  services,
+  type Service,
+} from "@/data/services";
 import { testimonials, type Testimonial } from "@/data/testimonials";
 import {
   MAX_HOMEPAGE_TESTIMONIALS,
   mergeServiceRows,
   mergeTestimonialRows,
+  normalizePageFields,
   serviceToRow,
   testimonialToRow,
   type ServiceRow,
@@ -19,34 +24,81 @@ export async function loadHomepageServices(): Promise<Service[]> {
     return mergeServiceRows(rows);
   } catch (error) {
     console.error("Unable to load homepage services", error);
-    return services;
+    return services.map((service) => ({
+      ...service,
+      page: normalizePageFields(service.page, service.page, service.title),
+    }));
   }
 }
 
 export async function saveHomepageServices(input: Service[]): Promise<Service[]> {
-  const byId = new Map(input.map((service) => [service.id, service]));
-  const canonical = services.map((seed) => {
-    const value = byId.get(seed.id);
-    if (!value) throw new Error(`Missing service: ${seed.id}`);
-    const title = value.title.trim();
-    const summary = value.summary.trim();
-    const slug = value.slug.trim().toLocaleLowerCase("en");
-    const image = value.image.trim();
+  if (!Array.isArray(input) || input.length === 0) {
+    throw new Error("At least one service card is required");
+  }
+  if (input.length > MAX_HOMEPAGE_SERVICES) {
+    throw new Error(`You can publish at most ${MAX_HOMEPAGE_SERVICES} service cards`);
+  }
 
+  const seenSlugs = new Set<string>();
+  const canonical = input.map((value, index) => {
+    const id = value.id?.trim();
+    const title = value.title?.trim() ?? "";
+    const summary = value.summary?.trim() ?? "";
+    const slug = (value.slug?.trim() ?? "").toLocaleLowerCase("en");
+    const image = value.image?.trim() ?? "";
+    const page = normalizePageFields(value.page, undefined, title);
+
+    if (!id) throw new Error(`Service #${index + 1} is missing an id`);
     if (!title || !summary || !slug || !image) {
       throw new Error("Service title, summary, image, and slug are required");
     }
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
       throw new Error("Service slug must use lowercase letters, numbers, and hyphens");
     }
+    if (seenSlugs.has(slug)) {
+      throw new Error(`Duplicate service slug: ${slug}`);
+    }
+    seenSlugs.add(slug);
     if (title.length > 80 || summary.length > 180) {
       throw new Error("Service title or summary is too long");
     }
+    if (page.title.length > 120 || page.intro.length > 4000) {
+      throw new Error("Service page title or intro is too long");
+    }
+    if (page.disclaimer.length > 500 || page.signOff.length > 80) {
+      throw new Error("Service page disclaimer or sign-off is too long");
+    }
+    if (page.deals.length > 20) {
+      throw new Error("A service page can have at most 20 fare rows");
+    }
 
-    return { id: seed.id, title, summary, slug, image };
+    return {
+      id,
+      title,
+      summary,
+      slug,
+      image,
+      page: {
+        ...page,
+        title: page.title.trim() || title.toUpperCase(),
+        intro: page.intro.trim(),
+        signOff: page.signOff.trim() || "Thanks",
+        disclaimer: page.disclaimer.trim(),
+        quoteLabel: page.quoteLabel.trim() || title,
+        metaTitle: page.metaTitle.trim() || `${title} | Midearth Travel`,
+        metaDescription: page.metaDescription.trim(),
+        deals: page.deals
+          .map((deal, dealIndex) => ({
+            id: deal.id.trim() || `deal-${dealIndex + 1}`,
+            route: deal.route.trim(),
+            priceLabel: deal.priceLabel.trim(),
+          }))
+          .filter((deal) => deal.route || deal.priceLabel),
+      },
+    } satisfies Service;
   });
 
-  await upsert("homepage_services", canonical.map(serviceToRow));
+  await replaceHomepageServices(canonical.map(serviceToRow));
   return mergeServiceRows(await list<ServiceRow>("homepage_services"));
 }
 
@@ -122,12 +174,41 @@ export async function uploadServiceImage(id: string, file: File): Promise<string
 
 async function ensureServices(): Promise<ServiceRow[]> {
   const rows = await list<ServiceRow>("homepage_services");
-  const ids = new Set(rows.map((row) => row.id));
-  const missing = services.filter((service) => !ids.has(service.id)).map(serviceToRow);
-  if (missing.length > 0) {
-    await upsert("homepage_services", missing);
+  if (rows.length === 0) {
+    await upsert(
+      "homepage_services",
+      services.map((service, index) => serviceToRow(service, index)),
+    );
     return list<ServiceRow>("homepage_services");
   }
+
+  const needsPageBackfill = rows.some(
+    (row) =>
+      !row.page_content ||
+      (typeof row.page_content === "object" &&
+        !Array.isArray(row.page_content) &&
+        Object.keys(row.page_content as object).length === 0),
+  );
+  if (needsPageBackfill) {
+    const seedsById = new Map(services.map((seed) => [seed.id, seed]));
+    const patched = rows.map((row, index) => {
+      const seed = seedsById.get(row.id);
+      return serviceToRow(
+        {
+          id: row.id,
+          slug: row.slug,
+          title: row.title,
+          summary: row.summary,
+          image: row.image,
+          page: normalizePageFields(row.page_content, seed?.page, row.title),
+        },
+        index,
+      );
+    });
+    await upsert("homepage_services", patched);
+    return list<ServiceRow>("homepage_services");
+  }
+
   return rows;
 }
 
@@ -138,6 +219,18 @@ async function ensureTestimonials(): Promise<TestimonialRow[]> {
     return list<TestimonialRow>("homepage_testimonials");
   }
   return rows;
+}
+
+async function replaceHomepageServices(rows: ServiceRow[]): Promise<void> {
+  await upsert("homepage_services", rows);
+  const keepIds = rows.map((row) => row.id);
+  if (keepIds.length === 0) return;
+
+  const encoded = keepIds.map(encodeURIComponent).join(",");
+  await request<unknown[]>(
+    `/rest/v1/homepage_services?id=not.in.(${encoded})`,
+    { method: "DELETE" },
+  );
 }
 
 async function list<T>(table: string): Promise<T[]> {

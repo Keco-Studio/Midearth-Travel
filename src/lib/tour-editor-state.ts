@@ -47,6 +47,7 @@ const stringFields = [
   "pdfTitle",
   "localizedPdfTitle",
   "pdfFileName",
+  "galleryImages",
   "updatedAt",
 ] as const satisfies readonly (keyof TourRecord)[];
 
@@ -202,6 +203,7 @@ function trimTourRecord(record: TourRecord): TourRecord {
     pdfTitle: safeTrim(record.pdfTitle),
     localizedPdfTitle: safeTrim(record.localizedPdfTitle),
     pdfFileName: safeTrim(record.pdfFileName),
+    galleryImages: safeTrim(record.galleryImages),
     destinationCategoryIds: resolveTourDestinationCategoryIds(record),
     updatedAt: safeTrim(record.updatedAt),
   };
@@ -216,7 +218,12 @@ function isTourRecord(value: unknown): value is TourRecord {
     return false;
   }
 
-  if (!stringFields.every((field) => typeof value[field] === "string")) {
+  if (!stringFields.every((field) => {
+    if (field === "galleryImages") {
+      return value[field] === undefined || typeof value[field] === "string";
+    }
+    return typeof value[field] === "string";
+  })) {
     return false;
   }
 

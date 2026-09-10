@@ -8,6 +8,7 @@ import {
   heroBroadcastSeeds,
   heroFeatureCardSeeds,
 } from "./hero-content.ts";
+import { destinationsByMonth } from "./destinations-by-month.ts";
 import {
   FOOTER_SERVICE_LINKS_KEY,
   FOOTER_TOUR_LINKS_KEY,
@@ -15,6 +16,7 @@ import {
   footerTourLinkSeeds,
   serializeFooterLinks,
 } from "../lib/footer-links.ts";
+import { serializeMonthEntries } from "../lib/explore-by-month.ts";
 import type {
   FieldDefinition,
   HomeModuleRecord,
@@ -84,6 +86,12 @@ function createHeroCardFields(): FieldDefinition[] {
         required: true,
         maxLength: 100,
       },
+      {
+        key: `card${number}Link`,
+        label: `Card ${number} link`,
+        type: "link",
+        required: true,
+      },
     ];
   });
 }
@@ -97,6 +105,7 @@ function createHeroCardData(): Record<string, string> {
         [`card${number}IconImage`, card.iconImage],
         [`card${number}Title`, card.title],
         [`card${number}Description`, card.description],
+        [`card${number}Link`, card.href],
       ];
     }),
   );
@@ -106,11 +115,14 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
   createModule(
     "navbar",
     1,
-    "Manage logo alt text, navigation labels, and Book Now button text. The Book Now link follows Global Settings → Primary phone.",
+    "Manage logo images, alt text, navigation labels and links, and Book Now button text/link. Book Now falls back to Global Settings → Primary phone when the CMS link is empty.",
     "published",
     [
       { key: "logoAlt", label: "Logo alt text", type: "text", required: true, maxLength: 60, helper: "Accessibility text for the logo image (not shown as visible page copy). Publish to apply on all pages." },
+      { key: "logoImage", label: "Logo image (transparent header)", type: "image", helper: "Optional. Used on hero overlay pages before scroll." },
+      { key: "logoImageSolid", label: "Logo image (solid header)", type: "image", helper: "Optional. Used on solid header backgrounds." },
       { key: "homeLabel", label: "Home label", type: "text", required: true, maxLength: 20 },
+      { key: "homeHref", label: "Home link", type: "link", required: true },
       {
         key: "destinationsLabel",
         label: "Destinations label",
@@ -118,6 +130,7 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
         required: true,
         maxLength: 20,
       },
+      { key: "destinationsHref", label: "Destinations link", type: "link", required: true },
       {
         key: "servicesLabel",
         label: "Services label",
@@ -125,16 +138,31 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
         required: true,
         maxLength: 20,
       },
+      { key: "servicesHref", label: "Services link", type: "link", required: true },
       { key: "contactLabel", label: "Contact label", type: "text", required: true, maxLength: 20 },
+      { key: "contactHref", label: "Contact link", type: "link", required: true },
       { key: "bookNowLabel", label: "Book now label", type: "text", required: true, maxLength: 20 },
+      {
+        key: "bookNowLink",
+        label: "Book now link",
+        type: "link",
+        helper: "Falls back to Global Settings primary phone, then tel:+16132365226.",
+      },
     ],
     {
       logoAlt: "MidEarth Travel logo",
+      logoImage: "",
+      logoImageSolid: "",
       homeLabel: "Home",
+      homeHref: "/",
       destinationsLabel: "Destinations",
+      destinationsHref: "/#destinations",
       servicesLabel: "Services",
+      servicesHref: "/#about",
       contactLabel: "Contact",
+      contactHref: "/#contact",
       bookNowLabel: "Book Now",
+      bookNowLink: "",
     },
   ),
   createModule(
@@ -155,6 +183,12 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
         maxLength: 1200,
       },
       ...createHeroCardFields(),
+      { key: "stat1Value", label: "Stat 1 value", type: "text", maxLength: 20 },
+      { key: "stat1Label", label: "Stat 1 label", type: "text", maxLength: 40 },
+      { key: "stat2Value", label: "Stat 2 value", type: "text", maxLength: 20 },
+      { key: "stat2Label", label: "Stat 2 label", type: "text", maxLength: 40 },
+      { key: "stat3Value", label: "Stat 3 value", type: "text", maxLength: 20 },
+      { key: "stat3Label", label: "Stat 3 label", type: "text", maxLength: 40 },
       {
         key: "primaryButtonText",
         label: "Primary button text",
@@ -178,6 +212,12 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
       liveLabel: "Live",
       liveMessages: heroBroadcastSeeds.join("\n"),
       ...createHeroCardData(),
+      stat1Value: "20+",
+      stat1Label: "Years Experience",
+      stat2Value: "TICO",
+      stat2Label: "Certified Member",
+      stat3Value: "5.0",
+      stat3Label: "Google Rating",
       primaryButtonText: "Explore Tours",
       primaryButtonLink: "#tours",
       secondaryButtonText: "Request Quote",
@@ -187,17 +227,25 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
   createModule(
     "toursSection",
     3,
-    "Select exactly four published tours for the fixed homepage tour grid.",
+    "Pick up to four published tours for the homepage Our Top Picks grid. If none are selected, tours with the Special Offer toggle appear instead.",
     "published",
     [
       { key: "eyebrow", label: "Eyebrow", type: "text", maxLength: 30 },
       { key: "sectionTitle", label: "Section title", type: "text", required: true, maxLength: 40 },
       { key: "seeAllLink", label: "See all link", type: "link", required: true },
+      {
+        key: "featuredSlugs",
+        label: "Featured tour slugs",
+        type: "textarea",
+        maxLength: 2000,
+        helper: "Managed by the picker below. Do not edit this JSON directly.",
+      },
     ],
     {
       eyebrow: "Featured",
       sectionTitle: "Our Top Picks",
       seeAllLink: "/tours",
+      featuredSlugs: "[]",
     },
   ),
   createModule(
@@ -224,9 +272,18 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
     "Edit section headings and monthly destination cards shown on the homepage.",
     "published",
     [
+      {
+        key: "isVisible",
+        label: "Show on homepage",
+        type: "toggle",
+        helper: "When off, this section is hidden on the homepage.",
+      },
       { key: "eyebrowEn", label: "English eyebrow", type: "text", required: true, maxLength: 40 },
       { key: "titleEn", label: "English title", type: "text", required: true, maxLength: 40 },
       { key: "subtitleEn", label: "English subtitle", type: "text", maxLength: 60 },
+      { key: "eyebrowZh", label: "Chinese eyebrow", type: "text", maxLength: 40 },
+      { key: "titleZh", label: "Chinese title", type: "text", maxLength: 40 },
+      { key: "subtitleZh", label: "Chinese subtitle", type: "text", maxLength: 60 },
       {
         key: "monthsData",
         label: "Monthly destinations data",
@@ -236,28 +293,62 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
       },
     ],
     {
+      isVisible: true,
       eyebrowEn: "Explore by Month",
       titleEn: "When to Go",
       subtitleEn: "Explore by Month",
-      monthsData: "",
+      eyebrowZh: "按月份浏览",
+      titleZh: "按月份浏览",
+      subtitleZh: "Explore by Month",
+      monthsData: serializeMonthEntries(destinationsByMonth),
     },
   ),
   createModule(
     "aboutSection",
     6,
-    "Edit travel service copy and service cards.",
+    "Edit section copy, service cards (add/remove + images), and each card's destination page content.",
     "published",
     [
       { key: "eyebrow", label: "Eyebrow", type: "text", maxLength: 40 },
       { key: "sectionTitle", label: "Section title", type: "text", required: true, maxLength: 40 },
       { key: "subtitle", label: "Subtitle", type: "text", maxLength: 80 },
       { key: "deck", label: "Deck", type: "textarea", maxLength: 220 },
+      {
+        key: "servicePageSignOff",
+        label: "Service page sign-off",
+        type: "text",
+        maxLength: 40,
+        helper: "Shown on every /services page above the contact block (e.g. Thanks).",
+      },
+      {
+        key: "whatsappLabel",
+        label: "WhatsApp label",
+        type: "text",
+        maxLength: 60,
+        helper: "Label next to the WhatsApp QR on service pages.",
+      },
+      {
+        key: "whatsappQrImage",
+        label: "WhatsApp QR image",
+        type: "image",
+        helper: "QR image shown on service detail pages.",
+      },
+      {
+        key: "servicePageBackgroundImage",
+        label: "Service page background image",
+        type: "image",
+        helper: "Background image for /services pages. Leave empty to use the default.",
+      },
     ],
     {
       eyebrow: "Beyond tours",
       sectionTitle: "Travel Service",
       subtitle: "Everything else, handled.",
       deck: "Flights, hotels, charter coaches, travel insurance, visa paperwork. The unglamorous half of any trip — done by people who've done it ten thousand times.",
+      servicePageSignOff: "Thanks",
+      whatsappLabel: "← Midearth's WhatsApp",
+      whatsappQrImage: "/contact/whatsapp-qr.jpg",
+      servicePageBackgroundImage: "",
     },
   ),
   createModule(
@@ -288,6 +379,13 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
       { key: "description", label: "Description", type: "textarea", maxLength: 160 },
       { key: "primaryButtonText", label: "Primary button text", type: "text", maxLength: 30 },
       { key: "primaryButtonLink", label: "Primary button link", type: "link", required: true },
+      {
+        key: "secondaryButtonText",
+        label: "Secondary button text",
+        type: "text",
+        maxLength: 30,
+      },
+      { key: "secondaryButtonLink", label: "Secondary button link", type: "link" },
       {
         key: "phoneLabel",
         label: "Phone",
@@ -332,6 +430,8 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
         "Use the form, or call the office. Either reaches a real desk in downtown Ottawa.",
       primaryButtonText: "Start a booking",
       primaryButtonLink: "tel:+16132365226",
+      secondaryButtonText: "Send a message",
+      secondaryButtonLink: "/#contact",
       phoneLabel: "613-236-5226",
       phoneHref: "tel:+16132365226",
       emailLabel: "info@midearth.ca",
@@ -380,7 +480,9 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
         helper: "Synced with Global Settings (tel:...).",
       },
       { key: "wechatQrImage", label: "WeChat QR image", type: "image" },
+      { key: "wechatQrLabel", label: "WeChat QR label", type: "text", maxLength: 40 },
       { key: "whatsappQrImage", label: "WhatsApp QR image", type: "image" },
+      { key: "whatsappQrLabel", label: "WhatsApp QR label", type: "text", maxLength: 40 },
     ],
     {
       eyebrow: "Get a Quote",
@@ -394,7 +496,9 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
       secondaryPhoneLabel: "613-236-2323",
       secondaryPhoneHref: "tel:+16132362323",
       wechatQrImage: "/contact/wechat-qr.jpg",
+      wechatQrLabel: "微信扫码咨询",
       whatsappQrImage: "/contact/whatsapp-qr.jpg",
+      whatsappQrLabel: "WhatsApp us",
     },
   ),
   createModule(
@@ -448,6 +552,10 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
         required: true,
         maxLength: 1600,
       },
+      { key: "socialWebsiteUrl", label: "Social website URL", type: "link" },
+      { key: "socialFacebookUrl", label: "Social Facebook URL", type: "link" },
+      { key: "socialEmailUrl", label: "Social email URL", type: "link" },
+      { key: "socialOtherUrl", label: "Social other URL", type: "link" },
     ],
     {
       brandTitle: "Midearth Travel",
@@ -460,6 +568,10 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
       secondaryPhoneHref: "tel:+16132362323",
       [FOOTER_TOUR_LINKS_KEY]: serializeFooterLinks(footerTourLinkSeeds),
       [FOOTER_SERVICE_LINKS_KEY]: serializeFooterLinks(footerServiceLinkSeeds),
+      socialWebsiteUrl: "",
+      socialFacebookUrl: "",
+      socialEmailUrl: "",
+      socialOtherUrl: "",
     },
   ),
 ];

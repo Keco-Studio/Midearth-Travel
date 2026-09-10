@@ -53,6 +53,7 @@ export function mapTravelToursToRecords(): TourRecord[] {
       pdfTitle: "Download PDF for tour details",
       localizedPdfTitle: "",
       pdfFileName: "",
+      galleryImages: "",
       specialOffer: tour.featured ?? false,
       specialDeals: tour.hotSale ?? false,
       vacationPackage: tour.vacationPackage ?? tour.tourType === "Group Tour",

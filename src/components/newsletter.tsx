@@ -26,6 +26,8 @@ export function Newsletter({ content = {} }: { content?: ContentData }) {
   );
   const wechatQrImage = getStringContent(content, "wechatQrImage", "/contact/wechat-qr.jpg");
   const whatsappQrImage = getStringContent(content, "whatsappQrImage", "/contact/whatsapp-qr.jpg");
+  const wechatQrLabel = getStringContent(content, "wechatQrLabel", "微信扫码咨询");
+  const whatsappQrLabel = getStringContent(content, "whatsappQrLabel", "WhatsApp us");
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -77,7 +79,7 @@ export function Newsletter({ content = {} }: { content?: ContentData }) {
 
         <div className={styles.qrSection}>
           <div className={styles.qrItem}>
-            <p className={styles.qrLabel}>微信扫码咨询</p>
+            <p className={styles.qrLabel}>{wechatQrLabel}</p>
             <Image
               src={wechatQrImage}
               alt="WeChat QR code"
@@ -88,7 +90,7 @@ export function Newsletter({ content = {} }: { content?: ContentData }) {
             />
           </div>
           <div className={styles.qrItem}>
-            <p className={styles.qrLabel}>WhatsApp us</p>
+            <p className={styles.qrLabel}>{whatsappQrLabel}</p>
             <Image
               src={whatsappQrImage}
               alt="WhatsApp QR code"

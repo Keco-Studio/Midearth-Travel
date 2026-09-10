@@ -193,6 +193,7 @@ export function mapExcelRowToTourRecord(
     pdfTitle: readString(lookup, "pdfTitle", "pdf title") || "Download PDF for tour details",
     localizedPdfTitle: readString(lookup, "ChinesePdfTitle", "chinese pdf title"),
     pdfFileName: readString(lookup, "pdfFileName", "pdf file name"),
+    galleryImages: "",
     specialOffer: readBoolean(lookup, "Our Top Picks", "our top picks"),
     specialDeals: false,
     vacationPackage: vacationPackage || (!busTour && !sunDestination),

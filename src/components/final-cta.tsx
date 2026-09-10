@@ -38,6 +38,16 @@ export function FinalCta({ content = {} }: { content?: ContentData }) {
     "Bronson Avenue, Ottawa, Ontario";
   const primaryButtonLink =
     getStringContent(content, "primaryButtonLink", "").trim() || phoneHref;
+  const secondaryButtonText = getStringContent(
+    content,
+    "secondaryButtonText",
+    "Send a message",
+  );
+  const secondaryButtonLink = getStringContent(
+    content,
+    "secondaryButtonLink",
+    "/#contact",
+  );
 
   return (
     <section className="final-cta">
@@ -56,9 +66,9 @@ export function FinalCta({ content = {} }: { content?: ContentData }) {
                   {primaryButtonText}
                 </button>
               </Link>
-              <Link href="/#contact">
+              <Link href={secondaryButtonLink}>
                 <button type="button" className="btn btn-lg btn-ghost">
-                  Send a message
+                  {secondaryButtonText}
                 </button>
               </Link>
             </div>

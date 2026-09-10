@@ -9,22 +9,61 @@ import {
   type TestimonialRow,
 } from "../src/lib/home-collections.ts";
 
-test("applies stored service card fields to fixed service slots", () => {
-  const row: ServiceRow = {
-    id: "flights",
-    slug: "air-fares",
-    title: "Air Fares",
-    summary: "Updated summary",
-    image: "https://example.com/flights.jpg",
-    sort_order: 1,
-    updated_at: "2026-07-23T14:00:00Z",
-  };
-  const result = mergeServiceRows([row]);
+test("uses stored service rows including custom cards and page content", () => {
+  const rows: ServiceRow[] = [
+    {
+      id: "flights",
+      slug: "air-fares",
+      title: "Air Fares",
+      summary: "Updated summary",
+      image: "https://example.com/flights.jpg",
+      page_content: {
+        title: "AIR FARES",
+        intro: "Updated intro",
+        signOff: "Cheers",
+        disclaimer: "Tax not included",
+        quoteLabel: "Air Fares",
+        metaTitle: "Air Fares | MidEarth",
+        metaDescription: "Desc",
+        deals: [
+          {
+            id: "d1",
+            route: "Ottawa - Tokyo",
+            priceLabel: "from $999",
+          },
+        ],
+      },
+      sort_order: 1,
+      updated_at: "2026-07-23T14:00:00Z",
+    },
+    {
+      id: "custom-1",
+      slug: "cruises",
+      title: "Cruises",
+      summary: "Ocean sailings",
+      image: "https://example.com/cruise.jpg",
+      page_content: {},
+      sort_order: 2,
+      updated_at: "2026-07-23T14:00:00Z",
+    },
+  ];
 
-  assert.equal(result.length, services.length);
+  const result = mergeServiceRows(rows);
+
+  assert.equal(result.length, 2);
   assert.equal(result[0].title, "Air Fares");
   assert.equal(result[0].slug, "air-fares");
-  assert.equal(result[0].image, row.image);
+  assert.equal(result[0].page.title, "AIR FARES");
+  assert.equal(result[0].page.deals[0]?.route, "Ottawa - Tokyo");
+  assert.equal(result[1].title, "Cruises");
+  assert.equal(result[1].page.signOff, "Thanks");
+});
+
+test("falls back to seeded services when no rows exist", () => {
+  const result = mergeServiceRows([]);
+  assert.equal(result.length, services.length);
+  assert.equal(result[0].id, "flights");
+  assert.ok(result[0].page.intro.length > 0);
 });
 
 test("keeps custom reviews beyond seed slots", () => {

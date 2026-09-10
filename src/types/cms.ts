@@ -105,6 +105,8 @@ export type TourRecord = {
   pdfTitle: string;
   localizedPdfTitle: string;
   pdfFileName: string;
+  /** Newline-separated gallery image URLs (cover image is separate). */
+  galleryImages: string;
   specialOffer: boolean;
   specialDeals: boolean;
   vacationPackage: boolean;

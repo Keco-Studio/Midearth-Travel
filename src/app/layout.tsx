@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { FooterContentProvider } from "@/context/footer-content-context";
 import { LangProvider } from "@/context/lang-context";
 import { NavbarContentProvider } from "@/context/navbar-content-context";
 import { SiteSettingsProvider } from "@/context/site-settings-context";
@@ -7,11 +8,18 @@ import { loadPublishedHomeModules } from "@/lib/supabase-home-content";
 import { loadGlobalSettings } from "@/lib/supabase-global-settings";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "Midearth Travel | Ottawa Travel Agency | Bus Tours",
-  description:
-    "Ottawa's premier travel agency specializing in all-inclusive vacation packages, bus tours to Canada and the United States, air tickets, and hotel reservations.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await loadGlobalSettings().catch(() => null);
+  const siteName = settings?.siteName?.trim() || "Midearth Travel";
+  const tagline = settings?.tagline?.trim() || "Ottawa Travel Agency | Bus Tours";
+
+  return {
+    title: `${siteName} | ${tagline}`,
+    description:
+      settings?.tagline?.trim() ||
+      "Ottawa's premier travel agency specializing in all-inclusive vacation packages, bus tours to Canada and the United States, air tickets, and hotel reservations.",
+  };
+}
 
 export default async function RootLayout({
   children,
@@ -23,6 +31,7 @@ export default async function RootLayout({
     loadPublishedHomeModules().catch(() => []),
   ]);
   const navbarContent = getHomeModule(modules, "navbar").data;
+  const footerContent = getHomeModule(modules, "footer").data;
 
   return (
     <html lang="en" className="h-full antialiased">
@@ -48,7 +57,9 @@ export default async function RootLayout({
       <body className="min-h-full font-sans antialiased">
         <SiteSettingsProvider settings={settings}>
           <NavbarContentProvider content={navbarContent}>
-            <LangProvider>{children}</LangProvider>
+            <FooterContentProvider content={footerContent}>
+              <LangProvider>{children}</LangProvider>
+            </FooterContentProvider>
           </NavbarContentProvider>
         </SiteSettingsProvider>
       </body>

@@ -1,3 +1,5 @@
+"use client";
+
 import {
   ArrowRight,
   CalendarDays,
@@ -23,6 +25,8 @@ import {
 import { TourDetailHeader } from "@/components/tour/tour-detail-header";
 import { TourPdfDownload } from "@/components/tour/tour-pdf-download";
 import { TourCheckoutButton } from "@/components/tour/tour-checkout-button";
+import { useLang } from "@/context/lang-context";
+import { useSiteSettings } from "@/context/site-settings-context";
 import styles from "@/components/tour/tour-detail.module.css";
 
 function PolicyIcon({ icon }: { icon?: TourPolicy["icon"] }) {
@@ -31,15 +35,74 @@ function PolicyIcon({ icon }: { icon?: TourPolicy["icon"] }) {
   return null;
 }
 
+function pickLocalized(
+  lang: string,
+  localized: string | undefined,
+  fallback: string,
+): string {
+  return lang === "zh" && localized?.trim() ? localized.trim() : fallback;
+}
+
+function pickLocalizedList(
+  lang: string,
+  localized: string[] | undefined,
+  fallback: string[],
+): string[] {
+  return lang === "zh" && localized && localized.length > 0 ? localized : fallback;
+}
+
 export function TourDetail({ tour }: { tour: Tour }) {
-  const displayTitle = getTourDisplayTitle(tour);
-  const departureCity = tour.departureCity?.trim();
-  const departuresLine = tour.departures?.join(" · ");
-  const departuresComma = tour.departures?.join(", ");
+  const { lang } = useLang();
+  const settings = useSiteSettings();
+  const displayTitle = pickLocalized(
+    lang,
+    tour.localizedTitle,
+    getTourDisplayTitle(tour),
+  );
+  const duration = pickLocalized(lang, tour.localizedDuration, tour.duration);
+  const departureCity = pickLocalized(
+    lang,
+    tour.localizedDepartureCity,
+    tour.departureCity?.trim() ?? "",
+  );
+  const departures = pickLocalizedList(
+    lang,
+    tour.localizedDepartures,
+    tour.departures ?? [],
+  );
+  const departuresLine = departures.length > 0 ? departures.join(" · ") : undefined;
+  const departuresComma = departures.length > 0 ? departures.join(", ") : undefined;
+  const tags = pickLocalizedList(lang, tour.localizedHighlights, tour.tags);
   const bookingMailto = getBookingMailto(tour);
   const gallery = tour.gallery?.length ? tour.gallery : [tour.image];
-  const included = tour.included ?? defaultTourIncluded;
-  const notIncluded = getTourNotIncluded(tour);
+  const included = pickLocalizedList(
+    lang,
+    tour.localizedIncluded,
+    tour.included ?? defaultTourIncluded,
+  );
+  const notIncluded = pickLocalizedList(
+    lang,
+    tour.localizedNotIncluded,
+    getTourNotIncluded(tour),
+  );
+  const meetingPlace = pickLocalized(
+    lang,
+    tour.essentials?.localizedMeetingPlace,
+    tour.essentials?.meetingPlace ?? "",
+  );
+  const hotels = pickLocalized(
+    lang,
+    tour.essentials?.localizedHotels,
+    tour.essentials?.hotels ?? "",
+  );
+  const escortedCoach = pickLocalized(
+    lang,
+    tour.essentials?.localizedEscortedCoach,
+    tour.essentials?.escortedCoach ?? "",
+  );
+  const pdfTitle = pickLocalized(lang, tour.localizedPdfTitle, tour.pdfTitle ?? "");
+  const phoneHref = settings.primaryPhoneHref.trim() || "tel:+16132365226";
+  const phoneLabel = settings.primaryPhoneLabel.trim() || "613-236-5226";
 
   return (
     <main className="min-h-screen bg-background">
@@ -58,7 +121,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
           </h1>
 
           <div className="mt-6 flex flex-wrap gap-2">
-            {tour.tags.map((tag) => (
+            {tags.map((tag) => (
               <span
                 key={tag}
                 className="rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm md:text-sm"
@@ -74,10 +137,20 @@ export function TourDetail({ tour }: { tour: Tour }) {
                 Duration
               </dt>
               <dd className="mt-1 text-sm font-semibold text-white md:text-base">
-                {tour.duration}
+                {duration}
               </dd>
             </div>
-            <div className="sm:col-span-2">
+            {tour.subregion?.trim() ? (
+              <div>
+                <dt className="text-xs font-medium uppercase tracking-wide text-white/60">
+                  Region
+                </dt>
+                <dd className="mt-1 text-sm font-semibold text-white md:text-base">
+                  {[tour.region, tour.subregion.trim()].filter(Boolean).join(" · ")}
+                </dd>
+              </div>
+            ) : null}
+            <div className={tour.subregion?.trim() ? undefined : "sm:col-span-2"}>
               <dt className="text-xs font-medium uppercase tracking-wide text-white/60">
                 {departureCity
                   ? `Departures from ${departureCity}`
@@ -95,7 +168,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
         <div className="mx-auto max-w-7xl px-3 py-10 sm:px-6 sm:py-16 lg:px-8">
           <div className={styles.overviewBlock}>
             <div className={styles.pdfDownloadSlot}>
-              <TourPdfDownload />
+              <TourPdfDownload title={pdfTitle || undefined} href={tour.pdfUrl} />
             </div>
 
             <div className={styles.overviewMain}>
@@ -211,7 +284,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
                         </div>
                       </div>
                     )}
-                    {tour.essentials.meetingPlace && (
+                    {meetingPlace && (
                       <div className="flex gap-3">
                         <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
                         <div>
@@ -219,12 +292,12 @@ export function TourDetail({ tour }: { tour: Tour }) {
                             Meeting place
                           </p>
                           <p className="mt-1 text-sm leading-snug">
-                            {tour.essentials.meetingPlace}
+                            {meetingPlace}
                           </p>
                         </div>
                       </div>
                     )}
-                    {tour.essentials.hotels && (
+                    {hotels && (
                       <div className="flex gap-3">
                         <Hotel className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
                         <div>
@@ -232,7 +305,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
                             Hotels
                           </p>
                           <p className="mt-1 text-sm leading-snug">
-                            {tour.essentials.hotels}
+                            {hotels}
                           </p>
                         </div>
                       </div>
@@ -241,14 +314,14 @@ export function TourDetail({ tour }: { tour: Tour }) {
                       <CalendarDays className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                          {tour.duration}
+                          {duration}
                         </p>
                         <p className="mt-1 text-sm">
                           {departuresComma ?? "Contact for dates"}
                         </p>
                       </div>
                     </div>
-                    {tour.essentials.escortedCoach && (
+                    {escortedCoach && (
                       <div className="flex gap-3">
                         <Users className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
                         <div>
@@ -256,7 +329,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
                             Escorted coach
                           </p>
                           <p className="mt-1 text-sm">
-                            {tour.essentials.escortedCoach}
+                            {escortedCoach}
                           </p>
                         </div>
                       </div>
@@ -318,13 +391,13 @@ export function TourDetail({ tour }: { tour: Tour }) {
                     Book this tour
                   </a>
                   <a
-                    href="tel:+16132365226"
+                    href={phoneHref}
                     className={cn(
                       buttonVariants({ variant: "outline" }),
                       "mt-3 w-full border-2",
                     )}
                   >
-                    Call 613-236-5226
+                    Call {phoneLabel}
                   </a>
                 </div>
               </div>
@@ -361,7 +434,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
               <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
             </a>
             <a
-              href="tel:+16132365226"
+              href={phoneHref}
               className={cn(
                 buttonVariants({ variant: "outline", size: "lg" }),
                 "h-14 border-2 bg-background px-10 text-base shadow-xs",

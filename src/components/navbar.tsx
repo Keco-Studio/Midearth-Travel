@@ -49,8 +49,13 @@ export function Navbar({ content }: { content?: ContentData }) {
     "logoAlt",
     `${settings.siteName} ${settings.tagline}`,
   );
+  const logoImage = getStringContent(resolvedContent, "logoImage", "").trim();
+  const logoImageSolid = getStringContent(resolvedContent, "logoImageSolid", "").trim();
   const bookNowLabel = getStringContent(resolvedContent, "bookNowLabel", "Book Now");
-  const bookNowLink = settings.primaryPhoneHref.trim() || "tel:+16132365226";
+  const bookNowLink =
+    getStringContent(resolvedContent, "bookNowLink", "").trim() ||
+    settings.primaryPhoneHref.trim() ||
+    "tel:+16132365226";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -72,22 +77,26 @@ export function Navbar({ content }: { content?: ContentData }) {
   }, [drawerOpen, pathname]);
 
   const nav = [
-    { key: "home", label: getStringContent(resolvedContent, "homeLabel", "Home"), href: "/" },
+    {
+      key: "home",
+      label: getStringContent(resolvedContent, "homeLabel", "Home"),
+      href: getStringContent(resolvedContent, "homeHref", "/"),
+    },
     {
       key: "routes",
       label: getStringContent(resolvedContent, "destinationsLabel", "Destinations"),
-      href: "/#destinations",
+      href: getStringContent(resolvedContent, "destinationsHref", "/#destinations"),
       // mega: "routes" as const,
     },
     {
       key: "services",
       label: getStringContent(resolvedContent, "servicesLabel", "Services"),
-      href: "/#about",
+      href: getStringContent(resolvedContent, "servicesHref", "/#about"),
     },
     {
       key: "contact",
       label: getStringContent(resolvedContent, "contactLabel", "Contact"),
-      href: "/#contact",
+      href: getStringContent(resolvedContent, "contactHref", "/#contact"),
     },
   ];
 
@@ -104,7 +113,12 @@ export function Navbar({ content }: { content?: ContentData }) {
     <header className={`site-header ${transparent ? "transparent" : "solid"}`}>
       <div className="header-inner">
         <Link className="brand" href="/">
-          <BrandLogo solid={!transparent} alt={logoAlt} />
+          <BrandLogo
+            solid={!transparent}
+            alt={logoAlt}
+            src={logoImage || undefined}
+            solidSrc={logoImageSolid || undefined}
+          />
         </Link>
 
         <nav className="nav-desktop">
@@ -166,7 +180,12 @@ export function Navbar({ content }: { content?: ContentData }) {
         >
           <div className="drawer" onClick={(e) => e.stopPropagation()}>
             <div className="drawer-head">
-              <BrandLogo solid alt={logoAlt} />
+              <BrandLogo
+                solid
+                alt={logoAlt}
+                src={logoImage || undefined}
+                solidSrc={logoImageSolid || undefined}
+              />
               <button
                 className="drawer-close"
                 onClick={() => setDrawerOpen(false)}
