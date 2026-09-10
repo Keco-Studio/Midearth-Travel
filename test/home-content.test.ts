@@ -131,7 +131,7 @@ test("canonicalizes saved modules against the fixed seed schema", () => {
   assert.equal(canonical.data.script, undefined);
 });
 
-test("rejects invalid required, typed, and link values before persistence", () => {
+test("rejects invalid required, typed, and image values before persistence", () => {
   assert.throws(
     () =>
       canonicalizeHomeModule({
@@ -155,8 +155,8 @@ test("rejects invalid required, typed, and link values before persistence", () =
     () =>
       canonicalizeHomeModule({
         ...heroSeed,
-        data: { ...heroSeed.data, primaryButtonLink: "javascript:alert(1)" },
+        data: { ...heroSeed.data, backgroundImage: "javascript:alert(1)" },
       }),
-    /Primary button link must use a supported URL/,
+    /Background image must use a supported image URL/,
   );
 });

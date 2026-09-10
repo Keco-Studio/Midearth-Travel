@@ -1,8 +1,8 @@
 "use client";
 
 import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
-import { App, Button, Input, Select, Space, Table, Typography } from "antd";
-import { useEffect, useMemo, useState } from "react";
+import { Button, Input, Select, Space, Table, Typography } from "antd";
+import { useMemo } from "react";
 import {
   createEmptyDestination,
   EXPLORE_MONTHS_DATA_KEY,
@@ -15,6 +15,7 @@ import type { ContentValue, TourRecord } from "@/types/cms";
 
 type ExploreByMonthEditorProps = {
   content: ContentData;
+  tours: TourRecord[];
   onChange: (key: string, value: ContentValue) => void;
 };
 
@@ -27,46 +28,10 @@ type TourOption = {
 
 export function ExploreByMonthEditor({
   content,
+  tours,
   onChange,
 }: ExploreByMonthEditorProps) {
-  const { message } = App.useApp();
   const months = getExploreByMonthEntries(content);
-  const [tours, setTours] = useState<TourRecord[]>([]);
-  const [loadingTours, setLoadingTours] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadTours() {
-      setLoadingTours(true);
-      try {
-        const response = await fetch("/api/admin/tours");
-        const payload = (await response.json()) as {
-          tours?: TourRecord[];
-          error?: string;
-        };
-        if (!response.ok) {
-          throw new Error(payload.error || "Unable to load tours");
-        }
-        if (!cancelled) {
-          setTours(payload.tours ?? []);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          message.error(
-            error instanceof Error ? error.message : "Unable to load tours",
-          );
-        }
-      } finally {
-        if (!cancelled) setLoadingTours(false);
-      }
-    }
-
-    void loadTours();
-    return () => {
-      cancelled = true;
-    };
-  }, [message]);
 
   const tourOptions = useMemo<TourOption[]>(
     () =>
@@ -184,7 +149,6 @@ export function ExploreByMonthEditor({
               size="small"
               pagination={false}
               dataSource={month.destinations}
-              loading={loadingTours}
               locale={{ emptyText: "No destinations for this month" }}
               columns={[
                 {

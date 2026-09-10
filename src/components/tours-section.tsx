@@ -1,16 +1,11 @@
 import Link from "next/link";
 import { TourCard } from "@/components/tour-card";
-import { getFeaturedTours, tours as staticTours, type Tour } from "@/data/tours";
+import { tours as staticTours, type Tour } from "@/data/tours";
 import { getStringContent, type ContentData } from "@/lib/content-values";
 import {
   destinationCategorySeeds,
   type DestinationCategory,
 } from "@/lib/destination-categories";
-import {
-  FEATURED_TOUR_SLUGS_KEY,
-  parseFeaturedSlugs,
-  pickFeaturedTours,
-} from "@/lib/featured-tours";
 import styles from "./tours-section.module.css";
 
 export function ToursSection({
@@ -23,16 +18,11 @@ export function ToursSection({
   destinationCategories?: DestinationCategory[];
 }) {
   const sourceTours = tours ?? staticTours;
-  const featuredSlugs = parseFeaturedSlugs(content[FEATURED_TOUR_SLUGS_KEY]);
-  const featuredTours = tours
-    ? pickFeaturedTours(sourceTours, featuredSlugs)
-    : featuredSlugs.length > 0
-      ? pickFeaturedTours(staticTours, featuredSlugs)
-      : getFeaturedTours();
+  const featuredTours = sourceTours.filter((tour) => tour.featured);
   const eyebrow = getStringContent(content, "eyebrow", "Featured");
   const sectionTitle = getStringContent(content, "sectionTitle", "Our Top Picks");
   const seeAllLabel = `See all ${sourceTours.length} tours`;
-  const seeAllLink = getStringContent(content, "seeAllLink", "/tours");
+  const seeAllLink = "/tours";
 
   return (
     <section id="tours" className={`section ${styles.section}`}>

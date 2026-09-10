@@ -71,11 +71,16 @@ async function syncLinkedModules(module: HomeModuleRecord): Promise<{
 }> {
   if (
     module.id === "finalCta" ||
+    module.id === "navbar" ||
     module.id === "newsletter" ||
     module.id === "footer"
   ) {
     const settings = await syncContactFieldsToGlobalSettings(module);
-    if (module.id === "newsletter" || module.id === "footer") {
+    if (
+      module.id === "navbar" ||
+      module.id === "newsletter" ||
+      module.id === "footer"
+    ) {
       const linkedModules = await syncSharedPhonesToModules(settings);
       await syncContactFieldsToFinalCta(settings);
       return { settings, linkedModules };

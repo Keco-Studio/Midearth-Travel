@@ -61,7 +61,6 @@ export function PaymentsWorkspace({
 }: PaymentsWorkspaceProps) {
   const { message } = App.useApp();
   const [localSelectedId, setLocalSelectedId] = useState<string | null>(null);
-  const [loading] = useState(false);
   const counts = getPaymentStatusCounts(payments);
   const focusedPaymentExists =
     focusPaymentId !== null &&
@@ -182,7 +181,6 @@ export function PaymentsWorkspace({
           <ProTable<PaymentRecord>
             columns={columns}
             dataSource={payments}
-            loading={loading}
             rowKey="id"
             search={false}
             options={{ density: true, setting: true, reload: false }}

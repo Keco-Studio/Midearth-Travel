@@ -72,18 +72,13 @@ export async function publishHomeModule(id: HomeModuleId): Promise<HomeModuleRec
 /** Patch Final CTA contact fields without flipping publish status. */
 export async function patchFinalCtaContactFields(contact: {
   phoneLabel: string;
-  phoneHref: string;
   emailLabel: string;
-  emailHref: string;
   officeAddress: string;
 }): Promise<HomeModuleRecord> {
   return patchHomeModuleDataFields("finalCta", {
     phoneLabel: contact.phoneLabel.trim(),
-    phoneHref: contact.phoneHref.trim(),
     emailLabel: contact.emailLabel.trim(),
-    emailHref: contact.emailHref.trim(),
     officeAddress: contact.officeAddress.trim(),
-    primaryButtonLink: contact.phoneHref.trim(),
   });
 }
 
@@ -126,9 +121,7 @@ export async function patchFinalCtaOfficeAddress(
   const finalCta = modules.find((module) => module.id === "finalCta");
   return patchFinalCtaContactFields({
     phoneLabel: String(finalCta?.data.phoneLabel ?? ""),
-    phoneHref: String(finalCta?.data.phoneHref ?? ""),
     emailLabel: String(finalCta?.data.emailLabel ?? ""),
-    emailHref: String(finalCta?.data.emailHref ?? ""),
     officeAddress,
   });
 }
