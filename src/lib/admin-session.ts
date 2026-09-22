@@ -141,6 +141,8 @@ export async function verifyAdminSession(
 
 function validateConfig(config: AdminAuthConfig): AdminAuthConfig {
   const initialEmail = config.initialEmail.trim();
+  const initialPassword = config.initialPassword.trim();
+  const sessionSecret = config.sessionSecret.trim();
   const invalidVariables = [
     [
       "ADMIN_INITIAL_EMAIL",
@@ -148,12 +150,12 @@ function validateConfig(config: AdminAuthConfig): AdminAuthConfig {
     ],
     [
       "ADMIN_INITIAL_PASSWORD",
-      config.initialPassword.length < ADMIN_PASSWORD_MIN_LENGTH ||
+      initialPassword.length < ADMIN_PASSWORD_MIN_LENGTH ||
         isPlaceholder(config.initialPassword),
     ],
     [
       "ADMIN_SESSION_SECRET",
-      config.sessionSecret.length < ADMIN_SESSION_SECRET_MIN_LENGTH ||
+      sessionSecret.length < ADMIN_SESSION_SECRET_MIN_LENGTH ||
         isPlaceholder(config.sessionSecret),
     ],
   ]

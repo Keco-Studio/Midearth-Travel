@@ -106,7 +106,11 @@ test("rejects weak, invalid, and placeholder admin configuration", () => {
       ADMIN_INITIAL_EMAIL: `${"a".repeat(240)}@midearthtravel.ca`,
     },
     { ...validEnvironment, ADMIN_INITIAL_PASSWORD: "short-pass" },
+    { ...validEnvironment, ADMIN_INITIAL_PASSWORD: "           p " },
+    { ...validEnvironment, ADMIN_INITIAL_PASSWORD: "            " },
     { ...validEnvironment, ADMIN_SESSION_SECRET: "s".repeat(31) },
+    { ...validEnvironment, ADMIN_SESSION_SECRET: `${"s".repeat(31)} ` },
+    { ...validEnvironment, ADMIN_SESSION_SECRET: " ".repeat(32) },
     {
       ...validEnvironment,
       ADMIN_INITIAL_PASSWORD: "replace_with_initial_admin_password",
