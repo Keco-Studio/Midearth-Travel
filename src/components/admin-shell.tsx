@@ -372,6 +372,7 @@ export function AdminShell({
       contentStyle={{ padding: 0 }}
     >
       <div className="cms-workspace-topbar">
+        <span className="cms-workspace-topbar-title">{getWorkspaceTitle(state)}</span>
         <AdminAccountMenu email={adminEmail} />
       </div>
       <PageContainer

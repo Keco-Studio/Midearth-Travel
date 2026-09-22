@@ -71,11 +71,21 @@
   top: 0;
   z-index: 10;
   display: flex;
+  align-items: center;
+  gap: 16px;
   justify-content: flex-end;
   min-height: 56px;
   padding: 12px 24px;
   border-bottom: 1px solid #d5d9d6;
   background: #ffffff;
+}
+
+.cms-workspace-topbar-title {
+  margin-right: auto;
+  color: #12312b;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 32px;
 }
 
 .cms-admin-account-email {
