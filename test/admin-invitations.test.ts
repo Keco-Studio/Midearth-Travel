@@ -4,6 +4,7 @@ import {
   createInvitationToken,
   hashInvitationToken,
   isUsableInvitation,
+  replaceAdminInvitation,
 } from "../src/lib/admin-invitations.ts";
 
 test("accepts only a matching unexpired unused invitation", async () => {
@@ -35,4 +36,35 @@ test("accepts only a matching unexpired unused invitation", async () => {
     await isUsableInvitation({ ...invitation, expiresAt: now.toISOString() }, token, invitation.email, now),
     false,
   );
+});
+
+test("creates an invitation after Supabase accepts an empty delete response", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const originalKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const methods: string[] = [];
+  process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
+  globalThis.fetch = async (_input, init) => {
+    methods.push(init?.method ?? "GET");
+    return methods.length === 1
+      ? new Response(null, { status: 204 })
+      : new Response(null, { status: 201 });
+  };
+
+  try {
+    await replaceAdminInvitation({
+      email: "new.admin@midearthtravel.ca",
+      tokenHash: "a".repeat(43),
+      invitedBy: "owner@midearthtravel.ca",
+      expiresAt: new Date("2026-09-29T00:00:00.000Z"),
+    });
+    assert.deepEqual(methods, ["DELETE", "POST"]);
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalUrl === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+    else process.env.NEXT_PUBLIC_SUPABASE_URL = originalUrl;
+    if (originalKey === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    else process.env.SUPABASE_SERVICE_ROLE_KEY = originalKey;
+  }
 });

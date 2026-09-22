@@ -146,5 +146,6 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     cache: "no-store",
   });
   if (!response.ok) throw new Error((await response.text()) || "Supabase request failed");
-  return response.json() as Promise<T>;
+  const body = await response.text();
+  return (body ? JSON.parse(body) : undefined) as T;
 }
