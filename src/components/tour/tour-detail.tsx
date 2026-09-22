@@ -95,6 +95,11 @@ export function TourDetail({ tour }: { tour: Tour }) {
   const pdfTitle = getLocalizedTourValue(lang, tour.localizedPdfTitle, tour.pdfTitle ?? "");
   const phoneHref = settings.primaryPhoneHref.trim() || "tel:+16132365226";
   const phoneLabel = settings.primaryPhoneLabel.trim() || "613-236-5226";
+  const bookingTourCode = tour.code
+    ? lang === "zh"
+      ? `（行程编号 ${tour.code}）`
+      : ` for tour ${tour.code}`
+    : "";
 
   return (
     <main className="min-h-screen bg-background">
@@ -409,9 +414,9 @@ export function TourDetail({ tour }: { tour: Tour }) {
             {getLocalizedStaticText(lang, "readyFor", { title: displayTitle })}
           </h2>
           <p className="mt-4 leading-relaxed text-muted-foreground">
-            Email us to reserve your seats, or call our Ottawa office — we&apos;ll
-            confirm availability and next steps
-            {tour.code ? ` for tour ${tour.code}` : ""}.
+            {getLocalizedStaticText(lang, "bookingCtaDescription", {
+              tourCode: bookingTourCode,
+            })}
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <a

@@ -53,6 +53,7 @@ const staticText = {
     callForQuote: "Call for quote - pricing varies by season and room type.",
     call: "Call",
     readyFor: "Ready for {{title}}?",
+    bookingCtaDescription: "Email us to reserve your seats, or call our Ottawa office - we'll confirm availability and next steps{{tourCode}}.",
   },
   zh: {
     bookNow: "立即预订",
@@ -104,6 +105,7 @@ const staticText = {
     callForQuote: "请联系我们获取报价。价格因季节和房型而异。",
     call: "致电",
     readyFor: "准备好前往 {{title}} 了吗？",
+    bookingCtaDescription: "请通过电子邮件预留座位，或致电渥太华办公室，我们将确认可用情况和后续安排{{tourCode}}。",
   },
 } as const;
 

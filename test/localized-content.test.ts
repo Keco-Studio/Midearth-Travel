@@ -42,6 +42,17 @@ test("resolves listing card and tour detail labels from the selected language", 
   assert.equal(getLocalizedStaticText("zh", "callForQuote"), "请联系我们获取报价。价格因季节和房型而异。");
 });
 
+test("interpolates an optional tour code into the localized booking CTA", () => {
+  assert.equal(
+    getLocalizedStaticText("en", "bookingCtaDescription", { tourCode: " for tour EH-12" }),
+    "Email us to reserve your seats, or call our Ottawa office - we'll confirm availability and next steps for tour EH-12.",
+  );
+  assert.equal(
+    getLocalizedStaticText("zh", "bookingCtaDescription", { tourCode: "（行程编号 EH-12）" }),
+    "请通过电子邮件预留座位，或致电渥太华办公室，我们将确认可用情况和后续安排（行程编号 EH-12）。",
+  );
+});
+
 test("uses populated Chinese tour values and lists, otherwise English", () => {
   assert.equal(getLocalizedTourValue("zh", "九天", "9 days"), "九天");
   assert.equal(getLocalizedTourValue("zh", "", "9 days"), "9 days");
