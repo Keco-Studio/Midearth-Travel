@@ -1,3 +1,5 @@
+"use client";
+
 import {
   ArrowRight,
   Bus,
@@ -9,6 +11,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { HeroBroadcast } from "@/components/hero-broadcast";
 import { getStringContent, type ContentData } from "@/lib/content-values";
+import { useLang } from "@/context/lang-context";
+import { getLocalizedContent } from "@/lib/localized-content";
 import {
   getHeroBroadcastContent,
   getHeroFeatureCards,
@@ -18,27 +22,28 @@ import styles from "./hero.module.css";
 const cardIcons = { Plane, Bus, Globe, Ship };
 
 export function Hero({ content = {} }: { content?: ContentData }) {
+  const { lang } = useLang();
   const backgroundImage = getStringContent(content, "backgroundImage", "/hero/hero-coast.jpg");
-  const titleMain = getStringContent(content, "titleMain", "Midearth Travel");
-  const subtitle = getStringContent(content, "subtitle", "Your One-Stop Travel Solution");
-  const primaryButtonText = getStringContent(content, "primaryButtonText", "Explore Tours");
+  const titleMain = getLocalizedContent(content, "titleMain", lang, "Midearth Travel");
+  const subtitle = getLocalizedContent(content, "subtitle", lang, "Your One-Stop Travel Solution");
+  const primaryButtonText = getLocalizedContent(content, "primaryButtonText", lang, "Explore Tours");
   const primaryButtonLink = "#tours";
-  const secondaryButtonText = getStringContent(content, "secondaryButtonText", "Request Quote");
+  const secondaryButtonText = getLocalizedContent(content, "secondaryButtonText", lang, "Request Quote");
   const secondaryButtonLink = "#contact";
-  const broadcast = getHeroBroadcastContent(content);
-  const featureCards = getHeroFeatureCards(content);
+  const broadcast = getHeroBroadcastContent(content, lang);
+  const featureCards = getHeroFeatureCards(content, lang);
   const stats = [
     {
-      value: getStringContent(content, "stat1Value", "20+"),
-      label: getStringContent(content, "stat1Label", "Years Experience"),
+      value: getLocalizedContent(content, "stat1Value", lang, "20+"),
+      label: getLocalizedContent(content, "stat1Label", lang, "Years Experience"),
     },
     {
-      value: getStringContent(content, "stat2Value", "TICO"),
-      label: getStringContent(content, "stat2Label", "Certified Member"),
+      value: getLocalizedContent(content, "stat2Value", lang, "TICO"),
+      label: getLocalizedContent(content, "stat2Label", lang, "Certified Member"),
     },
     {
-      value: getStringContent(content, "stat3Value", "5.0"),
-      label: getStringContent(content, "stat3Label", "Google Rating"),
+      value: getLocalizedContent(content, "stat3Value", lang, "5.0"),
+      label: getLocalizedContent(content, "stat3Label", lang, "Google Rating"),
     },
   ];
 

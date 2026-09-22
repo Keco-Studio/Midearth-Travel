@@ -66,7 +66,7 @@ export default async function Home() {
       />
       <FinalCta content={finalCta} />
       <Newsletter content={newsletter} />
-      <Footer content={footer} />
+      <Footer content={footer} categories={categories} />
     </main>
   );
 }

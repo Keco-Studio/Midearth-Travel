@@ -113,6 +113,12 @@ export function resolvePdfUrl(fileName: string): string | undefined {
   return `/pdfs/${encodeURIComponent(trimmed)}`;
 }
 
+export function mapPublishedTourRecords(records: readonly TourRecord[]): Tour[] {
+  return records
+    .filter((record) => record.status === "published")
+    .map(mapTourRecordToPublicTour);
+}
+
 export function mapTourRecordToPublicTour(record: TourRecord): Tour {
   const base = tours.find((tour) => tour.slug === record.slug);
   const seed = tourSeeds.find((tour) => tour.slug === record.slug);
@@ -256,26 +262,35 @@ function splitList(value: string): string[] {
 }
 
 function mapPolicies(record: TourRecord): TourPolicy[] {
-  const policies: TourPolicy[] = [
-    {
+  const policies: Array<TourPolicy & { localizedContent?: string }> = [
+    withLocalizedPolicy({
       title: "Admissions",
       content: record.admissions,
       icon: "ticket",
-    },
-    {
+    }, record.localizedAdmissions),
+    withLocalizedPolicy({
       title: "Cancellation",
       content: record.cancellation,
       icon: "shield",
-    },
-    {
+    }, record.localizedCancellation),
+    withLocalizedPolicy({
       title: "Important notice",
       content: record.importantNotice,
       icon: "info",
       wide: true,
-    },
+    }, record.localizedImportantNotice),
   ];
 
   return policies.filter((policy) => Boolean(policy.content.trim()));
+}
+
+function withLocalizedPolicy(
+  policy: TourPolicy,
+  localizedContent: string,
+): TourPolicy {
+  return localizedContent.trim()
+    ? { ...policy, localizedContent: localizedContent.trim() }
+    : policy;
 }
 
 function mapFares(record: TourRecord): TourFare[] {

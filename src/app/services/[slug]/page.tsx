@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { Footer } from "@/components/footer";
 import { ServiceDetailPage } from "@/components/services/service-detail-page";
 import {
   SERVICE_WHATSAPP_LABEL,
@@ -6,7 +7,7 @@ import {
   serviceToPageContent,
   servicesToNavItems,
 } from "@/data/service-pages";
-import { getStringContent } from "@/lib/content-values";
+import { getStringContent, type ContentData } from "@/lib/content-values";
 import { getHomeModule } from "@/lib/home-content";
 import { loadHomepageServices } from "@/lib/supabase-home-collections";
 import { loadPublishedHomeModules } from "@/lib/supabase-home-content";
@@ -44,34 +45,29 @@ export default async function ServicePage({
 
   const aboutSection = getHomeModule(modules, "aboutSection").data;
   const content = serviceToPageContent(service);
-  const sharedSignOff = getStringContent(
-    aboutSection,
-    "servicePageSignOff",
-    content.signOff,
-  );
-
   return (
-    <ServiceDetailPage
-      content={{
-        ...content,
-        signOff: sharedSignOff.trim() || content.signOff,
-      }}
-      navItems={servicesToNavItems(services)}
-      whatsappLabel={getStringContent(
-        aboutSection,
-        "whatsappLabel",
-        SERVICE_WHATSAPP_LABEL,
-      )}
-      whatsappQrImage={getStringContent(
-        aboutSection,
-        "whatsappQrImage",
-        SERVICE_WHATSAPP_QR,
-      )}
-      backgroundImage={getStringContent(
-        aboutSection,
-        "servicePageBackgroundImage",
-        "",
-      )}
-    />
+    <>
+      <ServiceDetailPage
+        content={content}
+        navItems={servicesToNavItems(services)}
+        servicePageContent={aboutSection as ContentData}
+        whatsappLabel={getStringContent(
+          aboutSection,
+          "whatsappLabel",
+          SERVICE_WHATSAPP_LABEL,
+        )}
+        whatsappQrImage={getStringContent(
+          aboutSection,
+          "whatsappQrImage",
+          SERVICE_WHATSAPP_QR,
+        )}
+        backgroundImage={getStringContent(
+          aboutSection,
+          "servicePageBackgroundImage",
+          "",
+        )}
+      />
+      <Footer />
+    </>
   );
 }

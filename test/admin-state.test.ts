@@ -90,16 +90,16 @@ test("loads persisted modules without overwriting the module being edited", () =
   const state = selectHomeModule(createInitialAdminState(), "hero");
   const loadedModules = state.homeModules.map((module) =>
     module.id === "hero"
-      ? { ...module, data: { ...module.data, titleMain: "Loaded hero" } }
+      ? { ...module, data: { ...module.data, titleMainEn: "Loaded hero" } }
       : module.id === "footer"
         ? { ...module, data: { ...module.data, brandTitle: "Loaded footer" } }
         : module,
   );
-  const editingState = updateHomeModuleField(state, "hero", "titleMain", "Local edit");
+  const editingState = updateHomeModuleField(state, "hero", "titleMainEn", "Local edit");
   const nextState = mergeLoadedHomeModules(editingState, loadedModules);
 
   assert.equal(nextState.selectedHomeModuleId, "hero");
-  assert.equal(getActiveModule(nextState).data.titleMain, "Local edit");
+  assert.equal(getActiveModule(nextState).data.titleMainEn, "Local edit");
   assert.equal(
     nextState.homeModules.find((module) => module.id === "footer")?.data.brandTitle,
     "Loaded footer",
@@ -149,12 +149,12 @@ test("preserves edits made while a save request is in flight", () => {
   const initialState = selectHomeModule(createInitialAdminState(), "hero");
   const submittedModule = {
     ...getActiveModule(initialState),
-    data: { ...getActiveModule(initialState).data, titleMain: "Submitted" },
+    data: { ...getActiveModule(initialState).data, titleMainEn: "Submitted" },
   };
   const editedState = updateHomeModuleField(
     initialState,
     "hero",
-    "titleMain",
+    "titleMainEn",
     "Typed after save",
   );
   const savedModule = {
@@ -169,7 +169,7 @@ test("preserves edits made while a save request is in flight", () => {
     submittedModule.data,
   );
 
-  assert.equal(getActiveModule(nextState).data.titleMain, "Typed after save");
+  assert.equal(getActiveModule(nextState).data.titleMainEn, "Typed after save");
   assert.equal(getActiveModule(nextState).draftVersion, 2);
   assert.equal(nextState.hasUnsavedChanges, true);
 });

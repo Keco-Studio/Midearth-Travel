@@ -1,6 +1,6 @@
-import { categoryMeta } from "@/data/categories";
-import { getRegionBySlug } from "@/data/regions";
-import { tours, type Tour } from "@/data/tours";
+import { categoryMeta } from "./categories.ts";
+import { getRegionBySlug } from "./regions.ts";
+import { tours, type Tour } from "./tours.ts";
 
 const regionMap: Record<string, string[]> = {
   "north-america": ["Canada", "USA", "North America"],

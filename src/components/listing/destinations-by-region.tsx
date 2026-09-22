@@ -3,11 +3,12 @@ import {
   destinationsByRegion,
   resolveRegionCards,
 } from "@/data/destinations-by-region";
+import type { Tour } from "@/data/tours";
 import styles from "./browse-sections.module.css";
 import listingStyles from "./listing.module.css";
 import { TourListingCard } from "./tour-listing-card";
 
-export function DestinationsByRegion() {
+export function DestinationsByRegion({ tours }: { tours: readonly Tour[] }) {
   return (
     <>
       <div className={styles.secHead}>
@@ -17,7 +18,7 @@ export function DestinationsByRegion() {
 
       <div className={styles.regionStack}>
         {destinationsByRegion.map((region) => {
-          const cards = resolveRegionCards(region.items);
+          const cards = resolveRegionCards(region.items, tours);
 
           return (
             <div key={region.name}>

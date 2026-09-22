@@ -15,6 +15,18 @@ export type GlobalSettingsRow = {
   updated_at: string;
 };
 
+export function isUsableTelephoneHref(value: string): boolean {
+  const candidate = value.trim();
+  return (
+    /^tel:\+?[0-9][0-9(). -]*$/i.test(candidate) &&
+    candidate.replace(/\D/g, "").length >= 3
+  );
+}
+
+export function isUsableMailtoHref(value: string): boolean {
+  return /^mailto:[^\s@?]+@[^\s@?]+\.[^\s@?]+$/i.test(value.trim());
+}
+
 export function canonicalizeSiteSettings(input: SiteSettings): SiteSettings {
   const settings = {
     siteName: input.siteName.trim(),
@@ -36,19 +48,19 @@ export function canonicalizeSiteSettings(input: SiteSettings): SiteSettings {
     throw new Error("Email label and email href are required");
   }
 
-  if (!settings.primaryPhoneHref.startsWith("tel:")) {
-    throw new Error("Primary phone href must start with tel:");
+  if (!isUsableTelephoneHref(settings.primaryPhoneHref)) {
+    throw new Error("Primary phone href must start with tel: and be a valid telephone link");
   }
 
   if (
     settings.secondaryPhoneHref &&
-    !settings.secondaryPhoneHref.startsWith("tel:")
+    !isUsableTelephoneHref(settings.secondaryPhoneHref)
   ) {
-    throw new Error("Secondary phone href must start with tel:");
+    throw new Error("Secondary phone href must start with tel: and be a valid telephone link");
   }
 
-  if (!settings.emailHref.startsWith("mailto:")) {
-    throw new Error("Email href must start with mailto:");
+  if (!isUsableMailtoHref(settings.emailHref)) {
+    throw new Error("Email href must be a valid email link");
   }
 
   const limits: Array<[keyof SiteSettings, number]> = [

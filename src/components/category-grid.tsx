@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { getCategoryHref } from "@/data/categories";
 import { useLang } from "@/context/lang-context";
-import { getStringContent, type ContentData } from "@/lib/content-values";
+import { type ContentData } from "@/lib/content-values";
+import { getLocalizedContent } from "@/lib/localized-content";
 import {
   destinationCategorySeeds,
   type DestinationCategory,
@@ -19,12 +20,13 @@ export function CategoryGrid({
   categories?: DestinationCategory[];
 }) {
   const { lang } = useLang();
-  const eyebrow = getStringContent(content, "eyebrow", "Explore Destinations");
-  const sectionTitle = getStringContent(content, "sectionTitle", "Where to Go");
-  const subtitle = getStringContent(content, "subtitle", "Explore Destinations");
-  const deck = getStringContent(
+  const eyebrow = getLocalizedContent(content, "eyebrow", lang, "Explore Destinations");
+  const sectionTitle = getLocalizedContent(content, "sectionTitle", lang, "Where to Go");
+  const subtitle = getLocalizedContent(content, "subtitle", lang, "Explore Destinations");
+  const deck = getLocalizedContent(
     content,
     "deck",
+    lang,
     "Six broad strokes — pick one and we'll narrow it down. From a weekend in Niagara to nine days winding the Mediterranean, every category below has a real itinerary behind it.",
   );
 

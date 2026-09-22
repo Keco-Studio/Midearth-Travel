@@ -271,7 +271,7 @@ git commit -m "feat: protect route-only admin portal"
 - Documents deployment configuration for `ADMIN_INITIAL_EMAIL`, `ADMIN_INITIAL_PASSWORD`, and `ADMIN_SESSION_SECRET`.
 - Documents Panda's content-audit export workflow and the English fallback rule.
 
-- [ ] **Step 1: Add failing documentation-check assertions**
+- [x] **Step 1: Add failing documentation-check assertions**
 
 ```ts
 test("documents required initial admin environment variables", () => {
@@ -281,23 +281,23 @@ test("documents required initial admin environment variables", () => {
 });
 ```
 
-- [ ] **Step 2: Run the documentation check to verify it fails**
+- [x] **Step 2: Run the documentation check to verify it fails**
 
 Run: `npm test -- test/admin-auth.test.ts`
 
 Expected: FAIL because the README does not mention the new configuration.
 
-- [ ] **Step 3: Document operating behavior and manually verify the browser workflow**
+- [ ] **Step 3: Document operating behavior and manually verify the browser workflow** _(partial: documentation is complete, but browser verification is blocked because Playwright and a browser binary are unavailable; `npx --no-install playwright --version` reports the package missing)_
 
 Add a concise README section covering environment configuration, unlisted `/admin` access, and tour-content audit export. Start the Next dev server and verify: language selection persists after navigation; English fallback appears only for blank Chinese content; each of the six Footer links returns a non-404 listing; booking opens an encoded contact action; incomplete tour cards use contact fallback; `/admin` redirects before login; valid credentials allow CMS load; an anonymous `/api/admin/tours` call receives 401.
 
-- [ ] **Step 4: Run release verification**
+- [ ] **Step 4: Run release verification** _(blocked by baseline failures: `npm test` has 13 pre-existing failures, `npm run lint` has 2 existing errors, and the no-environment `npm run build` fails closed on missing admin variables; the environment-configured build passes)_
 
 Run: `npm test && npm run lint && npm run build`
 
 Expected: all commands exit 0 with no test failures, lint errors, or build errors.
 
-- [ ] **Step 5: Commit verification documentation**
+- [x] **Step 5: Commit verification documentation**
 
 ```bash
 git add README.md docs/superpowers/plans/2026-09-22-public-site-language-links-admin.md test/admin-auth.test.ts

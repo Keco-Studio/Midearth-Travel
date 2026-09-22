@@ -8,6 +8,7 @@ import { useLang } from "@/context/lang-context";
 import { useNavbarContent } from "@/context/navbar-content-context";
 import { useSiteSettings } from "@/context/site-settings-context";
 import { getStringContent, type ContentData } from "@/lib/content-values";
+import { getLocalizedContent } from "@/lib/localized-content";
 
 // Original routes mega navigation is intentionally disabled for the
 // homepage-focused destinations anchor.
@@ -51,7 +52,7 @@ export function Navbar({ content }: { content?: ContentData }) {
   );
   const logoImage = getStringContent(resolvedContent, "logoImage", "").trim();
   const logoImageSolid = getStringContent(resolvedContent, "logoImageSolid", "").trim();
-  const bookNowLabel = getStringContent(resolvedContent, "bookNowLabel", "Book Now");
+  const bookNowLabel = getLocalizedContent(resolvedContent, "bookNowLabel", lang, "Book Now");
   const bookNowLink =
     settings.primaryPhoneHref.trim() || "tel:+16132365226";
   const phoneLabel =
@@ -82,23 +83,23 @@ export function Navbar({ content }: { content?: ContentData }) {
   const nav = [
     {
       key: "home",
-      label: getStringContent(resolvedContent, "homeLabel", "Home"),
+      label: getLocalizedContent(resolvedContent, "homeLabel", lang, "Home"),
       href: "/",
     },
     {
       key: "routes",
-      label: getStringContent(resolvedContent, "destinationsLabel", "Destinations"),
+      label: getLocalizedContent(resolvedContent, "destinationsLabel", lang, "Destinations"),
       href: "/#destinations",
       // mega: "routes" as const,
     },
     {
       key: "services",
-      label: getStringContent(resolvedContent, "servicesLabel", "Services"),
+      label: getLocalizedContent(resolvedContent, "servicesLabel", lang, "Services"),
       href: "/#about",
     },
     {
       key: "contact",
-      label: getStringContent(resolvedContent, "contactLabel", "Contact"),
+      label: getLocalizedContent(resolvedContent, "contactLabel", lang, "Contact"),
       href: "/#contact",
     },
   ];
@@ -109,8 +110,6 @@ export function Navbar({ content }: { content?: ContentData }) {
     }
     return pathname === item.href;
   };
-
-  const adminActive = pathname.startsWith("/admin");
 
   return (
     <header className={`site-header ${transparent ? "transparent" : "solid"}`}>
@@ -156,12 +155,6 @@ export function Navbar({ content }: { content?: ContentData }) {
           </button>
           <Link href={bookNowLink} className="header-pill">
             {bookNowLabel}
-          </Link>
-          <Link
-            href="/admin"
-            className={`header-pill ${adminActive ? "active" : ""}`}
-          >
-            Admin Portal
           </Link>
           <button
             className="hamburger"
@@ -226,13 +219,6 @@ export function Navbar({ content }: { content?: ContentData }) {
                 onClick={() => setDrawerOpen(false)}
               >
                 {bookNowLabel}
-              </Link>
-              <Link
-                href="/admin"
-                className={`header-pill header-pill-drawer ${adminActive ? "active" : ""}`}
-                onClick={() => setDrawerOpen(false)}
-              >
-                Admin Portal
               </Link>
               <div className="drawer-contact">
                 <div>{phoneLabel}</div>

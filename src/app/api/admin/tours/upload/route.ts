@@ -1,3 +1,4 @@
+import { assertAdminRequest } from "@/lib/admin-auth";
 import {
   isSupportedImageUploadContentType,
   validateInlineImageFile,
@@ -5,6 +6,9 @@ import {
 import { uploadTourImage, uploadTourPdf } from "@/lib/supabase-tours";
 
 export async function POST(request: Request) {
+  const unauthorized = await assertAdminRequest();
+  if (unauthorized) return unauthorized;
+
   try {
     if (!isSupportedImageUploadContentType(request.headers.get("content-type"))) {
       return Response.json({ error: "Select a file to upload" }, { status: 400 });

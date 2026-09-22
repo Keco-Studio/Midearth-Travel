@@ -4,18 +4,22 @@ import Link from "next/link";
 import { useSiteSettings } from "@/context/site-settings-context";
 import { site } from "@/data/site";
 import { getStringContent, type ContentData } from "@/lib/content-values";
+import { useLang } from "@/context/lang-context";
+import { getLocalizedContent, getLocalizedStaticText } from "@/lib/localized-content";
 
 export function FinalCta({ content = {} }: { content?: ContentData }) {
   const settings = useSiteSettings();
+  const { lang } = useLang();
   const image = getStringContent(content, "image", "/final-cta-travel-flatlay.jpg");
-  const eyebrow = getStringContent(content, "eyebrow", "Get in touch");
-  const title = getStringContent(content, "title", "Tell us where, we'll figure out how.");
-  const description = getStringContent(
+  const eyebrow = getLocalizedContent(content, "eyebrow", lang, "Get in touch");
+  const title = getLocalizedContent(content, "title", lang, "Tell us where, we'll figure out how.");
+  const description = getLocalizedContent(
     content,
     "description",
+    lang,
     "Use the form, or call the office. Either reaches a real desk in downtown Ottawa.",
   );
-  const primaryButtonText = getStringContent(content, "primaryButtonText", "Start a booking");
+  const primaryButtonText = getLocalizedContent(content, "primaryButtonText", lang, "Start a booking");
   const phoneLabel =
     settings.primaryPhoneLabel.trim() ||
     getStringContent(content, "phoneLabel", "").trim() ||
@@ -33,9 +37,10 @@ export function FinalCta({ content = {} }: { content?: ContentData }) {
     getStringContent(content, "officeAddress", "").trim() ||
     "Bronson Avenue, Ottawa, Ontario";
   const primaryButtonLink = phoneHref;
-  const secondaryButtonText = getStringContent(
+  const secondaryButtonText = getLocalizedContent(
     content,
     "secondaryButtonText",
+    lang,
     "Send a message",
   );
   const secondaryButtonLink = "/#contact";
@@ -65,17 +70,17 @@ export function FinalCta({ content = {} }: { content?: ContentData }) {
             </div>
             <div className="final-cta-meta">
               <div>
-                <span className="muted">Phone</span>
+                <span className="muted">{getLocalizedStaticText(lang, "phone")}</span>
                 <br />
                 <a href={phoneHref}>{phoneLabel}</a>
               </div>
               <div>
-                <span className="muted">Email</span>
+                <span className="muted">{getLocalizedStaticText(lang, "email")}</span>
                 <br />
                 <a href={emailHref}>{emailLabel}</a>
               </div>
               <div>
-                <span className="muted">Office</span>
+                <span className="muted">{getLocalizedStaticText(lang, "office")}</span>
                 <br />
                 {officeAddress}
               </div>

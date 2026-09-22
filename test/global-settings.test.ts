@@ -25,3 +25,19 @@ test("global settings validate contact href schemes", () => {
     /must start with tel:/,
   );
 });
+
+test("global settings reject inert telephone and malformed email actions", () => {
+  for (const primaryPhoneHref of ["tel:", "tel:call-us", "tel:+"]) {
+    assert.throws(
+      () => canonicalizeSiteSettings({ ...siteSettingsSeed, primaryPhoneHref }),
+      /valid telephone link/,
+    );
+  }
+
+  for (const emailHref of ["mailto:", "mailto:not-an-email", "mailto:user@"]) {
+    assert.throws(
+      () => canonicalizeSiteSettings({ ...siteSettingsSeed, emailHref }),
+      /valid email link/,
+    );
+  }
+});
