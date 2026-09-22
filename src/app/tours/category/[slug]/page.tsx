@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { Footer } from "@/components/footer";
 import { TourListing } from "@/components/listing/tour-listing";
 import { categoryMeta } from "@/data/categories";
 import { filterToursForCategory } from "@/data/tour-filters";
@@ -36,14 +37,17 @@ export default async function TourCategoryPage({ params }: Props) {
   const category = categories.find((item) => item.slug === slug || item.id === slug);
 
   return (
-    <TourListing
-      eyebrow="Category"
-      title={title}
-      summary={category?.summary?.trim() || meta.summary}
-      image={category?.image?.trim() || meta.image}
-      initialTours={filterToursForCategory(tours, slug)}
-      showBrowseSections={slug === "bus-tours"}
-      destinationCategories={categories}
-    />
+    <>
+      <TourListing
+        eyebrow="Category"
+        title={title}
+        summary={category?.summary?.trim() || meta.summary}
+        image={category?.image?.trim() || meta.image}
+        initialTours={filterToursForCategory(tours, slug)}
+        showBrowseSections={slug === "bus-tours"}
+        destinationCategories={categories}
+      />
+      <Footer />
+    </>
   );
 }

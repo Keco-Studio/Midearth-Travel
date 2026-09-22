@@ -4,7 +4,6 @@ import { DeleteOutlined, LinkOutlined, PlusOutlined } from "@ant-design/icons";
 import { Button, Input, Space, Table, Tooltip, Typography } from "antd";
 import {
   FOOTER_SERVICE_LINKS_KEY,
-  FOOTER_TOUR_LINKS_KEY,
   getFooterLinkEditorData,
   serializeFooterLinks,
   type FooterLink,
@@ -18,22 +17,14 @@ type FooterLinksEditorProps = {
 };
 
 export function FooterLinksEditor({ content, onChange }: FooterLinksEditorProps) {
-  const { tourLinks, serviceLinks } = getFooterLinkEditorData(content);
+  const { serviceLinks } = getFooterLinkEditorData(content);
 
   return (
     <section className="cms-destination-name-editor">
       <Typography.Title level={5} style={{ margin: "0 0 16px" }}>
-        Footer link columns
+        Footer service links
       </Typography.Title>
       <div style={{ display: "grid", gap: 24 }}>
-        <LinkTable
-          links={tourLinks}
-          onChange={(links) =>
-            onChange(FOOTER_TOUR_LINKS_KEY, serializeFooterLinks(links))
-          }
-          title="Tours"
-          type="tour"
-        />
         <LinkTable
           links={serviceLinks}
           onChange={(links) =>

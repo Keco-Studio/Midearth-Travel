@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
 import { parseDurationDays } from "@/data/tour-filters";
 import type { Tour } from "@/data/tours";
@@ -192,7 +191,6 @@ export function TourListing({
           </div>
         )}
       </section>
-      <Footer />
     </main>
   );
 }

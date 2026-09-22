@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { Footer } from "@/components/footer";
 import { TourDetail } from "@/components/tour/tour-detail";
 import { loadPublishedTours } from "@/lib/supabase-tours";
 
@@ -23,5 +24,10 @@ export default async function TourPage({ params }: Props) {
   const tour = (await loadPublishedTours()).find((entry) => entry.slug === slug);
   if (!tour) notFound();
 
-  return <TourDetail tour={tour} />;
+  return (
+    <>
+      <TourDetail tour={tour} />
+      <Footer />
+    </>
+  );
 }

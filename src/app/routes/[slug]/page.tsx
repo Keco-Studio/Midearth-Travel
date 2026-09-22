@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { Footer } from "@/components/footer";
 import { TourListing } from "@/components/listing/tour-listing";
 import { filterToursForCategory } from "@/data/tour-filters";
 import { getRegionBySlug } from "@/data/regions";
@@ -42,13 +43,16 @@ export default async function RouteRegionPage({ params }: Props) {
   const category = categories.find((item) => item.slug === slug || item.id === slug);
 
   return (
-    <TourListing
-      eyebrow="Region"
-      title={title}
-      summary={category?.summary?.trim() || region.summary}
-      image={category?.image?.trim() || region.image}
-      initialTours={filterToursForCategory(tours, slug)}
-      destinationCategories={categories}
-    />
+    <>
+      <TourListing
+        eyebrow="Region"
+        title={title}
+        summary={category?.summary?.trim() || region.summary}
+        image={category?.image?.trim() || region.image}
+        initialTours={filterToursForCategory(tours, slug)}
+        destinationCategories={categories}
+      />
+      <Footer />
+    </>
   );
 }

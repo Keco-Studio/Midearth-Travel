@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { Footer } from "@/components/footer";
 import { ServiceDetailPage } from "@/components/services/service-detail-page";
 import {
   SERVICE_WHATSAPP_LABEL,
@@ -45,25 +46,28 @@ export default async function ServicePage({
   const aboutSection = getHomeModule(modules, "aboutSection").data;
   const content = serviceToPageContent(service);
   return (
-    <ServiceDetailPage
-      content={content}
-      navItems={servicesToNavItems(services)}
-      servicePageContent={aboutSection as ContentData}
-      whatsappLabel={getStringContent(
-        aboutSection,
-        "whatsappLabel",
-        SERVICE_WHATSAPP_LABEL,
-      )}
-      whatsappQrImage={getStringContent(
-        aboutSection,
-        "whatsappQrImage",
-        SERVICE_WHATSAPP_QR,
-      )}
-      backgroundImage={getStringContent(
-        aboutSection,
-        "servicePageBackgroundImage",
-        "",
-      )}
-    />
+    <>
+      <ServiceDetailPage
+        content={content}
+        navItems={servicesToNavItems(services)}
+        servicePageContent={aboutSection as ContentData}
+        whatsappLabel={getStringContent(
+          aboutSection,
+          "whatsappLabel",
+          SERVICE_WHATSAPP_LABEL,
+        )}
+        whatsappQrImage={getStringContent(
+          aboutSection,
+          "whatsappQrImage",
+          SERVICE_WHATSAPP_QR,
+        )}
+        backgroundImage={getStringContent(
+          aboutSection,
+          "servicePageBackgroundImage",
+          "",
+        )}
+      />
+      <Footer />
+    </>
   );
 }

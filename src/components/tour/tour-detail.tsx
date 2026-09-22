@@ -10,7 +10,6 @@ import {
   Ticket,
   Users,
 } from "lucide-react";
-import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -442,7 +441,6 @@ export function TourDetail({ tour }: { tour: Tour }) {
         </div>
       </section>
 
-      <Footer />
     </main>
   );
 }
