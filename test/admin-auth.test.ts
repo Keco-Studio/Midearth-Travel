@@ -245,6 +245,28 @@ test("uses server-only auth and secure bounded cookie settings", () => {
   assert.ok(logoutSource.includes("ADMIN_SESSION_COOKIE_NAME"));
 });
 
+test("documents bilingual admin operations and public fallback behavior", () => {
+  const readme = readProjectFile("README.md");
+
+  for (const requiredText of [
+    "ADMIN_INITIAL_EMAIL",
+    "ADMIN_INITIAL_PASSWORD",
+    "ADMIN_SESSION_SECRET",
+    "ADMIN_TRUST_PROXY_HEADERS",
+    "`/admin`",
+    "English fallback",
+    "published-tour-content-audit.csv",
+    "/routes/north-america",
+    "/routes/asia",
+    "/routes/europe",
+    "/routes/sun-destinations",
+    "/tours/category/bus-tours",
+    "/tours/category/vacation-packages",
+  ]) {
+    assert.match(readme, new RegExp(requiredText.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")));
+  }
+});
+
 function readProjectFile(path: string): string {
   return readFileSync(join(projectDirectory, path), "utf8");
 }
