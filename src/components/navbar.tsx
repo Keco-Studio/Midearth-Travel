@@ -111,8 +111,6 @@ export function Navbar({ content }: { content?: ContentData }) {
     return pathname === item.href;
   };
 
-  const adminActive = pathname.startsWith("/admin");
-
   return (
     <header className={`site-header ${transparent ? "transparent" : "solid"}`}>
       <div className="header-inner">
@@ -157,12 +155,6 @@ export function Navbar({ content }: { content?: ContentData }) {
           </button>
           <Link href={bookNowLink} className="header-pill">
             {bookNowLabel}
-          </Link>
-          <Link
-            href="/admin"
-            className={`header-pill ${adminActive ? "active" : ""}`}
-          >
-            Admin Portal
           </Link>
           <button
             className="hamburger"
@@ -227,13 +219,6 @@ export function Navbar({ content }: { content?: ContentData }) {
                 onClick={() => setDrawerOpen(false)}
               >
                 {bookNowLabel}
-              </Link>
-              <Link
-                href="/admin"
-                className={`header-pill header-pill-drawer ${adminActive ? "active" : ""}`}
-                onClick={() => setDrawerOpen(false)}
-              >
-                Admin Portal
               </Link>
               <div className="drawer-contact">
                 <div>{phoneLabel}</div>

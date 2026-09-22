@@ -1,9 +1,10 @@
 "use client";
 
 import { PageContainer, ProLayout } from "@ant-design/pro-components";
-import { DownloadOutlined } from "@ant-design/icons";
+import { DownloadOutlined, LogoutOutlined } from "@ant-design/icons";
 import { App, Button, Card, Empty, Space, Table, Tag, Tooltip, type TableColumnsType } from "antd";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   useCallback,
   useMemo,
@@ -77,6 +78,7 @@ export function AdminShell({
   initialPublishedTours = [],
 }: AdminShellProps) {
   const { message } = App.useApp();
+  const router = useRouter();
   const mounted = useSyncExternalStore(
     subscribeToHydration,
     getClientHydrationSnapshot,
@@ -86,6 +88,7 @@ export function AdminShell({
     mergeLoadedHomeModules(createInitialAdminState(), initialHomeModules),
   );
   const [pendingAction, setPendingAction] = useState<"save" | "publish" | null>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [destinationCategories, setDestinationCategories] = useState(
     initialDestinationCategories,
   );
@@ -288,6 +291,19 @@ export function AdminShell({
     message.info("Preview draft opened");
   }
 
+  async function handleLogout() {
+    setLoggingOut(true);
+    try {
+      const response = await fetch("/api/admin/auth/logout", { method: "POST" });
+      if (!response.ok) throw new Error("Logout failed");
+      router.replace("/admin/login");
+      router.refresh();
+    } catch {
+      message.error("Unable to log out");
+      setLoggingOut(false);
+    }
+  }
+
   if (!mounted) {
     return (
       <div
@@ -381,17 +397,28 @@ export function AdminShell({
             </Tooltip>
           ) : undefined
         }
-        extra={renderPageActions(
-          state,
-          activeModule,
-          hasSupplementalUnsavedChanges,
-          {
-            onPreviewDraft: handlePreviewDraft,
-            onSaveDraft: handleSaveDraft,
-            onPublish: handlePublish,
-            pendingAction,
-          },
-        )}
+        extra={
+          <Space wrap>
+            {renderPageActions(
+              state,
+              activeModule,
+              hasSupplementalUnsavedChanges,
+              {
+                onPreviewDraft: handlePreviewDraft,
+                onSaveDraft: handleSaveDraft,
+                onPublish: handlePublish,
+                pendingAction,
+              },
+            )}
+            <Button
+              icon={<LogoutOutlined />}
+              loading={loggingOut}
+              onClick={handleLogout}
+            >
+              Log out
+            </Button>
+          </Space>
+        }
         tags={renderPageTags(
           state,
           activeModule,

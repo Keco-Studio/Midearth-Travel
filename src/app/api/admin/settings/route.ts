@@ -1,3 +1,4 @@
+import { assertAdminRequest } from "@/lib/admin-auth";
 import {
   loadGlobalSettings,
   saveGlobalSettings,
@@ -10,10 +11,16 @@ import { revalidatePublicSite } from "@/lib/revalidate-public-site";
 import type { SiteSettings } from "@/types/cms";
 
 export async function GET() {
+  const unauthorized = await assertAdminRequest();
+  if (unauthorized) return unauthorized;
+
   return Response.json({ settings: await loadGlobalSettings() });
 }
 
 export async function PUT(request: Request) {
+  const unauthorized = await assertAdminRequest();
+  if (unauthorized) return unauthorized;
+
   try {
     const payload = (await request.json()) as { settings?: SiteSettings };
 

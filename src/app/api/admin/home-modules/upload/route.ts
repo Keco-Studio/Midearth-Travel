@@ -1,3 +1,4 @@
+import { assertAdminRequest } from "@/lib/admin-auth";
 import { EXPECTED_HOME_MODULE_IDS } from "@/lib/content-rules";
 import {
   isSupportedImageUploadContentType,
@@ -7,6 +8,9 @@ import { uploadHomeModuleImage } from "@/lib/supabase-home-content";
 import type { HomeModuleId } from "@/types/cms";
 
 export async function POST(request: Request) {
+  const unauthorized = await assertAdminRequest();
+  if (unauthorized) return unauthorized;
+
   try {
     if (!isSupportedImageUploadContentType(request.headers.get("content-type"))) {
       return Response.json({ error: "Select an image file" }, { status: 400 });

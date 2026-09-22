@@ -1,5 +1,6 @@
 import { AdminShell } from "@/components/admin-shell";
 import { homeModuleSeeds, paymentSeeds } from "@/data/cms-seed";
+import { requireAdminSession } from "@/lib/admin-auth";
 import { loadBookings } from "@/lib/supabase-bookings";
 import { loadDestinationCategories } from "@/lib/supabase-destination-categories";
 import {
@@ -13,6 +14,8 @@ import { loadPaymentOrders } from "@/lib/supabase-payments";
 import { loadAdminTours, loadPublishedTours } from "@/lib/supabase-tours";
 
 export default async function AdminPage() {
+  await requireAdminSession();
+
   const [
     homeModules,
     destinationCategories,

@@ -1,6 +1,10 @@
+import { assertAdminRequest } from "@/lib/admin-auth";
 import { loadAdminHomeModules } from "@/lib/supabase-home-content";
 
 export async function GET() {
+  const unauthorized = await assertAdminRequest();
+  if (unauthorized) return unauthorized;
+
   try {
     const modules = await loadAdminHomeModules();
     return Response.json({ modules });

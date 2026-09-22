@@ -1,3 +1,4 @@
+import { assertAdminRequest } from "@/lib/admin-auth";
 import { loadBookings, updateBookingStatus } from "@/lib/supabase-bookings";
 import type { BookingStatus } from "@/types/cms";
 
@@ -10,6 +11,9 @@ const STATUS_VALUES: BookingStatus[] = [
 ];
 
 export async function GET() {
+  const unauthorized = await assertAdminRequest();
+  if (unauthorized) return unauthorized;
+
   try {
     const bookings = await loadBookings();
     return Response.json({ bookings });
@@ -22,6 +26,9 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
+  const unauthorized = await assertAdminRequest();
+  if (unauthorized) return unauthorized;
+
   try {
     const payload = (await request.json()) as {
       id?: string;
