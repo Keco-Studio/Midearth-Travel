@@ -69,6 +69,17 @@ test("serializes seed modules into initial Supabase rows", () => {
   assert.equal(row.module_index, 2);
 });
 
+test("keeps monthly destination data as one editor-managed field", () => {
+  const exploreByMonth = homeModuleSeeds.find(
+    (module) => module.id === "exploreByMonth",
+  )!;
+  const fieldKeys = exploreByMonth.fields.map((field) => field.key);
+
+  assert.ok(fieldKeys.includes("monthsData"));
+  assert.ok(!fieldKeys.includes("monthsDataEn"));
+  assert.ok(!fieldKeys.includes("monthsDataZh"));
+});
+
 test("reads typed values and falls back when stored data has the wrong type", () => {
   const data = {
     title: "Stored title",

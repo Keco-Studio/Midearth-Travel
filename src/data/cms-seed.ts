@@ -9,7 +9,10 @@ import {
   heroFeatureCardSeeds,
 } from "./hero-content.ts";
 import { destinationsByMonth } from "./destinations-by-month.ts";
-import { serializeMonthEntries } from "../lib/explore-by-month.ts";
+import {
+  EXPLORE_MONTHS_DATA_KEY,
+  serializeMonthEntries,
+} from "../lib/explore-by-month.ts";
 import {
   FOOTER_SERVICE_LINKS_KEY,
   footerServiceLinkSeeds,
@@ -41,6 +44,7 @@ const sharedHomeFieldKeys = new Set([
   "officeAddress",
   "mailtoRecipient",
   "whatsappLabel",
+  EXPLORE_MONTHS_DATA_KEY,
   FOOTER_SERVICE_LINKS_KEY,
 ]);
 

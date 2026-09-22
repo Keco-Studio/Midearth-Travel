@@ -72,7 +72,7 @@ export function HomeModuleEditor({
           ) &&
           !(
             module.id === "exploreByMonth" &&
-            field.definition.key === EXPLORE_MONTHS_DATA_KEY
+            isExploreByMonthDataField(field.definition.key)
           ) &&
           !(
             module.id === "footer" &&
@@ -167,6 +167,14 @@ export function HomeModuleEditor({
         <FooterLinksEditor content={module.data} onChange={onChange} />
       ) : null}
     </>
+  );
+}
+
+function isExploreByMonthDataField(key: string): boolean {
+  return (
+    key === EXPLORE_MONTHS_DATA_KEY ||
+    key === `${EXPLORE_MONTHS_DATA_KEY}En` ||
+    key === `${EXPLORE_MONTHS_DATA_KEY}Zh`
   );
 }
 
