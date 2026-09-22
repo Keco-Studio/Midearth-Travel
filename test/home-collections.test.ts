@@ -74,6 +74,7 @@ test("keeps custom reviews beyond seed slots", () => {
       source: "Website",
       rating: 9,
       text: "Updated review",
+      text_zh: "更新后的评价",
       sort_order: 1,
       updated_at: "2026-07-23T14:00:00Z",
     },
@@ -92,6 +93,7 @@ test("keeps custom reviews beyond seed slots", () => {
   assert.equal(result.length, 2);
   assert.equal(result[0].name, "Updated reviewer");
   assert.equal(result[0].rating, 5);
+  assert.equal(result[0].localizedText, "更新后的评价");
   assert.equal(result[1].id, "custom-1");
 });
 

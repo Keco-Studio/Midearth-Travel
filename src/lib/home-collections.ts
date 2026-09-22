@@ -24,6 +24,7 @@ export type TestimonialRow = {
   source: string;
   rating: number;
   text: string;
+  text_zh?: string | null;
   sort_order: number;
   updated_at: string;
 };
@@ -69,6 +70,7 @@ export function mergeTestimonialRows(
         source: row.source.trim() || seed?.source || "Review",
         rating: Math.min(5, Math.max(1, Math.round(row.rating))),
         text: row.text.trim() || seed?.text || "",
+        localizedText: row.text_zh?.trim() || seed?.localizedText,
       };
     });
 }
@@ -91,7 +93,12 @@ export function testimonialToRow(
   index: number,
 ): TestimonialRow {
   return {
-    ...testimonial,
+    id: testimonial.id,
+    name: testimonial.name,
+    source: testimonial.source,
+    rating: testimonial.rating,
+    text: testimonial.text,
+    text_zh: testimonial.localizedText?.trim() || null,
     sort_order: index + 1,
     updated_at: new Date().toISOString(),
   };
@@ -104,6 +111,7 @@ export function createEmptyTestimonial(): Testimonial {
     source: "Google Review",
     rating: 5,
     text: "",
+    localizedText: "",
   };
 }
 

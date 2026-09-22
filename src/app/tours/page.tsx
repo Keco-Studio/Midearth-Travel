@@ -1,3 +1,4 @@
+import { Footer } from "@/components/footer";
 import { TourListing } from "@/components/listing/tour-listing";
 import { categoryMeta } from "@/data/categories";
 import { filterToursForCategory } from "@/data/tour-filters";
@@ -15,12 +16,17 @@ export default async function AllToursPage() {
   const tours = await loadPublishedTours();
 
   return (
-    <TourListing
-      eyebrow="Category"
-      title={meta.title}
-      summary={meta.summary}
-      image={meta.image}
-      initialTours={filterToursForCategory(tours, "all")}
-    />
+    <>
+      <TourListing
+        eyebrow="Category"
+        eyebrowTextKey="category"
+        title={meta.title}
+        titleTextKey="allTours"
+        summary={meta.summary}
+        image={meta.image}
+        initialTours={filterToursForCategory(tours, "all")}
+      />
+      <Footer />
+    </>
   );
 }

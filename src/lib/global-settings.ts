@@ -12,8 +12,21 @@ export type GlobalSettingsRow = {
   email_label: string;
   email_href: string;
   office_address: string;
+  office_address_zh?: string | null;
   updated_at: string;
 };
+
+export function isUsableTelephoneHref(value: string): boolean {
+  const candidate = value.trim();
+  return (
+    /^tel:\+?[0-9][0-9(). -]*$/i.test(candidate) &&
+    candidate.replace(/\D/g, "").length >= 3
+  );
+}
+
+export function isUsableMailtoHref(value: string): boolean {
+  return /^mailto:[^\s@?]+@[^\s@?]+\.[^\s@?]+$/i.test(value.trim());
+}
 
 export function canonicalizeSiteSettings(input: SiteSettings): SiteSettings {
   const settings = {
@@ -26,6 +39,7 @@ export function canonicalizeSiteSettings(input: SiteSettings): SiteSettings {
     emailLabel: input.emailLabel.trim(),
     emailHref: input.emailHref.trim(),
     officeAddress: input.officeAddress.trim(),
+    officeAddressZh: input.officeAddressZh.trim(),
   };
 
   if (!settings.siteName || !settings.primaryPhoneLabel || !settings.primaryPhoneHref) {
@@ -36,19 +50,19 @@ export function canonicalizeSiteSettings(input: SiteSettings): SiteSettings {
     throw new Error("Email label and email href are required");
   }
 
-  if (!settings.primaryPhoneHref.startsWith("tel:")) {
-    throw new Error("Primary phone href must start with tel:");
+  if (!isUsableTelephoneHref(settings.primaryPhoneHref)) {
+    throw new Error("Primary phone href must start with tel: and be a valid telephone link");
   }
 
   if (
     settings.secondaryPhoneHref &&
-    !settings.secondaryPhoneHref.startsWith("tel:")
+    !isUsableTelephoneHref(settings.secondaryPhoneHref)
   ) {
-    throw new Error("Secondary phone href must start with tel:");
+    throw new Error("Secondary phone href must start with tel: and be a valid telephone link");
   }
 
-  if (!settings.emailHref.startsWith("mailto:")) {
-    throw new Error("Email href must start with mailto:");
+  if (!isUsableMailtoHref(settings.emailHref)) {
+    throw new Error("Email href must be a valid email link");
   }
 
   const limits: Array<[keyof SiteSettings, number]> = [
@@ -61,6 +75,7 @@ export function canonicalizeSiteSettings(input: SiteSettings): SiteSettings {
     ["emailLabel", 80],
     ["emailHref", 120],
     ["officeAddress", 160],
+    ["officeAddressZh", 160],
   ];
 
   for (const [key, maxLength] of limits) {
@@ -89,6 +104,7 @@ export function siteSettingsToRow(
     email_label: value.emailLabel,
     email_href: value.emailHref,
     office_address: value.officeAddress,
+    office_address_zh: value.officeAddressZh || null,
     updated_at: updatedAt,
   };
 }
@@ -110,5 +126,6 @@ export function rowToSiteSettings(
     emailLabel: row.email_label,
     emailHref: row.email_href,
     officeAddress: row.office_address,
+    officeAddressZh: row.office_address_zh?.trim() || siteSettingsSeed.officeAddressZh,
   });
 }

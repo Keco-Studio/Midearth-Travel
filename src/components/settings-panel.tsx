@@ -18,6 +18,7 @@ type SettingsFormValues = {
   emailLabel: string;
   emailHref: string;
   officeAddress: string;
+  officeAddressZh: string;
 };
 
 type SettingsPanelProps = {
@@ -44,6 +45,7 @@ export function SettingsPanel({ settings, onSaved }: SettingsPanelProps) {
     emailLabel: settings.emailLabel,
     emailHref: settings.emailHref,
     officeAddress: settings.officeAddress,
+    officeAddressZh: settings.officeAddressZh,
   };
 
   return (
@@ -110,8 +112,8 @@ export function SettingsPanel({ settings, onSaved }: SettingsPanelProps) {
         rules={[
           { required: true, message: "Primary phone href is required." },
           {
-            pattern: /^tel:/,
-            message: "Primary phone href must start with tel:",
+            pattern: /^tel:(?=(?:\D*\d){3})\+?[0-9][0-9(). -]*$/i,
+            message: "Enter a valid telephone link, such as tel:+16132365226.",
           },
         ]}
       />
@@ -125,8 +127,8 @@ export function SettingsPanel({ settings, onSaved }: SettingsPanelProps) {
         label="Secondary phone href"
         rules={[
           {
-            pattern: /^tel:/,
-            message: "Secondary phone href must start with tel:",
+            pattern: /^tel:(?=(?:\D*\d){3})\+?[0-9][0-9(). -]*$/i,
+            message: "Enter a valid telephone link, such as tel:+16132362323.",
           },
         ]}
       />
@@ -146,8 +148,8 @@ export function SettingsPanel({ settings, onSaved }: SettingsPanelProps) {
         rules={[
           { required: true, message: "Email href is required." },
           {
-            pattern: /^mailto:/,
-            message: "Email href must start with mailto:",
+            pattern: /^mailto:[^\s@?]+@[^\s@?]+\.[^\s@?]+$/i,
+            message: "Enter a valid email link, such as mailto:info@example.com.",
           },
         ]}
       />
@@ -157,6 +159,13 @@ export function SettingsPanel({ settings, onSaved }: SettingsPanelProps) {
         tooltip="Synced with Homepage Content → Final CTA → Office address."
         fieldProps={{ rows: 3 }}
         rules={[{ max: 160, message: "Office address must be 160 characters or fewer." }]}
+      />
+      <ProFormTextArea
+        name="officeAddressZh"
+        label="中文办公地址"
+        tooltip="切换中文后显示，并同步至 Homepage Content → Final CTA。"
+        fieldProps={{ rows: 3 }}
+        rules={[{ max: 160, message: "Chinese office address must be 160 characters or fewer." }]}
       />
     </ProForm>
   );

@@ -7,6 +7,11 @@ import {
   destinationsByMonth,
   type MonthEntry,
 } from "@/data/destinations-by-month";
+import type { Tour } from "@/data/tours";
+import { useSiteSettings } from "@/context/site-settings-context";
+import { useLang } from "@/context/lang-context";
+import { getConfiguredContactHref } from "@/lib/tour-content-audit";
+import { resolveExploreByMonthEntries } from "@/lib/explore-by-month";
 import styles from "./browse-sections.module.css";
 
 type PopularByMonthProps = {
@@ -14,6 +19,7 @@ type PopularByMonthProps = {
   title?: ReactNode;
   subtitle?: ReactNode;
   months?: MonthEntry[];
+  tours?: readonly Tour[];
 };
 
 export function PopularByMonth({
@@ -27,8 +33,16 @@ export function PopularByMonth({
   ),
   subtitle,
   months = destinationsByMonth,
+  tours = [],
 }: PopularByMonthProps) {
-  const source = months.length > 0 ? months : destinationsByMonth;
+  const settings = useSiteSettings();
+  const { lang } = useLang();
+  const entries = months.length > 0 ? months : destinationsByMonth;
+  const source = resolveExploreByMonthEntries(
+    entries,
+    tours,
+    getConfiguredContactHref(settings.emailHref, settings.primaryPhoneHref),
+  );
   const [active, setActive] = useState(source[0].month);
   const panel = source.find((m) => m.month === active) ?? source[0];
 
@@ -78,7 +92,11 @@ export function PopularByMonth({
                   {dest.tag} · {dest.region}
                 </div>
                 <div className={styles.destCardName}>{dest.name}</div>
-                <div className={styles.destCardDesc}>{dest.desc}</div>
+                <div className={styles.destCardDesc}>
+                  {lang === "zh" && dest.localizedDesc?.trim()
+                    ? dest.localizedDesc
+                    : dest.desc}
+                </div>
               </div>
             </Link>
           ))}

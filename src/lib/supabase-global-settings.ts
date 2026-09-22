@@ -30,19 +30,29 @@ export async function loadGlobalSettings(): Promise<SiteSettings> {
 export async function saveGlobalSettings(
   settings: SiteSettings,
 ): Promise<SiteSettings> {
-  const rows = await request<GlobalSettingsRow[]>(
-    `/rest/v1/${TABLE}?on_conflict=id`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Prefer: "resolution=merge-duplicates,return=representation",
-      },
-      body: JSON.stringify([siteSettingsToRow(settings)]),
-    },
-  );
+  const row = siteSettingsToRow(settings);
+  let rows: GlobalSettingsRow[];
+  try {
+    rows = await upsert([row]);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!/office_address_zh|column/i.test(message)) throw error;
+    const { office_address_zh: _officeAddressZh, ...legacyRow } = row;
+    rows = await upsert([legacyRow]);
+  }
 
   return rowToSiteSettings(rows[0]);
+}
+
+async function upsert(rows: unknown[]): Promise<GlobalSettingsRow[]> {
+  return request<GlobalSettingsRow[]>(`/rest/v1/${TABLE}?on_conflict=id`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Prefer: "resolution=merge-duplicates,return=representation",
+    },
+    body: JSON.stringify(rows),
+  });
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {

@@ -1,5 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useLang } from "@/context/lang-context";
+import { useSiteSettings } from "@/context/site-settings-context";
 import { getTourPriceLabel } from "@/data/tour-filters";
 import type { RegionListingCard } from "@/data/destinations-by-region";
 import {
@@ -7,6 +11,8 @@ import {
   type DestinationCategory,
 } from "@/lib/destination-categories";
 import { getTourRegionBadge } from "@/lib/tour-destination-categories";
+import { getConfiguredContactHref, getTourPublicHref } from "@/lib/tour-content-audit";
+import { getLocalizedStaticText, getLocalizedTourList, getLocalizedTourValue } from "@/lib/localized-content";
 import styles from "./listing.module.css";
 
 export function TourListingCard({
@@ -16,10 +22,21 @@ export function TourListingCard({
   tour: RegionListingCard;
   destinationCategories?: DestinationCategory[];
 }) {
+  const { lang } = useLang();
+  const settings = useSiteSettings();
   const price = getTourPriceLabel(tour);
   const priceFrom = price.startsWith("from ");
-  const highlights = tour.highlights ?? tour.tags;
-  const href = tour.href ?? `/tours/${tour.slug}`;
+  const highlights = getLocalizedTourList(
+    lang,
+    tour.localizedHighlights,
+    tour.highlights ?? tour.tags,
+  );
+  const title = getLocalizedTourValue(lang, tour.localizedTitle, tour.title);
+  const duration = getLocalizedTourValue(lang, tour.localizedDuration, tour.duration);
+  const href = tour.href ?? getTourPublicHref(
+    tour,
+    getConfiguredContactHref(settings.emailHref, settings.primaryPhoneHref),
+  );
   const regionBadge = getTourRegionBadge(tour, destinationCategories);
 
   return (
@@ -27,7 +44,7 @@ export function TourListingCard({
       <Link className={styles.tourCardImgLink} href={href}>
         <Image
           src={tour.image}
-          alt={tour.title}
+          alt={title}
           fill
           unoptimized
           sizes="(max-width: 768px) 100vw, 400px"
@@ -40,10 +57,10 @@ export function TourListingCard({
         <div className={styles.tourCardMeta}>
           <span>{tour.tourType}</span>
           <span className={styles.tourCardMetaDot}>·</span>
-          <span>{tour.duration}</span>
+          <span>{duration}</span>
         </div>
         <h3 className={styles.tourCardTitle}>
-          <Link href={href}>{tour.title}</Link>
+          <Link href={href}>{title}</Link>
         </h3>
         <div className={styles.tourCardHighlights}>
           {highlights.slice(0, 4).map((h) => (
@@ -56,7 +73,7 @@ export function TourListingCard({
           <div className={styles.tourCardPrice}>
             {priceFrom ? (
               <>
-                <span className={styles.priceLabel}>from</span>
+                <span className={styles.priceLabel}>{getLocalizedStaticText(lang, "from")}</span>
                 <span className={styles.priceAmt}>
                   {price.replace("from ", "")}
                 </span>
@@ -66,7 +83,7 @@ export function TourListingCard({
             )}
           </div>
           <Link className={styles.viewLink} href={href}>
-            View →
+            {getLocalizedStaticText(lang, "viewTour")} →
           </Link>
         </div>
       </div>

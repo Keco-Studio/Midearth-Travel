@@ -3,16 +3,12 @@ import {
   type MonthDestination,
   type MonthEntry,
 } from "../data/destinations-by-month.ts";
+import type { Tour } from "../data/tours.ts";
+import { getTourPublicHref } from "./tour-content-audit.ts";
 
 export const EXPLORE_MONTHS_DATA_KEY = "monthsData";
 
-export type ExploreTourLookup = {
-  slug: string;
-  title: string;
-  region: string;
-  tourType: string;
-  image: string;
-};
+export type ExploreTourLookup = Tour;
 
 export function serializeMonthEntries(entries: MonthEntry[]): string {
   return JSON.stringify(entries);
@@ -48,6 +44,7 @@ export function createEmptyDestination(): MonthDestination {
     id: createDestinationId(),
     tourSlug: "",
     desc: "",
+    localizedDesc: "",
     name: "",
     region: "",
     tag: "",
@@ -60,6 +57,7 @@ export function createEmptyDestination(): MonthDestination {
 export function resolveExploreByMonthEntries(
   entries: MonthEntry[],
   tours: readonly ExploreTourLookup[],
+  contactHref = "",
 ): MonthEntry[] {
   const bySlug = new Map(tours.map((tour) => [tour.slug, tour]));
 
@@ -82,8 +80,9 @@ export function resolveExploreByMonthEntries(
           region: tour.region,
           tag: tour.tourType,
           desc: dest.desc,
+          localizedDesc: dest.localizedDesc,
           image: tour.image || "/hero/hero-coast.jpg",
-          href: `/tours/${tour.slug}`,
+          href: getTourPublicHref(tour, contactHref),
         },
       ];
     }),
@@ -119,6 +118,8 @@ function normalizeDestination(value: unknown): MonthDestination | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const dest = value as Partial<MonthDestination> & { href?: string };
   const desc = typeof dest.desc === "string" ? dest.desc : "";
+  const localizedDesc =
+    typeof dest.localizedDesc === "string" ? dest.localizedDesc : "";
   const name = typeof dest.name === "string" ? dest.name : "";
   const href = typeof dest.href === "string" ? dest.href : "";
   const tourSlug =
@@ -138,6 +139,7 @@ function normalizeDestination(value: unknown): MonthDestination | null {
     region: typeof dest.region === "string" ? dest.region : "",
     tag: typeof dest.tag === "string" ? dest.tag : "",
     desc,
+    localizedDesc,
     image: typeof dest.image === "string" ? dest.image : "",
     href,
   };

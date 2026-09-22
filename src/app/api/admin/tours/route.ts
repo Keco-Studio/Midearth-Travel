@@ -1,6 +1,10 @@
+import { assertAdminRequest } from "@/lib/admin-auth";
 import { loadAdminTours } from "@/lib/supabase-tours";
 
 export async function GET() {
+  const unauthorized = await assertAdminRequest();
+  if (unauthorized) return unauthorized;
+
   try {
     return Response.json({ tours: await loadAdminTours() });
   } catch (error) {

@@ -1,3 +1,4 @@
+import { assertAdminRequest } from "@/lib/admin-auth";
 import {
   loadDestinationCategories,
   saveDestinationCategories,
@@ -6,14 +7,23 @@ import type { DestinationCategory } from "@/lib/destination-categories";
 import { revalidatePublicSite } from "@/lib/revalidate-public-site";
 
 export async function GET() {
+  const unauthorized = await assertAdminRequest();
+  if (unauthorized) return unauthorized;
+
   return Response.json({ categories: await loadDestinationCategories() });
 }
 
 export async function PUT(request: Request) {
+  const unauthorized = await assertAdminRequest();
+  if (unauthorized) return unauthorized;
+
   try {
     const payload = (await request.json()) as {
       categories?: Array<
-        Pick<DestinationCategory, "id" | "titleEn" | "titleZh" | "summary" | "image">
+        Pick<
+          DestinationCategory,
+          "id" | "titleEn" | "titleZh" | "summary" | "summaryZh" | "image"
+        >
       >;
     };
 

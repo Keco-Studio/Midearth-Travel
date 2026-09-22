@@ -25,3 +25,29 @@ test("global settings validate contact href schemes", () => {
     /must start with tel:/,
   );
 });
+
+test("global settings reject inert telephone and malformed email actions", () => {
+  for (const primaryPhoneHref of ["tel:", "tel:call-us", "tel:+"]) {
+    assert.throws(
+      () => canonicalizeSiteSettings({ ...siteSettingsSeed, primaryPhoneHref }),
+      /valid telephone link/,
+    );
+  }
+
+  for (const emailHref of ["mailto:", "mailto:not-an-email", "mailto:user@"]) {
+    assert.throws(
+      () => canonicalizeSiteSettings({ ...siteSettingsSeed, emailHref }),
+      /valid email link/,
+    );
+  }
+});
+
+test("global settings retain a Chinese office address independently", () => {
+  const settings = rowToSiteSettings({
+    ...siteSettingsToRow(siteSettingsSeed),
+    office_address_zh: "加拿大安大略省渥太华市布朗森大道",
+  });
+
+  assert.equal(settings.officeAddress, "Bronson Avenue, Ottawa, Ontario");
+  assert.equal(settings.officeAddressZh, "加拿大安大略省渥太华市布朗森大道");
+});

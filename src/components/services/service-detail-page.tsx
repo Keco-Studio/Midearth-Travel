@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
 import { ServiceQuoteForm } from "@/components/services/service-quote-form";
 import {
@@ -13,6 +12,9 @@ import {
   type ServicePageContent,
 } from "@/data/service-pages";
 import { useSiteSettings } from "@/context/site-settings-context";
+import { useLang } from "@/context/lang-context";
+import { type ContentData } from "@/lib/content-values";
+import { getLocalizedContent, getLocalizedStaticText } from "@/lib/localized-content";
 import styles from "./service-page.module.css";
 
 export function ServiceDetailPage({
@@ -21,14 +23,23 @@ export function ServiceDetailPage({
   whatsappLabel = SERVICE_WHATSAPP_LABEL,
   whatsappQrImage = SERVICE_WHATSAPP_QR,
   backgroundImage,
+  servicePageContent,
 }: {
   content: ServicePageContent;
   navItems: ServiceNavItem[];
   whatsappLabel?: string;
   whatsappQrImage?: string;
   backgroundImage?: string;
+  servicePageContent?: ContentData;
 }) {
   const settings = useSiteSettings();
+  const { lang } = useLang();
+  const signOff = getLocalizedContent(
+    servicePageContent ?? {},
+    "servicePageSignOff",
+    lang,
+    content.signOff,
+  );
   const resolvedBackground =
     backgroundImage?.trim() || SERVICE_BACKGROUND_IMAGE;
 
@@ -87,7 +98,7 @@ export function ServiceDetailPage({
             {content.disclaimer ? (
               <p className={styles.disclaimer}>{content.disclaimer}</p>
             ) : null}
-            <p className={styles.signOff}>{content.signOff}</p>
+            <p className={styles.signOff}>{signOff}</p>
 
             <div className={styles.contactRow}>
               <div className={styles.qrWrap}>
@@ -103,7 +114,7 @@ export function ServiceDetailPage({
               <div className={styles.contactMeta}>
                 <p className={styles.whatsappHint}>{whatsappLabel}</p>
                 <p className={styles.contactLine}>
-                  Phone:{" "}
+                  {getLocalizedStaticText(lang, "phone")}:{" "}
                   <a href={settings.primaryPhoneHref}>{settings.primaryPhoneLabel}</a>
                 </p>
                 {settings.secondaryPhoneLabel ? (
@@ -114,7 +125,7 @@ export function ServiceDetailPage({
                   </p>
                 ) : null}
                 <p className={styles.contactLine}>
-                  Email:{" "}
+                  {getLocalizedStaticText(lang, "email")}:{" "}
                   <a href={settings.emailHref}>{settings.emailLabel}</a>
                 </p>
               </div>
@@ -122,7 +133,6 @@ export function ServiceDetailPage({
           </section>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

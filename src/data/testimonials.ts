@@ -4,6 +4,7 @@ export type Testimonial = {
   source: string;
   rating: number;
   text: string;
+  localizedText?: string;
 };
 
 export const testimonials: Testimonial[] = [

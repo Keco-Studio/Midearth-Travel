@@ -1,7 +1,8 @@
 "use client";
 
 import { PageContainer, ProLayout } from "@ant-design/pro-components";
-import { App, Button, Space, Tag, Tooltip } from "antd";
+import { DownloadOutlined } from "@ant-design/icons";
+import { App, Breadcrumb, Button, Card, Empty, Space, Table, Tag, Tooltip, type TableColumnsType } from "antd";
 import Link from "next/link";
 import {
   useCallback,
@@ -10,6 +11,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { BookingsWorkspace } from "@/components/bookings-workspace";
+import { AdminAccountMenu } from "@/components/admin-account-menu";
 import { HomeModuleEditor } from "@/components/home-module-editor";
 import { PaymentsWorkspace } from "@/components/payments-workspace";
 import { SettingsPanel } from "@/components/settings-panel";
@@ -17,6 +19,7 @@ import { HomeModuleMenuItem, MenuBrandHeader, menuBrandMarkStyle } from "@/compo
 import { StatusTag } from "@/components/status-tag";
 import { ToursWorkspace } from "@/components/tours-workspace";
 import { bookingSeeds } from "@/data/cms-seed";
+import type { Tour } from "@/data/tours";
 import type { Service } from "@/data/services";
 import type { Testimonial } from "@/data/testimonials";
 import {
@@ -39,6 +42,12 @@ import {
   parseLayoutPath,
 } from "@/lib/layout-routes";
 import type { DestinationCategory } from "@/lib/destination-categories";
+import {
+  auditTourContent,
+  getConfiguredContactHref,
+  type TourContentIssue,
+} from "@/lib/tour-content-audit";
+import { mapPublishedTourRecords } from "@/lib/tour-content";
 import { proLayoutToken } from "@/theme/mid-earth-theme";
 import type { BookingRecord, HomeModuleId, HomeModuleRecord, PaymentRecord, SiteSettings, TourRecord } from "@/types/cms";
 
@@ -47,6 +56,7 @@ const getClientHydrationSnapshot = () => true;
 const getServerHydrationSnapshot = () => false;
 
 type AdminShellProps = {
+  adminEmail: string;
   initialHomeModules: HomeModuleRecord[];
   initialDestinationCategories: DestinationCategory[];
   initialServices: Service[];
@@ -58,6 +68,7 @@ type AdminShellProps = {
 };
 
 export function AdminShell({
+  adminEmail,
   initialHomeModules,
   initialDestinationCategories,
   initialServices,
@@ -87,6 +98,7 @@ export function AdminShell({
     initialBookings.length > 0 ? initialBookings : bookingSeeds,
   );
   const [tours, setTours] = useState(initialTours);
+  const publishedTours = useMemo(() => mapPublishedTourRecords(tours), [tours]);
   const [supplementalDirtyModuleIds, setSupplementalDirtyModuleIds] = useState<
     HomeModuleId[]
   >([]);
@@ -98,6 +110,10 @@ export function AdminShell({
     state.workspace === "home" ? activeModule.name : getWorkspaceTitle(state);
   const pageSubTitle =
     state.workspace === "home" ? "Fixed homepage module" : undefined;
+  const workspaceBreadcrumbItems =
+    state.workspace === "home"
+      ? [{ title: getWorkspaceTitle(state) }, { title: pageTitle }]
+      : [{ title: pageTitle }];
 
   const [openKeys, setOpenKeys] = useState<string[]>(["/home"]);
 
@@ -359,7 +375,12 @@ export function AdminShell({
       token={proLayoutToken}
       contentStyle={{ padding: 0 }}
     >
+      <div className="cms-workspace-topbar">
+        <Breadcrumb className="cms-workspace-topbar-breadcrumb" items={workspaceBreadcrumbItems} />
+        <AdminAccountMenu email={adminEmail} />
+      </div>
       <PageContainer
+        breadcrumb={{ items: [] }}
         title={
           <Tooltip title={pageTitle}>
             <span className="cms-page-header-title">{pageTitle}</span>
@@ -372,28 +393,26 @@ export function AdminShell({
             </Tooltip>
           ) : undefined
         }
-        extra={renderPageActions(
-          state,
-          activeModule,
-          hasSupplementalUnsavedChanges,
-          {
-            onPreviewDraft: handlePreviewDraft,
-            onSaveDraft: handleSaveDraft,
-            onPublish: handlePublish,
-            pendingAction,
-          },
-        )}
+        extra={
+          <Space wrap>
+            {renderPageActions(
+              state,
+              activeModule,
+              hasSupplementalUnsavedChanges,
+              {
+                onPreviewDraft: handlePreviewDraft,
+                onSaveDraft: handleSaveDraft,
+                onPublish: handlePublish,
+                pendingAction,
+              },
+            )}
+          </Space>
+        }
         tags={renderPageTags(
           state,
           activeModule,
           hasSupplementalUnsavedChanges,
         )}
-        breadcrumb={{
-          items:
-            state.workspace === "home"
-              ? [{ title: getWorkspaceTitle(state) }, { title: pageTitle }]
-              : [{ title: pageTitle }],
-        }}
       >
         {renderWorkspace(state, activeModule, {
           onModuleFieldChange: (moduleId, key, value) => {
@@ -411,6 +430,7 @@ export function AdminShell({
           payments: initialPayments,
           bookings,
           tours,
+          publishedTours,
           onDestinationCategoriesChange: setDestinationCategories,
           onServicesChange: setServices,
           onTestimonialsChange: setTestimonials,
@@ -438,6 +458,7 @@ export function AdminShell({
                             phoneLabel: nextSettings.primaryPhoneLabel,
                             emailLabel: nextSettings.emailLabel,
                             officeAddress: nextSettings.officeAddress,
+                            officeAddressZh: nextSettings.officeAddressZh,
                           },
                         }
                       : module,
@@ -445,8 +466,8 @@ export function AdminShell({
                 };
               }
 
-              for (const module of extras?.linkedModules ?? []) {
-                next = applyPersistedHomeModule(next, module, module.data);
+              for (const linkedModule of extras?.linkedModules ?? []) {
+                next = applyPersistedHomeModule(next, linkedModule, linkedModule.data);
               }
 
               if (!extras?.linkedModules?.length) {
@@ -610,6 +631,7 @@ function renderWorkspace(
     payments: PaymentRecord[];
     bookings: BookingRecord[];
     tours: TourRecord[];
+    publishedTours: Tour[];
     onDestinationCategoriesChange: (categories: DestinationCategory[]) => void;
     onServicesChange: (services: Service[]) => void;
     onTestimonialsChange: (testimonials: Testimonial[]) => void;
@@ -649,11 +671,20 @@ function renderWorkspace(
 
   if (state.workspace === "tours") {
     return (
-      <ToursWorkspace
-        tours={handlers.tours}
-        destinationCategories={handlers.destinationCategories}
-        onToursChange={handlers.onToursChange}
-      />
+      <div className="cms-tour-library-stack">
+        <TourContentAuditReport
+          tours={handlers.publishedTours}
+          contactHref={getConfiguredContactHref(
+            handlers.settings.emailHref,
+            handlers.settings.primaryPhoneHref,
+          )}
+        />
+        <ToursWorkspace
+          tours={handlers.tours}
+          destinationCategories={handlers.destinationCategories}
+          onToursChange={handlers.onToursChange}
+        />
+      </div>
     );
   }
 
@@ -692,6 +723,107 @@ function renderWorkspace(
   }
 
   return null;
+}
+
+function TourContentAuditReport({
+  tours,
+  contactHref,
+}: {
+  tours: Tour[];
+  contactHref: string;
+}) {
+  const issues = useMemo(
+    () => auditTourContent(tours, contactHref),
+    [contactHref, tours],
+  );
+  const columns: TableColumnsType<TourContentIssue> = [
+    {
+      title: "Tour",
+      key: "tour",
+      render: (_, issue) => (
+        <Space direction="vertical" size={0}>
+          <strong>{issue.title || "Untitled tour"}</strong>
+          <code>{issue.slug}</code>
+        </Space>
+      ),
+    },
+    {
+      title: "Image",
+      dataIndex: "image",
+      key: "image",
+      render: (image: string) => <code>{image}</code>,
+    },
+    {
+      title: "Missing customer-ready content",
+      dataIndex: "missing",
+      key: "missing",
+      render: (missing: TourContentIssue["missing"]) => (
+        <Space size={[6, 6]} wrap>
+          {missing.map((field) => (
+            <Tag key={field}>{formatTourContentField(field)}</Tag>
+          ))}
+        </Space>
+      ),
+    },
+  ];
+
+  function downloadReport() {
+    const csv = [
+      ["Tour title", "Slug", "Image", "Missing customer-ready content"],
+      ...issues.map((issue) => [
+        issue.title,
+        issue.slug,
+        issue.image,
+        issue.missing.map(formatTourContentField).join("; "),
+      ]),
+    ]
+      .map((row) => row.map(toCsvCell).join(","))
+      .join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "published-tour-content-audit.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <Card
+      title="Published Tour Content Audit"
+      extra={
+        <Button icon={<DownloadOutlined />} onClick={downloadReport}>
+          Download CSV
+        </Button>
+      }
+    >
+      {issues.length > 0 ? (
+        <Table<TourContentIssue>
+          columns={columns}
+          dataSource={issues}
+          pagination={false}
+          rowKey="slug"
+          size="small"
+        />
+      ) : (
+        <Empty description="No image-backed published tours need customer-ready content." />
+      )}
+    </Card>
+  );
+}
+
+function formatTourContentField(field: TourContentIssue["missing"][number]): string {
+  const labels = {
+    title: "Title",
+    duration: "Duration",
+    descriptionOrItinerary: "Description or itinerary",
+    image: "Image",
+    contact: "Configured contact path",
+  };
+  return labels[field];
+}
+
+function toCsvCell(value: string): string {
+  return `"${value.replaceAll('"', '""')}"`;
 }
 
 async function readApiResponse<T>(response: Response): Promise<T> {

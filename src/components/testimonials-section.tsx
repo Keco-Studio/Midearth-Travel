@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { testimonials as staticTestimonials, type Testimonial } from "@/data/testimonials";
-import { getStringContent, type ContentData } from "@/lib/content-values";
+import { useLang } from "@/context/lang-context";
+import { type ContentData } from "@/lib/content-values";
+import { getLocalizedContent } from "@/lib/localized-content";
 import styles from "./testimonials-section.module.css";
 
 export function TestimonialsSection({
@@ -12,14 +14,16 @@ export function TestimonialsSection({
   content?: ContentData;
   testimonials?: Testimonial[];
 }) {
+  const { lang } = useLang();
   const [active, setActive] = useState(0);
-  const eyebrow = getStringContent(content, "eyebrow", "Reviews");
-  const sectionTitle = getStringContent(
+  const eyebrow = getLocalizedContent(content, "eyebrow", lang, "Reviews");
+  const sectionTitle = getLocalizedContent(
     content,
     "sectionTitle",
+    lang,
     "From people we've sent somewhere.",
   );
-  const ratingSummary = getStringContent(content, "ratingSummary", "4.9 · 240+ Google reviews");
+  const ratingSummary = getLocalizedContent(content, "ratingSummary", lang, "4.9 · 240+ Google reviews");
 
   useEffect(() => {
     const id = window.setInterval(
@@ -54,7 +58,7 @@ export function TestimonialsSection({
                 <figure key={t.id} className={styles.slide}>
                   <div className={styles.slideStars}>{"★".repeat(t.rating)}</div>
                   <blockquote className={styles.slideQuote}>
-                    &ldquo;{t.text}&rdquo;
+                    &ldquo;{lang === "zh" && t.localizedText?.trim() ? t.localizedText : t.text}&rdquo;
                   </blockquote>
                   <figcaption className={styles.slideCaption}>
                     <span className={styles.name}>{t.name}</span>

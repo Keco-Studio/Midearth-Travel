@@ -4,21 +4,25 @@ import { Send } from "lucide-react";
 import Image from "next/image";
 import { FormEvent, useState } from "react";
 import { useSiteSettings } from "@/context/site-settings-context";
+import { useLang } from "@/context/lang-context";
 import styles from "./newsletter.module.css";
 import { getStringContent, type ContentData } from "@/lib/content-values";
+import { getLocalizedContent } from "@/lib/localized-content";
 
 export function Newsletter({ content = {} }: { content?: ContentData }) {
   const settings = useSiteSettings();
+  const { lang } = useLang();
   const [email, setEmail] = useState("");
-  const eyebrow = getStringContent(content, "eyebrow", "Get a Quote");
-  const titlePrefix = getStringContent(content, "titlePrefix", "Get a");
-  const titleEmphasis = getStringContent(content, "titleEmphasis", "Quote");
-  const deck = getStringContent(
+  const eyebrow = getLocalizedContent(content, "eyebrow", lang, "Get a Quote");
+  const titlePrefix = getLocalizedContent(content, "titlePrefix", lang, "Get a");
+  const titleEmphasis = getLocalizedContent(content, "titleEmphasis", lang, "Quote");
+  const deck = getLocalizedContent(
     content,
     "deck",
+    lang,
     "Contact us today for personalized travel quotes and the best deals on flights, hotels, and tour packages",
   );
-  const emailPlaceholder = getStringContent(content, "emailPlaceholder", "Enter your email");
+  const emailPlaceholder = getLocalizedContent(content, "emailPlaceholder", lang, "Enter your email");
   const mailtoRecipient = getStringContent(
     content,
     "mailtoRecipient",
@@ -26,8 +30,8 @@ export function Newsletter({ content = {} }: { content?: ContentData }) {
   );
   const wechatQrImage = getStringContent(content, "wechatQrImage", "/contact/wechat-qr.jpg");
   const whatsappQrImage = getStringContent(content, "whatsappQrImage", "/contact/whatsapp-qr.jpg");
-  const wechatQrLabel = getStringContent(content, "wechatQrLabel", "微信扫码咨询");
-  const whatsappQrLabel = getStringContent(content, "whatsappQrLabel", "WhatsApp us");
+  const wechatQrLabel = getLocalizedContent(content, "wechatQrLabel", lang, "微信扫码咨询");
+  const whatsappQrLabel = getLocalizedContent(content, "whatsappQrLabel", lang, "WhatsApp us");
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();

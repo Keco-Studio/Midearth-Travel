@@ -4,14 +4,18 @@ import { PopularByMonth } from "@/components/listing/popular-by-month";
 import { useLang } from "@/context/lang-context";
 import {
   getBooleanContent,
-  getStringContent,
   type ContentData,
 } from "@/lib/content-values";
+import { getLocalizedContent } from "@/lib/localized-content";
+import {
+  getConfiguredContactHref,
+} from "@/lib/tour-content-audit";
 import {
   getExploreByMonthEntries,
   resolveExploreByMonthEntries,
 } from "@/lib/explore-by-month";
 import type { Tour } from "@/data/tours";
+import { useSiteSettings } from "@/context/site-settings-context";
 import styles from "./explore-by-month-section.module.css";
 
 export function ExploreByMonthSection({
@@ -22,6 +26,7 @@ export function ExploreByMonthSection({
   tours?: Tour[];
 }) {
   const { lang } = useLang();
+  const settings = useSiteSettings();
 
   if (getBooleanContent(content, "isVisible", true) === false) {
     return null;
@@ -30,20 +35,12 @@ export function ExploreByMonthSection({
   const months = resolveExploreByMonthEntries(
     getExploreByMonthEntries(content),
     tours,
+    getConfiguredContactHref(settings.emailHref, settings.primaryPhoneHref),
   );
 
-  const eyebrow =
-    lang === "zh"
-      ? getStringContent(content, "eyebrowZh", "按月份浏览")
-      : `— ${getStringContent(content, "eyebrowEn", "Explore by Month")}`;
-  const title =
-    lang === "zh"
-      ? getStringContent(content, "titleZh", "按月份浏览")
-      : getStringContent(content, "titleEn", "When to Go");
-  const subtitle =
-    lang === "zh"
-      ? getStringContent(content, "subtitleZh", "Explore by Month")
-      : getStringContent(content, "subtitleEn", "Explore by Month");
+  const eyebrow = `— ${getLocalizedContent(content, "eyebrow", lang, "Explore by Month")}`;
+  const title = getLocalizedContent(content, "title", lang, "When to Go");
+  const subtitle = getLocalizedContent(content, "subtitle", lang, "Explore by Month");
 
   return (
     <section id="explore-by-month" className={styles.section}>
@@ -53,6 +50,7 @@ export function ExploreByMonthSection({
           title={title}
           subtitle={subtitle}
           months={months}
+          tours={tours}
         />
       </div>
     </section>

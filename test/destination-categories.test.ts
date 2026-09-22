@@ -5,6 +5,7 @@ import {
   mergeDestinationCategoryRows,
   type DestinationCategoryRow,
 } from "../src/lib/destination-categories.ts";
+import { getDestinationCategoryTitle } from "../src/lib/destination-category-title.ts";
 
 test("keeps fixed destination slots while applying stored bilingual names", () => {
   const row: DestinationCategoryRow = {
@@ -36,4 +37,36 @@ test("ignores unknown rows instead of creating unsupported layout slots", () => 
 
   assert.equal(categories.length, 6);
   assert.equal(categories.some((category) => category.id === "unknown"), false);
+});
+
+test("selects the configured category title for the active public language", () => {
+  const categories = mergeDestinationCategoryRows([
+    {
+      id: "asia",
+      title_en: "East Asia",
+      title_zh: "东亚精选",
+      sort_order: 2,
+      updated_at: "2026-09-22T12:00:00Z",
+    },
+  ]);
+
+  assert.equal(getDestinationCategoryTitle("asia", categories, "en"), "East Asia");
+  assert.equal(getDestinationCategoryTitle("asia", categories, "zh"), "东亚精选");
+});
+
+test("uses a stored Chinese summary while retaining English fallback", () => {
+  const categories = mergeDestinationCategoryRows([
+    {
+      id: "asia",
+      title_en: "Asia",
+      title_zh: "亚洲",
+      summary: "English summary",
+      summary_zh: "中文简介",
+      sort_order: 2,
+      updated_at: "2026-09-22T12:00:00Z",
+    },
+  ]);
+
+  assert.equal(categories[1].summary, "English summary");
+  assert.equal(categories[1].summaryZh, "中文简介");
 });

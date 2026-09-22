@@ -9,7 +9,7 @@ type DestinationCategoryEditorProps = {
   onDirtyChange: (dirty: boolean) => void;
 };
 
-type EditableKey = "titleEn" | "titleZh" | "summary" | "image";
+type EditableKey = "titleEn" | "titleZh" | "summary" | "summaryZh" | "image";
 
 export function DestinationCategoryEditor({
   categories,
@@ -81,6 +81,19 @@ export function DestinationCategoryEditor({
                 maxLength={300}
                 value={record.summary ?? ""}
                 onChange={(event) => updateField(record.id, "summary", event.target.value)}
+              />
+            ),
+          },
+          {
+            title: "中文简介",
+            dataIndex: "summaryZh",
+            width: 260,
+            render: (_, record) => (
+              <Input.TextArea
+                rows={2}
+                maxLength={300}
+                value={record.summaryZh ?? ""}
+                onChange={(event) => updateField(record.id, "summaryZh", event.target.value)}
               />
             ),
           },

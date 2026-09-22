@@ -1,3 +1,4 @@
+import { assertAdminRequest } from "@/lib/admin-auth";
 import { revalidatePublicSite } from "@/lib/revalidate-public-site";
 import { saveTour } from "@/lib/supabase-tours";
 import type { TourRecord } from "@/types/cms";
@@ -6,6 +7,9 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
+  const unauthorized = await assertAdminRequest();
+  if (unauthorized) return unauthorized;
+
   try {
     const { slug } = await params;
     const payload = (await request.json()) as { tour?: TourRecord };

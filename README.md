@@ -4,7 +4,7 @@
 
 ## 技术栈
 
-- Next.js 15 (App Router)
+- Next.js 16 (App Router)
 - TypeScript
 - Tailwind CSS v4
 - lucide-react
@@ -55,6 +55,28 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 ```
 
 将 CLI 输出的 `whsec_...` 写入 `.env.local` 后重启开发服务器。支付成功回跳只表示 Stripe Checkout 已完成，订单最终状态以签名 Webhook 写入 Supabase 为准。
+
+## Bilingual Site and Admin Operations
+
+Copy `.env.example` to `.env.local` for local development, and configure the same server-only values in the deployment environment. The initial administrator account requires all of the following values; do not commit real credentials or expose any of them with a `NEXT_PUBLIC_` prefix:
+
+- `ADMIN_INITIAL_EMAIL`: the initial administrator's real email address.
+- `ADMIN_INITIAL_PASSWORD`: a non-placeholder password of at least 12 characters.
+- `ADMIN_SESSION_SECRET`: a non-placeholder, random secret of at least 32 characters used to sign the HttpOnly admin session cookie.
+
+The CMS is intentionally unlisted from public navigation. Administrators open `/admin` directly; visitors without a valid session are redirected to `/admin/login`, and anonymous `/api/admin/**` requests receive `401 Unauthorized`. The configured initial account remains the bootstrap owner; change its password through deployment configuration and redeploy when access must be rotated.
+
+Apply `supabase/migrations/202609220003_admin_invitations.sql` with `supabase db push` before using administrator invitations. `SUPABASE_SERVICE_ROLE_KEY` is required server-side for this feature. In the CMS header, open the account avatar and choose **Invite administrator** to create a copyable registration link. Send that link manually: it is valid for seven days and can be used once. There is no public registration link.
+
+Login throttling treats requests as `direct` unless `ADMIN_TRUST_PROXY_HEADERS` is set to the exact, lowercase value `true`. Set it only when a trusted reverse proxy overwrites `X-Forwarded-For`; then only the first comma-separated forwarded address is used when it is non-blank, otherwise the source remains `direct`. Any other value, including `TRUE`, leaves forwarded headers untrusted.
+
+The language selector persists the visitor's choice in browser storage across navigation. CMS and tour copy uses the selected Chinese value only when it is non-blank; otherwise it uses the English fallback. Do not add machine-generated Chinese copy for client-owned content.
+
+The Footer Tours column is derived from the configured destination categories, in this order: North America (`/routes/north-america`), Asia (`/routes/asia`), Europe (`/routes/europe`), Sun Destinations (`/routes/sun-destinations`), Bus Tours (`/tours/category/bus-tours`), and Vacation Packages (`/tours/category/vacation-packages`). Invalid or empty internal links are omitted rather than rendered as a link to a missing page.
+
+### Panda Tour Content Audit
+
+Open `/admin`, then use the **Published Tour Content Audit** panel to review published, image-backed tours that are missing customer-ready detail. Select **Download CSV** to export `published-tour-content-audit.csv` and send it to Panda for forwarding to the client. The export includes the tour title, slug, image, and missing fields; it does not invent itinerary or marketing copy. Public cards for incomplete tours open an encoded contact enquiry instead of a nonexistent detail page.
 
 ## 修改内容
 

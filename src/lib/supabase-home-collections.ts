@@ -127,20 +127,26 @@ export async function saveHomepageTestimonials(
     const name = value.name?.trim() ?? "";
     const source = value.source?.trim() ?? "";
     const text = value.text?.trim() ?? "";
+    const localizedText = value.localizedText?.trim() ?? "";
     const rating = Math.min(5, Math.max(1, Math.round(value.rating)));
 
     if (!id) throw new Error(`Review #${index + 1} is missing an id`);
     if (!name || !source || !text) {
       throw new Error("Reviewer name, source, and review text are required");
     }
-    if (name.length > 80 || source.length > 80 || text.length > 1000) {
+    if (
+      name.length > 80 ||
+      source.length > 80 ||
+      text.length > 1000 ||
+      localizedText.length > 1000
+    ) {
       throw new Error("Testimonial content is too long");
     }
 
-    return { id, name, source, rating, text };
+    return { id, name, source, rating, text, localizedText };
   });
 
-  await upsert("homepage_testimonials", canonical.map(testimonialToRow));
+  await upsertTestimonials(canonical.map(testimonialToRow));
   const keepIds = canonical.map((entry) => entry.id);
   if (keepIds.length > 0) {
     const encoded = keepIds.map(encodeURIComponent).join(",");
@@ -215,10 +221,23 @@ async function ensureServices(): Promise<ServiceRow[]> {
 async function ensureTestimonials(): Promise<TestimonialRow[]> {
   const rows = await list<TestimonialRow>("homepage_testimonials");
   if (rows.length === 0) {
-    await upsert("homepage_testimonials", testimonials.map(testimonialToRow));
+    await upsertTestimonials(testimonials.map(testimonialToRow));
     return list<TestimonialRow>("homepage_testimonials");
   }
   return rows;
+}
+
+async function upsertTestimonials(rows: TestimonialRow[]): Promise<void> {
+  try {
+    await upsert("homepage_testimonials", rows);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!/text_zh|column/i.test(message)) throw error;
+    await upsert(
+      "homepage_testimonials",
+      rows.map(({ text_zh: _textZh, ...row }) => row),
+    );
+  }
 }
 
 async function replaceHomepageServices(rows: ServiceRow[]): Promise<void> {

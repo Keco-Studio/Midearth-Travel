@@ -1,7 +1,11 @@
+import { assertAdminRequest } from "@/lib/admin-auth";
 import { isSupportedImageUploadContentType, validateInlineImageFile } from "@/lib/inline-image-upload";
 import { uploadServiceImage } from "@/lib/supabase-home-collections";
 
 export async function POST(request: Request) {
+  const unauthorized = await assertAdminRequest();
+  if (unauthorized) return unauthorized;
+
   try {
     if (!isSupportedImageUploadContentType(request.headers.get("content-type"))) {
       return Response.json({ error: "Select an image file" }, { status: 400 });

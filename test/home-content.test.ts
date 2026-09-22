@@ -29,11 +29,11 @@ const storedHero: HomeModuleRow = {
   fields: heroSeed.fields,
   published_data: {
     ...heroSeed.data,
-    titleMain: "Published title",
+    titleMainEn: "Published title",
   },
   draft_data: {
     ...heroSeed.data,
-    titleMain: "Draft title",
+    titleMainEn: "Draft title",
   },
   updated_at: "2026-07-23T10:00:00.000Z",
 };
@@ -45,7 +45,7 @@ test("merges stored rows over the fixed seed registry", () => {
   assert.equal(modules.length, homeModuleSeeds.length);
   assert.equal(modules[0].id, "navbar");
   assert.equal(hero?.description, heroSeed.description);
-  assert.equal(hero?.data.titleMain, "Published title");
+  assert.equal(hero?.data.titleMainEn, "Published title");
 });
 
 test("uses draft data for the admin view without changing published data", () => {
@@ -56,8 +56,8 @@ test("uses draft data for the admin view without changing published data", () =>
     (module) => module.id === "hero",
   );
 
-  assert.equal(draftHero?.data.titleMain, "Draft title");
-  assert.equal(publishedHero?.data.titleMain, "Published title");
+  assert.equal(draftHero?.data.titleMainEn, "Draft title");
+  assert.equal(publishedHero?.data.titleMainEn, "Published title");
 });
 
 test("serializes seed modules into initial Supabase rows", () => {
@@ -67,6 +67,17 @@ test("serializes seed modules into initial Supabase rows", () => {
   assert.deepEqual(row.draft_data, heroSeed.data);
   assert.deepEqual(row.published_data, heroSeed.data);
   assert.equal(row.module_index, 2);
+});
+
+test("keeps monthly destination data as one editor-managed field", () => {
+  const exploreByMonth = homeModuleSeeds.find(
+    (module) => module.id === "exploreByMonth",
+  )!;
+  const fieldKeys = exploreByMonth.fields.map((field) => field.key);
+
+  assert.ok(fieldKeys.includes("monthsData"));
+  assert.ok(!fieldKeys.includes("monthsDataEn"));
+  assert.ok(!fieldKeys.includes("monthsDataZh"));
 });
 
 test("reads typed values and falls back when stored data has the wrong type", () => {
@@ -88,15 +99,15 @@ test("saving a draft preserves the published homepage data", () => {
     ...heroSeed,
     data: {
       ...heroSeed.data,
-      titleMain: "New draft title",
+      titleMainEn: "New draft title",
     },
   };
   const row = createDraftHomeModuleRow(storedHero, editedModule, "2026-07-23T11:00:00.000Z");
 
   assert.equal(row.status, "draft");
   assert.equal(row.draft_version, 5);
-  assert.equal(row.draft_data?.titleMain, "New draft title");
-  assert.equal(row.published_data.titleMain, "Published title");
+  assert.equal(row.draft_data?.titleMainEn, "New draft title");
+  assert.equal(row.published_data.titleMainEn, "Published title");
 });
 
 test("publishing promotes the saved draft and increments the published version", () => {
@@ -105,8 +116,8 @@ test("publishing promotes the saved draft and increments the published version",
   assert.equal(row.status, "published");
   assert.equal(row.published_version, 4);
   assert.equal(row.draft_version, null);
-  assert.equal(row.published_data.titleMain, "Draft title");
-  assert.equal(row.draft_data?.titleMain, "Draft title");
+  assert.equal(row.published_data.titleMainEn, "Draft title");
+  assert.equal(row.draft_data?.titleMainEn, "Draft title");
 });
 
 test("canonicalizes saved modules against the fixed seed schema", () => {
@@ -119,7 +130,7 @@ test("canonicalizes saved modules against the fixed seed schema", () => {
     ],
     data: {
       ...heroSeed.data,
-      titleMain: "Canonical title",
+      titleMainEn: "Canonical title",
       script: "alert(1)",
     },
   };
@@ -127,8 +138,28 @@ test("canonicalizes saved modules against the fixed seed schema", () => {
 
   assert.equal(canonical.name, heroSeed.name);
   assert.deepEqual(canonical.fields, heroSeed.fields);
-  assert.equal(canonical.data.titleMain, "Canonical title");
+  assert.equal(canonical.data.titleMainEn, "Canonical title");
   assert.equal(canonical.data.script, undefined);
+});
+
+test("normalizes legacy homepage copy into its English localization field", () => {
+  const canonical = canonicalizeHomeModule({
+    ...heroSeed,
+    data: { titleMain: "Legacy homepage title" },
+  });
+
+  assert.equal(canonical.data.titleMainEn, "Legacy homepage title");
+  assert.equal(canonical.data.titleMainZh, "");
+  assert.equal(canonical.status, "published");
+});
+
+test("includes paired localized fields for the service page sign-off", () => {
+  const about = homeModuleSeeds.find((module) => module.id === "aboutSection");
+
+  assert.ok(about?.fields.some((field) => field.key === "servicePageSignOffEn"));
+  assert.ok(about?.fields.some((field) => field.key === "servicePageSignOffZh"));
+  assert.equal(about?.data.servicePageSignOffEn, "Thanks");
+  assert.equal(about?.data.servicePageSignOffZh, "");
 });
 
 test("rejects invalid required, typed, and image values before persistence", () => {
@@ -136,7 +167,7 @@ test("rejects invalid required, typed, and image values before persistence", () 
     () =>
       canonicalizeHomeModule({
         ...heroSeed,
-        data: { ...heroSeed.data, titleMain: "" },
+        data: { ...heroSeed.data, titleMainEn: "" },
       }),
     /Main title is required/,
   );

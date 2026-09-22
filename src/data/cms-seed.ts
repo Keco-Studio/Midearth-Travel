@@ -9,7 +9,15 @@ import {
   heroFeatureCardSeeds,
 } from "./hero-content.ts";
 import { destinationsByMonth } from "./destinations-by-month.ts";
-import { serializeMonthEntries } from "../lib/explore-by-month.ts";
+import {
+  EXPLORE_MONTHS_DATA_KEY,
+  serializeMonthEntries,
+} from "../lib/explore-by-month.ts";
+import {
+  FOOTER_SERVICE_LINKS_KEY,
+  footerServiceLinkSeeds,
+  serializeFooterLinks,
+} from "../lib/footer-links.ts";
 import type {
   FieldDefinition,
   HomeModuleRecord,
@@ -27,6 +35,59 @@ import type {
 
 const commonUpdatedAt = "2026-07-06T09:00:00Z";
 
+const sharedHomeFieldKeys = new Set([
+  "logoAlt",
+  "primaryPhoneLabel",
+  "secondaryPhoneLabel",
+  "phoneLabel",
+  "emailLabel",
+  "officeAddress",
+  "mailtoRecipient",
+  "whatsappLabel",
+  EXPLORE_MONTHS_DATA_KEY,
+  FOOTER_SERVICE_LINKS_KEY,
+]);
+
+function isLocalizedCopyField(field: FieldDefinition): boolean {
+  return (
+    (field.type === "text" || field.type === "textarea") &&
+    !field.key.endsWith("En") &&
+    !field.key.endsWith("Zh") &&
+    !sharedHomeFieldKeys.has(field.key)
+  );
+}
+
+function localizeModuleDefinition(
+  fields: FieldDefinition[],
+  data: HomeModuleRecord["data"],
+): Pick<HomeModuleRecord, "fields" | "data"> {
+  const localizedFields: FieldDefinition[] = [];
+  const localizedData: HomeModuleRecord["data"] = {};
+
+  for (const field of fields) {
+    const value = data[field.key];
+    if (!isLocalizedCopyField(field)) {
+      localizedFields.push(field);
+      localizedData[field.key] = value;
+      continue;
+    }
+
+    localizedFields.push(
+      { ...field, key: `${field.key}En`, label: `English ${field.label}` },
+      {
+        ...field,
+        key: `${field.key}Zh`,
+        label: `Chinese ${field.label}`,
+        required: false,
+      },
+    );
+    localizedData[`${field.key}En`] = typeof value === "string" ? value : "";
+    localizedData[`${field.key}Zh`] = "";
+  }
+
+  return { fields: localizedFields, data: localizedData };
+}
+
 function createModule(
   id: HomeModuleRecord["id"],
   index: number,
@@ -41,6 +102,8 @@ function createModule(
     throw new Error(`Unknown homepage module: ${id}`);
   }
 
+  const localized = localizeModuleDefinition(fields, data);
+
   return {
     id,
     index,
@@ -50,8 +113,8 @@ function createModule(
     publishedVersion: status === "unpublished" ? 0 : 1,
     draftVersion: status === "draft" ? 2 : null,
     updatedAt: commonUpdatedAt,
-    fields,
-    data,
+    fields: localized.fields,
+    data: localized.data,
   };
 }
 
@@ -381,6 +444,13 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
         maxLength: 160,
         helper: "Synced with Global Settings → Office address.",
       },
+      {
+        key: "officeAddressZh",
+        label: "Chinese office address",
+        type: "textarea",
+        maxLength: 160,
+        helper: "Synced with Global Settings → Chinese office address.",
+      },
     ],
     {
       image: "/final-cta-travel-flatlay.jpg",
@@ -393,6 +463,7 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
       phoneLabel: "613-236-5226",
       emailLabel: "info@midearth.ca",
       officeAddress: "Bronson Avenue, Ottawa, Ontario",
+      officeAddressZh: "加拿大安大略省渥太华市布朗森大道",
     },
   ),
   createModule(
@@ -444,12 +515,18 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
   createModule(
     "footer",
     10,
-    "Manage footer brand copy and phone labels only. Column links are fixed in code; tel/mailto come from Global Settings.",
+    "Manage footer brand copy, phone labels, and service links. Tour links follow the configured destination categories; tel/mailto come from Global Settings.",
     "published",
     [
       { key: "brandTitle", label: "Brand title", type: "text", required: true, maxLength: 40 },
       { key: "brandDescription", label: "Brand description", type: "textarea", required: true, maxLength: 220 },
       { key: "copyrightText", label: "Copyright text", type: "text", required: true, maxLength: 120 },
+      {
+        key: FOOTER_SERVICE_LINKS_KEY,
+        label: "Service links",
+        type: "textarea",
+        helper: "Managed through the Footer service links editor below.",
+      },
       {
         key: "primaryPhoneLabel",
         label: "Primary phone",
@@ -470,6 +547,7 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
       brandDescription:
         "Your one-stop travel solution. TICO certified member serving the community with professionalism and competitive prices.",
       copyrightText: "© 2026 Midearth Travel Inc. All rights reserved.",
+      [FOOTER_SERVICE_LINKS_KEY]: serializeFooterLinks(footerServiceLinkSeeds),
       primaryPhoneLabel: "613-236-5226",
       secondaryPhoneLabel: "613-236-2323",
     },

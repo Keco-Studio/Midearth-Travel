@@ -1,7 +1,11 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useLang } from "@/context/lang-context";
 import { services as staticServices, type Service } from "@/data/services";
-import { getStringContent, type ContentData } from "@/lib/content-values";
+import { type ContentData } from "@/lib/content-values";
+import { getLocalizedContent } from "@/lib/localized-content";
 import styles from "./about-section.module.css";
 
 export function AboutSection({
@@ -11,12 +15,14 @@ export function AboutSection({
   content?: ContentData;
   services?: Service[];
 }) {
-  const eyebrow = getStringContent(content, "eyebrow", "Beyond tours");
-  const sectionTitle = getStringContent(content, "sectionTitle", "Travel Service");
-  const subtitle = getStringContent(content, "subtitle", "Everything else, handled.");
-  const deck = getStringContent(
+  const { lang } = useLang();
+  const eyebrow = getLocalizedContent(content, "eyebrow", lang, "Beyond tours");
+  const sectionTitle = getLocalizedContent(content, "sectionTitle", lang, "Travel Service");
+  const subtitle = getLocalizedContent(content, "subtitle", lang, "Everything else, handled.");
+  const deck = getLocalizedContent(
     content,
     "deck",
+    lang,
     "Flights, hotels, charter coaches, travel insurance, visa paperwork. The unglamorous half of any trip — done by people who've done it ten thousand times.",
   );
 

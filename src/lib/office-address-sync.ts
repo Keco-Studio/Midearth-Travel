@@ -14,6 +14,7 @@ export type FinalCtaContactFields = {
   phoneLabel: string;
   emailLabel: string;
   officeAddress: string;
+  officeAddressZh: string;
 };
 
 export type SharedPhoneFields = {
@@ -28,6 +29,7 @@ export function contactFieldsFromSettings(
     phoneLabel: settings.primaryPhoneLabel.trim(),
     emailLabel: settings.emailLabel.trim(),
     officeAddress: settings.officeAddress.trim(),
+    officeAddressZh: settings.officeAddressZh.trim(),
   };
 }
 
@@ -45,6 +47,7 @@ export function contactFieldsFromFinalCta(
     phoneLabel: String(module.data.phoneLabel ?? "").trim(),
     emailLabel: String(module.data.emailLabel ?? "").trim(),
     officeAddress: String(module.data.officeAddress ?? "").trim(),
+    officeAddressZh: String(module.data.officeAddressZh ?? "").trim(),
   };
 }
 
@@ -157,12 +160,14 @@ export async function syncContactFieldsToGlobalSettings(
     primaryPhoneLabel: contact.phoneLabel || settings.primaryPhoneLabel,
     emailLabel: contact.emailLabel || settings.emailLabel,
     officeAddress: contact.officeAddress || settings.officeAddress,
+    officeAddressZh: contact.officeAddressZh || settings.officeAddressZh,
   });
 
   if (
     next.primaryPhoneLabel === settings.primaryPhoneLabel &&
     next.emailLabel === settings.emailLabel &&
-    next.officeAddress === settings.officeAddress
+    next.officeAddress === settings.officeAddress &&
+    next.officeAddressZh === settings.officeAddressZh
   ) {
     return settings;
   }
@@ -233,6 +238,8 @@ function contactToModuleData(
     phoneLabel: contact.phoneLabel || String(existing.phoneLabel ?? ""),
     emailLabel: contact.emailLabel || String(existing.emailLabel ?? ""),
     officeAddress: contact.officeAddress || String(existing.officeAddress ?? ""),
+    officeAddressZh:
+      contact.officeAddressZh || String(existing.officeAddressZh ?? ""),
   };
 }
 
@@ -243,7 +250,8 @@ function sameContactFields(
   return (
     left.phoneLabel === right.phoneLabel &&
     left.emailLabel === right.emailLabel &&
-    left.officeAddress === right.officeAddress
+    left.officeAddress === right.officeAddress &&
+    left.officeAddressZh === right.officeAddressZh
   );
 }
 
