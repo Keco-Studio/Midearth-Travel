@@ -185,6 +185,19 @@ test("guards the admin page before loading private data", () => {
   assert.ok(guardOffset < preloadOffset, "admin page must authorize before preloading data");
 });
 
+test("redirects an anonymous admin page request before reading authentication config", () => {
+  const authSource = readProjectFile("src/lib/admin-auth.ts");
+  const cookieOffset = authSource.indexOf("const token = (await cookies())");
+  const configOffset = authSource.indexOf("const config = getAdminAuthConfig()");
+
+  assert.ok(cookieOffset >= 0, "admin auth must read the session cookie first");
+  assert.ok(configOffset >= 0, "admin auth must validate configuration for a session");
+  assert.ok(
+    cookieOffset < configOffset,
+    "anonymous requests must redirect before configuration is required",
+  );
+});
+
 test("guards every pre-existing admin API method before parsing or data access", () => {
   const routeFiles = findRouteFiles(adminApiDirectory).filter(
     (file) => !relative(adminApiDirectory, file).split("/").includes("auth"),

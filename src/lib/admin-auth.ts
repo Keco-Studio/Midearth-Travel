@@ -29,9 +29,14 @@ export class AdminAuthorizationError extends Error {
 export async function requireAdminSession(
   context: "page" | "route" = "page",
 ): Promise<void> {
-  const config = getAdminAuthConfig();
   const token = (await cookies()).get(ADMIN_SESSION_COOKIE_NAME)?.value;
-  const session = token ? await verifyAdminSession(token, new Date(), config) : null;
+  if (!token) {
+    if (context === "route") throw new AdminAuthorizationError();
+    redirect("/admin/login");
+  }
+
+  const config = getAdminAuthConfig();
+  const session = await verifyAdminSession(token, new Date(), config);
 
   if (session) return;
   if (context === "route") throw new AdminAuthorizationError();
