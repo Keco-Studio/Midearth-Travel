@@ -11,8 +11,8 @@ test("renders an account menu instead of a standalone logout button", () => {
   const source = readProjectFile("src/components/admin-shell.tsx");
   assert.match(source, /AdminAccountMenu/);
   assert.match(source, /cms-workspace-topbar/);
-  assert.match(source, /cms-workspace-topbar-title/);
-  assert.match(source, /getWorkspaceTitle\(state\)/);
+  assert.match(source, /Breadcrumb/);
+  assert.doesNotMatch(source, /breadcrumb=\{\{/);
   assert.doesNotMatch(source, />\s*Log out\s*<\/Button>/);
 });
 

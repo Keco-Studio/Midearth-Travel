@@ -80,12 +80,18 @@
   background: #ffffff;
 }
 
-.cms-workspace-topbar-title {
+.cms-workspace-topbar-breadcrumb {
   margin-right: auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cms-workspace-topbar-breadcrumb .ant-breadcrumb-link {
   color: #12312b;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
-  line-height: 32px;
 }
 
 .cms-admin-account-email {

@@ -2,7 +2,7 @@
 
 import { PageContainer, ProLayout } from "@ant-design/pro-components";
 import { DownloadOutlined } from "@ant-design/icons";
-import { App, Button, Card, Empty, Space, Table, Tag, Tooltip, type TableColumnsType } from "antd";
+import { App, Breadcrumb, Button, Card, Empty, Space, Table, Tag, Tooltip, type TableColumnsType } from "antd";
 import Link from "next/link";
 import {
   useCallback,
@@ -110,6 +110,10 @@ export function AdminShell({
     state.workspace === "home" ? activeModule.name : getWorkspaceTitle(state);
   const pageSubTitle =
     state.workspace === "home" ? "Fixed homepage module" : undefined;
+  const workspaceBreadcrumbItems =
+    state.workspace === "home"
+      ? [{ title: getWorkspaceTitle(state) }, { title: pageTitle }]
+      : [{ title: pageTitle }];
 
   const [openKeys, setOpenKeys] = useState<string[]>(["/home"]);
 
@@ -372,7 +376,7 @@ export function AdminShell({
       contentStyle={{ padding: 0 }}
     >
       <div className="cms-workspace-topbar">
-        <span className="cms-workspace-topbar-title">{getWorkspaceTitle(state)}</span>
+        <Breadcrumb className="cms-workspace-topbar-breadcrumb" items={workspaceBreadcrumbItems} />
         <AdminAccountMenu email={adminEmail} />
       </div>
       <PageContainer
@@ -408,12 +412,6 @@ export function AdminShell({
           activeModule,
           hasSupplementalUnsavedChanges,
         )}
-        breadcrumb={{
-          items:
-            state.workspace === "home"
-              ? [{ title: getWorkspaceTitle(state) }, { title: pageTitle }]
-              : [{ title: pageTitle }],
-        }}
       >
         {renderWorkspace(state, activeModule, {
           onModuleFieldChange: (moduleId, key, value) => {
