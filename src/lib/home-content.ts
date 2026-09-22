@@ -84,8 +84,9 @@ export function canonicalizeHomeModule(
     throw new Error(`Unknown homepage module: ${candidate.id}`);
   }
 
+  const normalizedCandidateData = normalizeLegacyLocalizedData(candidate.data, seed.fields);
   const data = seed.fields.reduce<Record<string, ContentValue>>((result, field) => {
-    let value = candidate.data[field.key] ?? seed.data[field.key] ?? defaultFieldValue(field);
+    let value = normalizedCandidateData[field.key] ?? seed.data[field.key] ?? defaultFieldValue(field);
     const seedValue = seed.data[field.key];
     if (
       field.type === "image" &&
@@ -109,6 +110,24 @@ export function canonicalizeHomeModule(
     fields: seed.fields.map((field) => ({ ...field })),
     data,
   };
+}
+
+function normalizeLegacyLocalizedData(
+  data: Record<string, ContentValue>,
+  fields: readonly FieldDefinition[],
+): Record<string, ContentValue> {
+  const normalized = { ...data };
+
+  for (const field of fields) {
+    if (!field.key.endsWith("En")) continue;
+
+    const legacyKey = field.key.slice(0, -2);
+    if (normalized[field.key] === undefined && typeof normalized[legacyKey] === "string") {
+      normalized[field.key] = normalized[legacyKey];
+    }
+  }
+
+  return normalized;
 }
 
 export function mergeHomeModuleRows(

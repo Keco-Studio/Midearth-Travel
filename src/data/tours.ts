@@ -14,6 +14,7 @@ export type TourFare = {
 export type TourPolicy = {
   title: string;
   content: string;
+  localizedContent?: string;
   icon?: "ticket" | "shield" | "info";
   wide?: boolean;
 };

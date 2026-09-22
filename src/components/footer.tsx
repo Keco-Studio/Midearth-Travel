@@ -7,23 +7,28 @@ import {
   footerServiceLinkSeeds,
   footerTourLinkSeeds,
 } from "@/lib/footer-links";
-import { getStringContent, type ContentData } from "@/lib/content-values";
+import { type ContentData } from "@/lib/content-values";
+import { useLang } from "@/context/lang-context";
+import { getLocalizedContent, getLocalizedStaticText } from "@/lib/localized-content";
 
 export function Footer({ content }: { content?: ContentData }) {
   const settings = useSiteSettings();
+  const { lang } = useLang();
   const sharedContent = useFooterContent();
   const resolved =
     content && Object.keys(content).length > 0 ? content : sharedContent;
 
-  const brandTitle = getStringContent(resolved, "brandTitle", "Midearth Travel");
-  const brandDescription = getStringContent(
+  const brandTitle = getLocalizedContent(resolved, "brandTitle", lang, "Midearth Travel");
+  const brandDescription = getLocalizedContent(
     resolved,
     "brandDescription",
+    lang,
     "Your one-stop travel solution. TICO certified member serving the community with professionalism and competitive prices.",
   );
-  const copyrightText = getStringContent(
+  const copyrightText = getLocalizedContent(
     resolved,
     "copyrightText",
+    lang,
     "© 2026 Midearth Travel Inc. All rights reserved.",
   );
   const tourLinks = footerTourLinkSeeds;
@@ -53,7 +58,7 @@ export function Footer({ content }: { content?: ContentData }) {
           </div>
 
           <div>
-            <h4 className="mb-4 font-semibold text-[#f5efe3]">Tours</h4>
+            <h4 className="mb-4 font-semibold text-[#f5efe3]">{getLocalizedStaticText(lang, "tours")}</h4>
             <ul className="space-y-3 text-sm text-[#f5efe3]/65">
               {tourLinks.map((item) => (
                 <li key={item.id}>
@@ -66,7 +71,7 @@ export function Footer({ content }: { content?: ContentData }) {
           </div>
 
           <div>
-            <h4 className="mb-4 font-semibold text-[#f5efe3]">Services</h4>
+            <h4 className="mb-4 font-semibold text-[#f5efe3]">{getLocalizedStaticText(lang, "services")}</h4>
             <ul className="space-y-3 text-sm text-[#f5efe3]/65">
               {serviceLinks.map((item) => (
                 <li key={item.id}>
@@ -79,7 +84,7 @@ export function Footer({ content }: { content?: ContentData }) {
           </div>
 
           <div>
-            <h4 className="mb-4 font-semibold text-[#f5efe3]">Contact Us</h4>
+            <h4 className="mb-4 font-semibold text-[#f5efe3]">{getLocalizedStaticText(lang, "contactUs")}</h4>
             <ul className="space-y-3 text-sm text-[#f5efe3]/65">
               <li>
                 <a href={settings.primaryPhoneHref} className="transition-colors hover:text-[#f5efe3]">

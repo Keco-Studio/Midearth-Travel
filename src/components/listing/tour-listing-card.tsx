@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useLang } from "@/context/lang-context";
 import { getTourPriceLabel } from "@/data/tour-filters";
 import type { RegionListingCard } from "@/data/destinations-by-region";
 import {
@@ -7,6 +10,7 @@ import {
   type DestinationCategory,
 } from "@/lib/destination-categories";
 import { getTourRegionBadge } from "@/lib/tour-destination-categories";
+import { getLocalizedTourList, getLocalizedTourValue } from "@/lib/localized-content";
 import styles from "./listing.module.css";
 
 export function TourListingCard({
@@ -16,9 +20,16 @@ export function TourListingCard({
   tour: RegionListingCard;
   destinationCategories?: DestinationCategory[];
 }) {
+  const { lang } = useLang();
   const price = getTourPriceLabel(tour);
   const priceFrom = price.startsWith("from ");
-  const highlights = tour.highlights ?? tour.tags;
+  const highlights = getLocalizedTourList(
+    lang,
+    tour.localizedHighlights,
+    tour.highlights ?? tour.tags,
+  );
+  const title = getLocalizedTourValue(lang, tour.localizedTitle, tour.title);
+  const duration = getLocalizedTourValue(lang, tour.localizedDuration, tour.duration);
   const href = tour.href ?? `/tours/${tour.slug}`;
   const regionBadge = getTourRegionBadge(tour, destinationCategories);
 
@@ -27,7 +38,7 @@ export function TourListingCard({
       <Link className={styles.tourCardImgLink} href={href}>
         <Image
           src={tour.image}
-          alt={tour.title}
+          alt={title}
           fill
           unoptimized
           sizes="(max-width: 768px) 100vw, 400px"
@@ -40,10 +51,10 @@ export function TourListingCard({
         <div className={styles.tourCardMeta}>
           <span>{tour.tourType}</span>
           <span className={styles.tourCardMetaDot}>·</span>
-          <span>{tour.duration}</span>
+          <span>{duration}</span>
         </div>
         <h3 className={styles.tourCardTitle}>
-          <Link href={href}>{tour.title}</Link>
+          <Link href={href}>{title}</Link>
         </h3>
         <div className={styles.tourCardHighlights}>
           {highlights.slice(0, 4).map((h) => (

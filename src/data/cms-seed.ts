@@ -27,6 +27,58 @@ import type {
 
 const commonUpdatedAt = "2026-07-06T09:00:00Z";
 
+const sharedHomeFieldKeys = new Set([
+  "logoAlt",
+  "primaryPhoneLabel",
+  "secondaryPhoneLabel",
+  "phoneLabel",
+  "emailLabel",
+  "officeAddress",
+  "mailtoRecipient",
+  "servicePageSignOff",
+  "whatsappLabel",
+]);
+
+function isLocalizedCopyField(field: FieldDefinition): boolean {
+  return (
+    (field.type === "text" || field.type === "textarea") &&
+    !field.key.endsWith("En") &&
+    !field.key.endsWith("Zh") &&
+    !sharedHomeFieldKeys.has(field.key)
+  );
+}
+
+function localizeModuleDefinition(
+  fields: FieldDefinition[],
+  data: HomeModuleRecord["data"],
+): Pick<HomeModuleRecord, "fields" | "data"> {
+  const localizedFields: FieldDefinition[] = [];
+  const localizedData: HomeModuleRecord["data"] = {};
+
+  for (const field of fields) {
+    const value = data[field.key];
+    if (!isLocalizedCopyField(field)) {
+      localizedFields.push(field);
+      localizedData[field.key] = value;
+      continue;
+    }
+
+    localizedFields.push(
+      { ...field, key: `${field.key}En`, label: `English ${field.label}` },
+      {
+        ...field,
+        key: `${field.key}Zh`,
+        label: `Chinese ${field.label}`,
+        required: false,
+      },
+    );
+    localizedData[`${field.key}En`] = typeof value === "string" ? value : "";
+    localizedData[`${field.key}Zh`] = "";
+  }
+
+  return { fields: localizedFields, data: localizedData };
+}
+
 function createModule(
   id: HomeModuleRecord["id"],
   index: number,
@@ -41,6 +93,8 @@ function createModule(
     throw new Error(`Unknown homepage module: ${id}`);
   }
 
+  const localized = localizeModuleDefinition(fields, data);
+
   return {
     id,
     index,
@@ -50,8 +104,8 @@ function createModule(
     publishedVersion: status === "unpublished" ? 0 : 1,
     draftVersion: status === "draft" ? 2 : null,
     updatedAt: commonUpdatedAt,
-    fields,
-    data,
+    fields: localized.fields,
+    data: localized.data,
   };
 }
 

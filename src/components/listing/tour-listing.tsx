@@ -11,6 +11,8 @@ import {
   type DestinationCategory,
 } from "@/lib/destination-categories";
 import { getTourRegionBadge } from "@/lib/tour-destination-categories";
+import { useLang } from "@/context/lang-context";
+import { getLocalizedStaticText, getLocalizedTourValue } from "@/lib/localized-content";
 import styles from "./listing.module.css";
 import { DestinationsByRegion } from "./destinations-by-region";
 import { PopularByMonth } from "./popular-by-month";
@@ -36,6 +38,7 @@ export function TourListing({
   showBrowseSections = false,
   destinationCategories = destinationCategorySeeds,
 }: Props) {
+  const { lang } = useLang();
   const [search, setSearch] = useState("");
   const [region, setRegion] = useState("all");
   const [duration, setDuration] = useState("all");
@@ -53,7 +56,7 @@ export function TourListing({
     if (search) {
       const q = search.toLowerCase();
       list = list.filter((t) =>
-        `${t.title} ${t.tags.join(" ")} ${getTourRegionBadge(t, destinationCategories)} ${t.description}`
+        `${getLocalizedTourValue(lang, t.localizedTitle, t.title)} ${t.tags.join(" ")} ${getTourRegionBadge(t, destinationCategories)} ${getLocalizedTourValue(lang, t.localizedDescription, t.description)}`
           .toLowerCase()
           .includes(q),
       );
@@ -79,7 +82,7 @@ export function TourListing({
       );
     }
     return list;
-  }, [destinationCategories, initialTours, search, region, duration, sort]);
+  }, [destinationCategories, initialTours, lang, search, region, duration, sort]);
 
   return (
     <main className={styles.page}>
@@ -103,13 +106,13 @@ export function TourListing({
               </svg>
               <input
                 type="text"
-                placeholder="Search tours, destinations, highlights"
+                placeholder={getLocalizedStaticText(lang, "searchTours")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
             <div className={styles.filterGroup}>
-              <label htmlFor="region-filter">Region</label>
+              <label htmlFor="region-filter">{getLocalizedStaticText(lang, "region")}</label>
               <select
                 id="region-filter"
                 value={region}
@@ -117,33 +120,33 @@ export function TourListing({
               >
                 {regions.map((r) => (
                   <option key={r} value={r}>
-                    {r === "all" ? "All regions" : r}
+                    {r === "all" ? getLocalizedStaticText(lang, "allRegions") : r}
                   </option>
                 ))}
               </select>
             </div>
             <div className={styles.filterGroup}>
-              <label htmlFor="duration-filter">Duration</label>
+              <label htmlFor="duration-filter">{getLocalizedStaticText(lang, "duration")}</label>
               <select
                 id="duration-filter"
                 value={duration}
                 onChange={(e) => setDuration(e.target.value)}
               >
-                <option value="all">Any length</option>
+                <option value="all">{getLocalizedStaticText(lang, "anyLength")}</option>
                 <option value="short">≤ 3 days</option>
                 <option value="med">4–7 days</option>
                 <option value="long">8+ days</option>
               </select>
             </div>
             <div className={styles.filterGroup}>
-              <label htmlFor="sort-filter">Sort</label>
+              <label htmlFor="sort-filter">{getLocalizedStaticText(lang, "sort")}</label>
               <select
                 id="sort-filter"
                 value={sort}
                 onChange={(e) => setSort(e.target.value)}
               >
-                <option value="featured">Featured</option>
-                <option value="duration">Shortest</option>
+                <option value="featured">{getLocalizedStaticText(lang, "featured")}</option>
+                <option value="duration">{getLocalizedStaticText(lang, "shortest")}</option>
               </select>
             </div>
           </div>
@@ -159,13 +162,13 @@ export function TourListing({
               {filtered.length === 0 ? (
                 <div className={styles.emptyState}>
                   <div className={styles.emptyStateIcon}>⌖</div>
-                  <h3>Nothing matched.</h3>
+                  <h3>{getLocalizedStaticText(lang, "noMatches")}</h3>
                   <p>
                     Try a wider region, or send us a note — we plan custom trips
                     constantly.
                   </p>
                   <Link className={styles.emptyBtn} href="/#contact">
-                    Request a custom trip
+                    {getLocalizedStaticText(lang, "requestCustomTrip")}
                   </Link>
                 </div>
               ) : (
