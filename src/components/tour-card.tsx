@@ -13,7 +13,7 @@ import {
   type DestinationCategory,
 } from "@/lib/destination-categories";
 import { getTourRegionBadge } from "@/lib/tour-destination-categories";
-import { getLocalizedTourList, getLocalizedTourValue } from "@/lib/localized-content";
+import { getLocalizedStaticText, getLocalizedTourList, getLocalizedTourValue } from "@/lib/localized-content";
 
 export function TourCard({
   tour,
@@ -68,7 +68,7 @@ export function TourCard({
           <div className="tour-card-price">
             {priceFrom ? (
               <>
-                <span className="price-label">from</span>
+                <span className="price-label">{getLocalizedStaticText(lang, "from")}</span>
                 <span className="price-amt">{price.replace("from ", "")}</span>
               </>
             ) : (
@@ -76,7 +76,7 @@ export function TourCard({
             )}
           </div>
           <Link className="link-arrow sm" href={`/tours/${tour.slug}`}>
-            View →
+            {getLocalizedStaticText(lang, "viewTour")} →
           </Link>
         </div>
       </div>

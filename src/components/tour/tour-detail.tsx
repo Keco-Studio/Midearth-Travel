@@ -36,6 +36,13 @@ function PolicyIcon({ icon }: { icon?: TourPolicy["icon"] }) {
   return null;
 }
 
+function getPolicyTitle(lang: "en" | "zh", policy: TourPolicy): string {
+  if (policy.icon === "ticket") return getLocalizedStaticText(lang, "admissions");
+  if (policy.icon === "shield") return getLocalizedStaticText(lang, "cancellation");
+  if (policy.icon === "info") return getLocalizedStaticText(lang, "importantNotice");
+  return policy.title;
+}
+
 export function TourDetail({ tour }: { tour: Tour }) {
   const { lang } = useLang();
   const settings = useSiteSettings();
@@ -97,7 +104,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
         <div className="mx-auto w-full max-w-7xl">
           {tour.code && (
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
-              Tour {tour.code}
+              {getLocalizedStaticText(lang, "tour")} {tour.code}
             </p>
           )}
 
@@ -119,7 +126,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
           <dl className="mt-8 grid max-w-3xl gap-4 border-t border-white/20 pt-8 sm:grid-cols-3">
             <div>
               <dt className="text-xs font-medium uppercase tracking-wide text-white/60">
-                Duration
+                {getLocalizedStaticText(lang, "duration")}
               </dt>
               <dd className="mt-1 text-sm font-semibold text-white md:text-base">
                 {duration}
@@ -128,7 +135,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
             {tour.subregion?.trim() ? (
               <div>
                 <dt className="text-xs font-medium uppercase tracking-wide text-white/60">
-                  Region
+                  {getLocalizedStaticText(lang, "region")}
                 </dt>
                 <dd className="mt-1 text-sm font-semibold text-white md:text-base">
                   {[tour.region, tour.subregion.trim()].filter(Boolean).join(" · ")}
@@ -138,11 +145,11 @@ export function TourDetail({ tour }: { tour: Tour }) {
             <div className={tour.subregion?.trim() ? undefined : "sm:col-span-2"}>
               <dt className="text-xs font-medium uppercase tracking-wide text-white/60">
                 {departureCity
-                  ? `Departures from ${departureCity}`
-                  : "Departures"}
+                  ? getLocalizedStaticText(lang, "departuresFrom", { city: departureCity })
+                  : getLocalizedStaticText(lang, "departures")}
               </dt>
               <dd className="mt-1 text-sm font-semibold text-white md:text-base">
-                {departuresLine ?? "Contact for dates"}
+                {departuresLine ?? getLocalizedStaticText(lang, "contactForDates")}
               </dd>
             </div>
           </dl>
@@ -160,11 +167,10 @@ export function TourDetail({ tour }: { tour: Tour }) {
               {tour.itinerary && tour.itinerary.length > 0 ? (
                 <section className={styles.dayByDaySection}>
                   <h2 className="text-3xl font-light tracking-tight md:text-4xl">
-                    Day by <span className="font-semibold">day</span>
+                    {getLocalizedStaticText(lang, "dayByDay")}
                   </h2>
                   <p className="mt-3 max-w-2xl text-muted-foreground">
-                    A clear overview of each stage of the journey so you know
-                    what to expect on the road.
+                    {getLocalizedStaticText(lang, "dayByDayDescription")}
                   </p>
 
                   <ol className={styles.dayList}>
@@ -182,7 +188,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
                           <div className={styles.dayCard}>
                             <h3 className={styles.dayTitle}>
                               <span className="text-muted-foreground">
-                                Day {day.day}
+                                {getLocalizedStaticText(lang, "day", { day: day.day })}
                                 {day.note ? ` (${day.note})` : ""}:
                               </span>{" "}
                               {day.title}
@@ -227,7 +233,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
               {tour.policies && tour.policies.length > 0 && (
                 <section
                   className={styles.policyList}
-                  aria-label="Policies and practical information"
+                  aria-label={getLocalizedStaticText(lang, "policiesAndInformation")}
                 >
                   {tour.policies.map((policy) => (
                     <div
@@ -238,7 +244,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
                         <div className="flex items-center gap-2 text-primary">
                           <PolicyIcon icon={policy.icon} />
                           <h3 className="text-base font-semibold">
-                            {policy.title}
+                            {getPolicyTitle(lang, policy)}
                           </h3>
                         </div>
                       </div>
@@ -261,7 +267,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
                         <Clock className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
                         <div>
                           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                            Departure time
+                            {getLocalizedStaticText(lang, "departureTime")}
                           </p>
                           <p className="mt-1 text-sm font-medium">
                             {tour.essentials.departureTime}
@@ -274,7 +280,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
                         <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
                         <div>
                           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                            Meeting place
+                            {getLocalizedStaticText(lang, "meetingPlace")}
                           </p>
                           <p className="mt-1 text-sm leading-snug">
                             {meetingPlace}
@@ -287,7 +293,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
                         <Hotel className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
                         <div>
                           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                            Hotels
+                            {getLocalizedStaticText(lang, "hotels")}
                           </p>
                           <p className="mt-1 text-sm leading-snug">
                             {hotels}
@@ -311,7 +317,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
                         <Users className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
                         <div>
                           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                            Escorted coach
+                            {getLocalizedStaticText(lang, "escortedCoach")}
                           </p>
                           <p className="mt-1 text-sm">
                             {escortedCoach}
@@ -325,10 +331,10 @@ export function TourDetail({ tour }: { tour: Tour }) {
 
               <div className="flex flex-col gap-0 overflow-hidden rounded-xl border border-border bg-card py-0 shadow-lg">
                 <div className="border-b border-border px-6 py-5">
-                  <h3 className="text-lg font-semibold">Tour fares</h3>
+                  <h3 className="text-lg font-semibold">{getLocalizedStaticText(lang, "tourFares")}</h3>
                   <p className="text-xs text-muted-foreground">
-                    Per person
-                    {departureCity ? `, from ${departureCity}` : ""}
+                    {getLocalizedStaticText(lang, "perPerson")}
+                    {departureCity ? `, ${getLocalizedStaticText(lang, "from")} ${departureCity}` : ""}
                   </p>
                 </div>
 
@@ -355,7 +361,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
                   </table>
                 ) : (
                   <div className="px-6 py-6 text-sm text-muted-foreground">
-                    Call for quote — pricing varies by season and room type.
+                    {getLocalizedStaticText(lang, "callForQuote")}
                   </div>
                 )}
 
@@ -382,7 +388,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
                       "mt-3 w-full border-2",
                     )}
                   >
-                    Call {phoneLabel}
+                    {getLocalizedStaticText(lang, "call")} {phoneLabel}
                   </a>
                 </div>
               </div>
@@ -400,7 +406,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
             id="book-cta"
             className="text-3xl font-light tracking-tight md:text-4xl"
           >
-            Ready for <span className="font-semibold">{displayTitle}</span>?
+            {getLocalizedStaticText(lang, "readyFor", { title: displayTitle })}
           </h2>
           <p className="mt-4 leading-relaxed text-muted-foreground">
             Email us to reserve your seats, or call our Ottawa office — we&apos;ll
@@ -415,7 +421,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
                 "group h-14 px-10 text-base",
               )}
             >
-              Book now
+              {getLocalizedStaticText(lang, "bookNow")}
               <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
             </a>
             <a
@@ -425,7 +431,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
                 "h-14 border-2 bg-background px-10 text-base shadow-xs",
               )}
             >
-              Contact us
+              {getLocalizedStaticText(lang, "contactUs")}
             </a>
           </div>
         </div>

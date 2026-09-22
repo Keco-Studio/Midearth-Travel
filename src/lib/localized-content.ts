@@ -14,8 +14,15 @@ const staticText = {
     sort: "Sort",
     featured: "Featured",
     shortest: "Shortest",
+    shortDuration: "Up to 3 days",
+    mediumDuration: "4-7 days",
+    longDuration: "8+ days",
+    tripCount: "{{count}} trips",
     noMatches: "Nothing matched.",
+    noMatchesDescription: "Try a wider region, or send us a note - we plan custom trips constantly.",
     requestCustomTrip: "Request a custom trip",
+    from: "from",
+    viewTour: "View",
     tours: "Tours",
     services: "Services",
     contactUs: "Contact Us",
@@ -27,6 +34,25 @@ const staticText = {
     tripEssentials: "Trip essentials",
     bookThisTour: "Book this tour",
     contactForDates: "Contact for dates",
+    tour: "Tour",
+    departures: "Departures",
+    departuresFrom: "Departures from {{city}}",
+    dayByDay: "Day by day",
+    dayByDayDescription: "A clear overview of each stage of the journey so you know what to expect on the road.",
+    day: "Day {{day}}",
+    policiesAndInformation: "Policies and practical information",
+    admissions: "Admissions",
+    cancellation: "Cancellation",
+    importantNotice: "Important notice",
+    departureTime: "Departure time",
+    meetingPlace: "Meeting place",
+    hotels: "Hotels",
+    escortedCoach: "Escorted coach",
+    tourFares: "Tour fares",
+    perPerson: "Per person",
+    callForQuote: "Call for quote - pricing varies by season and room type.",
+    call: "Call",
+    readyFor: "Ready for {{title}}?",
   },
   zh: {
     bookNow: "立即预订",
@@ -39,8 +65,15 @@ const staticText = {
     sort: "排序",
     featured: "精选",
     shortest: "最短行程",
+    shortDuration: "3 天以内",
+    mediumDuration: "4-7 天",
+    longDuration: "8 天以上",
+    tripCount: "{{count}} 个行程",
     noMatches: "没有匹配结果。",
+    noMatchesDescription: "请扩大筛选范围，或联系我们定制行程。",
     requestCustomTrip: "咨询定制行程",
+    from: "起价",
+    viewTour: "查看",
     tours: "旅游行程",
     services: "服务",
     contactUs: "联系我们",
@@ -52,6 +85,25 @@ const staticText = {
     tripEssentials: "行程须知",
     bookThisTour: "预订此行程",
     contactForDates: "联系我们了解日期",
+    tour: "旅游行程",
+    departures: "出发日期",
+    departuresFrom: "从 {{city}} 出发",
+    dayByDay: "每日行程",
+    dayByDayDescription: "逐日了解旅程安排，清楚掌握沿途的每个阶段。",
+    day: "第 {{day}} 天",
+    policiesAndInformation: "政策和实用信息",
+    admissions: "门票",
+    cancellation: "取消政策",
+    importantNotice: "重要提示",
+    departureTime: "出发时间",
+    meetingPlace: "集合地点",
+    hotels: "酒店",
+    escortedCoach: "随团巴士",
+    tourFares: "行程价格",
+    perPerson: "每人",
+    callForQuote: "请联系我们获取报价。价格因季节和房型而异。",
+    call: "致电",
+    readyFor: "准备好前往 {{title}} 了吗？",
   },
 } as const;
 
@@ -81,8 +133,16 @@ export function getLocalizedContent(
 export function getLocalizedStaticText(
   lang: Lang,
   key: LocalizedStaticTextKey,
+  values: Record<string, string | number> = {},
 ): string {
-  return staticText[lang][key];
+  const value = staticText[lang][key];
+
+  if (key === "tripCount") {
+    const count = Number(values.count ?? 0);
+    return lang === "en" ? `${count} ${count === 1 ? "trip" : "trips"}` : `${count} 个行程`;
+  }
+
+  return value.replace(/{{(\w+)}}/g, (_, name: string) => String(values[name] ?? ""));
 }
 
 export function getLocalizedTourValue(

@@ -31,6 +31,17 @@ test("resolves static UI labels from the selected language", () => {
   assert.equal(getLocalizedStaticText("zh", "bookNow"), "立即预订");
 });
 
+test("resolves listing card and tour detail labels from the selected language", () => {
+  assert.equal(getLocalizedStaticText("en", "tripCount", { count: 1 }), "1 trip");
+  assert.equal(getLocalizedStaticText("en", "tripCount", { count: 2 }), "2 trips");
+  assert.equal(getLocalizedStaticText("zh", "tripCount", { count: 2 }), "2 个行程");
+  assert.equal(getLocalizedStaticText("zh", "viewTour"), "查看");
+  assert.equal(getLocalizedStaticText("zh", "from"), "起价");
+  assert.equal(getLocalizedStaticText("zh", "dayByDay"), "每日行程");
+  assert.equal(getLocalizedStaticText("zh", "tourFares"), "行程价格");
+  assert.equal(getLocalizedStaticText("zh", "callForQuote"), "请联系我们获取报价。价格因季节和房型而异。");
+});
+
 test("uses populated Chinese tour values and lists, otherwise English", () => {
   assert.equal(getLocalizedTourValue("zh", "九天", "9 days"), "九天");
   assert.equal(getLocalizedTourValue("zh", "", "9 days"), "9 days");

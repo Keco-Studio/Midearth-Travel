@@ -35,7 +35,6 @@ const sharedHomeFieldKeys = new Set([
   "emailLabel",
   "officeAddress",
   "mailtoRecipient",
-  "servicePageSignOff",
   "whatsappLabel",
 ]);
 

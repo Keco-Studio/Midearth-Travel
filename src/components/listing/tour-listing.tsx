@@ -133,9 +133,9 @@ export function TourListing({
                 onChange={(e) => setDuration(e.target.value)}
               >
                 <option value="all">{getLocalizedStaticText(lang, "anyLength")}</option>
-                <option value="short">≤ 3 days</option>
-                <option value="med">4–7 days</option>
-                <option value="long">8+ days</option>
+                <option value="short">{getLocalizedStaticText(lang, "shortDuration")}</option>
+                <option value="med">{getLocalizedStaticText(lang, "mediumDuration")}</option>
+                <option value="long">{getLocalizedStaticText(lang, "longDuration")}</option>
               </select>
             </div>
             <div className={styles.filterGroup}>
@@ -156,7 +156,7 @@ export function TourListing({
           ) : (
             <>
               <div className={styles.filterCount}>
-                {filtered.length} {filtered.length === 1 ? "trip" : "trips"}
+                {getLocalizedStaticText(lang, "tripCount", { count: filtered.length })}
               </div>
 
               {filtered.length === 0 ? (
@@ -164,8 +164,7 @@ export function TourListing({
                   <div className={styles.emptyStateIcon}>⌖</div>
                   <h3>{getLocalizedStaticText(lang, "noMatches")}</h3>
                   <p>
-                    Try a wider region, or send us a note — we plan custom trips
-                    constantly.
+                    {getLocalizedStaticText(lang, "noMatchesDescription")}
                   </p>
                   <Link className={styles.emptyBtn} href="/#contact">
                     {getLocalizedStaticText(lang, "requestCustomTrip")}

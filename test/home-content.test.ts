@@ -142,6 +142,15 @@ test("normalizes legacy homepage copy into its English localization field", () =
   assert.equal(canonical.status, "published");
 });
 
+test("includes paired localized fields for the service page sign-off", () => {
+  const about = homeModuleSeeds.find((module) => module.id === "aboutSection");
+
+  assert.ok(about?.fields.some((field) => field.key === "servicePageSignOffEn"));
+  assert.ok(about?.fields.some((field) => field.key === "servicePageSignOffZh"));
+  assert.equal(about?.data.servicePageSignOffEn, "Thanks");
+  assert.equal(about?.data.servicePageSignOffZh, "");
+});
+
 test("rejects invalid required, typed, and image values before persistence", () => {
   assert.throws(
     () =>
