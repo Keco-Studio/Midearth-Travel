@@ -59,6 +59,29 @@
   margin-bottom: 8px;
 }
 
+.cms-admin-account {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.cms-admin-account-email {
+  max-width: min(32vw, 280px);
+  overflow: hidden;
+  color: #3b4a46;
+  font-size: 14px;
+  line-height: 32px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .cms-admin-account-email {
+    display: none;
+  }
+}
+
 .cms-tour-library-stack {
   display: grid;
   gap: 24px;

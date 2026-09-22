@@ -311,6 +311,7 @@ export function AdminShell({
       fixSiderbar
       fixedHeader
       siderWidth={256}
+      rightContentRender={() => <AdminAccountMenu email={adminEmail} />}
       route={layoutRouteConfig}
       location={{ pathname }}
       menu={{
@@ -397,7 +398,6 @@ export function AdminShell({
                 pendingAction,
               },
             )}
-            <AdminAccountMenu email={adminEmail} />
           </Space>
         }
         tags={renderPageTags(

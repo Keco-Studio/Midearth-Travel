@@ -54,19 +54,22 @@ export function AdminAccountMenu({ email }: AdminAccountMenuProps) {
   }
 
   return (
-    <Dropdown menu={{ items: menuItems, onClick: handleMenuClick }} trigger={["click"]}>
-      <Tooltip title="Administrator account">
-        <Button
-          aria-label="Administrator account menu"
-          loading={loggingOut}
-          shape="circle"
-          type="text"
-        >
-          <Avatar style={{ background: "#12312b", color: "#fffaf1" }}>
-            {email.slice(0, 1).toUpperCase()}
-          </Avatar>
-        </Button>
-      </Tooltip>
-    </Dropdown>
+    <div className="cms-admin-account">
+      <span className="cms-admin-account-email" title={email}>{email}</span>
+      <Dropdown menu={{ items: menuItems, onClick: handleMenuClick }} trigger={["click"]}>
+        <Tooltip title="Administrator account">
+          <Button
+            aria-label="Administrator account menu"
+            loading={loggingOut}
+            shape="circle"
+            type="text"
+          >
+            <Avatar style={{ background: "#12312b", color: "#fffaf1" }}>
+              {email.slice(0, 1).toUpperCase()}
+            </Avatar>
+          </Button>
+        </Tooltip>
+      </Dropdown>
+    </div>
   );
 }
