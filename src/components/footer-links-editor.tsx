@@ -31,7 +31,6 @@ export function FooterLinksEditor({ content, onChange }: FooterLinksEditorProps)
             onChange(FOOTER_SERVICE_LINKS_KEY, serializeFooterLinks(links))
           }
           title="Services"
-          type="service"
         />
       </div>
     </section>
@@ -40,12 +39,10 @@ export function FooterLinksEditor({ content, onChange }: FooterLinksEditorProps)
 
 function LinkTable({
   title,
-  type,
   links,
   onChange,
 }: {
   title: string;
-  type: "tour" | "service";
   links: FooterLink[];
   onChange: (links: FooterLink[]) => void;
 }) {
@@ -63,7 +60,7 @@ function LinkTable({
     onChange([
       ...links,
       {
-        id: `${type}-${Date.now()}`,
+        id: `service-${Date.now()}`,
         label: "New link",
         href: "/",
       },

@@ -9,6 +9,8 @@ import {
   serializeFooterLinks,
 } from "../src/lib/footer-links.ts";
 import { destinationCategorySeeds } from "../src/lib/destination-categories.ts";
+import { homeModuleSeeds } from "../src/data/cms-seed.ts";
+import { canonicalizeHomeModule } from "../src/lib/home-content.ts";
 
 test("footer links retain only the editable service column", () => {
   assert.deepEqual(getFooterLinkEditorData({}), {
@@ -52,5 +54,24 @@ test("footer services omit empty and unsupported CMS destinations", () => {
     serviceLinks: [
       { id: "custom-service", label: "Custom Service", href: "/#about" },
     ],
+  });
+});
+
+test("preserves stored footer service links through canonicalization before publishing", () => {
+  const footer = homeModuleSeeds.find((module) => module.id === "footer");
+  assert.ok(footer);
+
+  const serviceLinksData = serializeFooterLinks([
+    { id: "air", label: "Air tickets", href: "/services/flights" },
+    { id: "invalid", label: "Dead link", href: "/tours/custom" },
+  ]);
+  const canonical = canonicalizeHomeModule({
+    ...footer,
+    data: { ...footer.data, [FOOTER_SERVICE_LINKS_KEY]: serviceLinksData },
+  });
+
+  assert.equal(canonical.data[FOOTER_SERVICE_LINKS_KEY], serviceLinksData);
+  assert.deepEqual(getPublishedFooterLinks(canonical.data), {
+    serviceLinks: [{ id: "air", label: "Air tickets", href: "/services/flights" }],
   });
 });

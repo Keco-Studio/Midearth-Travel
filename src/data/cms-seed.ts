@@ -10,6 +10,11 @@ import {
 } from "./hero-content.ts";
 import { destinationsByMonth } from "./destinations-by-month.ts";
 import { serializeMonthEntries } from "../lib/explore-by-month.ts";
+import {
+  FOOTER_SERVICE_LINKS_KEY,
+  footerServiceLinkSeeds,
+  serializeFooterLinks,
+} from "../lib/footer-links.ts";
 import type {
   FieldDefinition,
   HomeModuleRecord,
@@ -36,6 +41,7 @@ const sharedHomeFieldKeys = new Set([
   "officeAddress",
   "mailtoRecipient",
   "whatsappLabel",
+  FOOTER_SERVICE_LINKS_KEY,
 ]);
 
 function isLocalizedCopyField(field: FieldDefinition): boolean {
@@ -497,12 +503,18 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
   createModule(
     "footer",
     10,
-    "Manage footer brand copy and phone labels only. Column links are fixed in code; tel/mailto come from Global Settings.",
+    "Manage footer brand copy, phone labels, and service links. Tour links follow the configured destination categories; tel/mailto come from Global Settings.",
     "published",
     [
       { key: "brandTitle", label: "Brand title", type: "text", required: true, maxLength: 40 },
       { key: "brandDescription", label: "Brand description", type: "textarea", required: true, maxLength: 220 },
       { key: "copyrightText", label: "Copyright text", type: "text", required: true, maxLength: 120 },
+      {
+        key: FOOTER_SERVICE_LINKS_KEY,
+        label: "Service links",
+        type: "textarea",
+        helper: "Managed through the Footer service links editor below.",
+      },
       {
         key: "primaryPhoneLabel",
         label: "Primary phone",
@@ -523,6 +535,7 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
       brandDescription:
         "Your one-stop travel solution. TICO certified member serving the community with professionalism and competitive prices.",
       copyrightText: "© 2026 Midearth Travel Inc. All rights reserved.",
+      [FOOTER_SERVICE_LINKS_KEY]: serializeFooterLinks(footerServiceLinkSeeds),
       primaryPhoneLabel: "613-236-5226",
       secondaryPhoneLabel: "613-236-2323",
     },
