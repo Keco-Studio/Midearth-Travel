@@ -66,7 +66,7 @@ Copy `.env.example` to `.env.local` for local development, and configure the sam
 
 The CMS is intentionally unlisted from public navigation. Administrators open `/admin` directly; visitors without a valid session are redirected to `/admin/login`, and anonymous `/api/admin/**` requests receive `401 Unauthorized`. There is no invitation or self-registration flow in this release. Change the initial password through deployment configuration and redeploy when access must be rotated.
 
-Login throttling treats requests as `direct` unless `ADMIN_TRUST_PROXY_HEADERS` is set to the exact, lowercase value `true`. Set it only when a trusted reverse proxy overwrites `X-Forwarded-For`; then the first non-empty forwarded address is used as the throttling source. Any other value, including `TRUE`, leaves forwarded headers untrusted.
+Login throttling treats requests as `direct` unless `ADMIN_TRUST_PROXY_HEADERS` is set to the exact, lowercase value `true`. Set it only when a trusted reverse proxy overwrites `X-Forwarded-For`; then only the first comma-separated forwarded address is used when it is non-blank, otherwise the source remains `direct`. Any other value, including `TRUE`, leaves forwarded headers untrusted.
 
 The language selector persists the visitor's choice in browser storage across navigation. CMS and tour copy uses the selected Chinese value only when it is non-blank; otherwise it uses the English fallback. Do not add machine-generated Chinese copy for client-owned content.
 

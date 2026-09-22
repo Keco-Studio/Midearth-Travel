@@ -287,11 +287,11 @@ Run: `npm test -- test/admin-auth.test.ts`
 
 Expected: FAIL because the README does not mention the new configuration.
 
-- [x] **Step 3: Document operating behavior and manually verify the browser workflow**
+- [ ] **Step 3: Document operating behavior and manually verify the browser workflow** _(partial: documentation is complete, but browser verification is blocked because Playwright and a browser binary are unavailable; `npx --no-install playwright --version` reports the package missing)_
 
 Add a concise README section covering environment configuration, unlisted `/admin` access, and tour-content audit export. Start the Next dev server and verify: language selection persists after navigation; English fallback appears only for blank Chinese content; each of the six Footer links returns a non-404 listing; booking opens an encoded contact action; incomplete tour cards use contact fallback; `/admin` redirects before login; valid credentials allow CMS load; an anonymous `/api/admin/tours` call receives 401.
 
-- [x] **Step 4: Run release verification**
+- [ ] **Step 4: Run release verification** _(blocked by baseline failures: `npm test` has 13 pre-existing failures, `npm run lint` has 2 existing errors, and the no-environment `npm run build` fails closed on missing admin variables; the environment-configured build passes)_
 
 Run: `npm test && npm run lint && npm run build`
 

@@ -265,6 +265,12 @@ test("documents bilingual admin operations and public fallback behavior", () => 
   ]) {
     assert.match(readme, new RegExp(requiredText.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")));
   }
+
+  assert.match(
+    readme,
+    /then only the first comma-separated forwarded address is used when it is non-blank, otherwise the source remains `direct`\./,
+  );
+  assert.doesNotMatch(readme, /first non-empty forwarded address/);
 });
 
 function readProjectFile(path: string): string {

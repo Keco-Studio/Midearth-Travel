@@ -38,3 +38,11 @@ Playwright and a browser binary were not installed in this worktree. `npx --no-i
 - Re-running the build with temporary valid `ADMIN_INITIAL_EMAIL`, `ADMIN_INITIAL_PASSWORD`, and `ADMIN_SESSION_SECRET` completed successfully. It emitted existing warnings for `experimental.staleTimes.static` being below Next.js 16's minimum and multiple lockfiles; the local missing Supabase configuration also produced expected fallback logging during static generation.
 
 These failures are outside Task 5's README, plan, report, and documentation-contract test changes. No unrelated implementation files were modified.
+
+## Fix Round (2026-09-22)
+
+- Corrected the `ADMIN_TRUST_PROXY_HEADERS=true` README contract: only the first comma-separated forwarded address is used when non-blank; otherwise the throttling source is `direct`.
+- Added a documentation-contract assertion for that exact behavior and for rejecting the previous “first non-empty” wording.
+- Task 5 Step 3 remains partial because Playwright and a browser binary are unavailable (`npx --no-install playwright --version` reports the package missing).
+- Task 5 Step 4 remains blocked by the recorded baseline failures: 13 `npm test` failures, 2 `npm run lint` errors, and no-environment build failure on missing admin variables. The build with temporary valid admin variables passes.
+- Focused verification: `npm test -- test/admin-auth.test.ts` passes 13/13 after the README correction.
