@@ -35,6 +35,14 @@ export function isTourDetailReady(tour: Tour, contactHref = ""): boolean {
   return getMissingTourContent(tour, contactHref).length === 0;
 }
 
+export function getConfiguredContactHref(
+  emailHref: string,
+  phoneHref: string,
+): string {
+  const email = getEmailRecipient(emailHref);
+  return email ? `mailto:${email}` : getTelephoneHref(phoneHref);
+}
+
 export function getTourPublicHref(
   tour: Tour,
   contactHref: string,

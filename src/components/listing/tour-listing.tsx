@@ -24,6 +24,7 @@ type Props = {
   summary: string;
   image: string;
   initialTours: Tour[];
+  publishedTours?: Tour[];
   showBrowseSections?: boolean;
   destinationCategories?: DestinationCategory[];
 };
@@ -34,6 +35,7 @@ export function TourListing({
   summary,
   image,
   initialTours,
+  publishedTours = initialTours,
   showBrowseSections = false,
   destinationCategories = destinationCategorySeeds,
 }: Props) {
@@ -151,7 +153,7 @@ export function TourListing({
           </div>
 
           {showBrowseSections ? (
-            <PopularByMonth />
+            <PopularByMonth tours={publishedTours} />
           ) : (
             <>
               <div className={styles.filterCount}>

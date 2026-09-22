@@ -26,6 +26,7 @@ import { TourPdfDownload } from "@/components/tour/tour-pdf-download";
 import { TourCheckoutButton } from "@/components/tour/tour-checkout-button";
 import { useLang } from "@/context/lang-context";
 import { useSiteSettings } from "@/context/site-settings-context";
+import { getConfiguredContactHref } from "@/lib/tour-content-audit";
 import { getLocalizedStaticText, getLocalizedTourList, getLocalizedTourValue } from "@/lib/localized-content";
 import styles from "@/components/tour/tour-detail.module.css";
 
@@ -93,12 +94,11 @@ export function TourDetail({ tour }: { tour: Tour }) {
   const pdfTitle = getLocalizedTourValue(lang, tour.localizedPdfTitle, tour.pdfTitle ?? "");
   const phoneHref = settings.primaryPhoneHref.trim() || "tel:+16132365226";
   const phoneLabel = settings.primaryPhoneLabel.trim() || "613-236-5226";
-  const bookingMailto =
-    getBookingMailto(
-      tour,
-      settings.emailHref.trim() || settings.primaryPhoneHref.trim(),
-    ) || phoneHref;
-  const bookingRecipient = settings.emailHref.trim() || settings.primaryPhoneHref.trim();
+  const bookingRecipient = getConfiguredContactHref(
+    settings.emailHref,
+    settings.primaryPhoneHref,
+  );
+  const bookingMailto = getBookingMailto(tour, bookingRecipient) || phoneHref;
 
   function handleBookingClick(event: React.MouseEvent<HTMLAnchorElement>) {
     const href = getBookingMailto(tour, bookingRecipient, window.location.href);

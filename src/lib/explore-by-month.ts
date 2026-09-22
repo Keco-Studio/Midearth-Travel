@@ -3,16 +3,12 @@ import {
   type MonthDestination,
   type MonthEntry,
 } from "../data/destinations-by-month.ts";
+import type { Tour } from "../data/tours.ts";
+import { getTourPublicHref } from "./tour-content-audit.ts";
 
 export const EXPLORE_MONTHS_DATA_KEY = "monthsData";
 
-export type ExploreTourLookup = {
-  slug: string;
-  title: string;
-  region: string;
-  tourType: string;
-  image: string;
-};
+export type ExploreTourLookup = Tour;
 
 export function serializeMonthEntries(entries: MonthEntry[]): string {
   return JSON.stringify(entries);
@@ -60,6 +56,7 @@ export function createEmptyDestination(): MonthDestination {
 export function resolveExploreByMonthEntries(
   entries: MonthEntry[],
   tours: readonly ExploreTourLookup[],
+  contactHref = "",
 ): MonthEntry[] {
   const bySlug = new Map(tours.map((tour) => [tour.slug, tour]));
 
@@ -83,7 +80,7 @@ export function resolveExploreByMonthEntries(
           tag: tour.tourType,
           desc: dest.desc,
           image: tour.image || "/hero/hero-coast.jpg",
-          href: `/tours/${tour.slug}`,
+          href: getTourPublicHref(tour, contactHref),
         },
       ];
     }),

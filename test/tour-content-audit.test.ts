@@ -3,9 +3,11 @@ import test from "node:test";
 import { getBookingMailto, type Tour } from "../src/data/tours.ts";
 import {
   auditTourContent,
+  getConfiguredContactHref,
   getTourPublicHref,
   isTourDetailReady,
 } from "../src/lib/tour-content-audit.ts";
+import { resolveExploreByMonthEntries } from "../src/lib/explore-by-month.ts";
 
 const contactHref = "mailto:travel@example.com";
 
@@ -70,4 +72,56 @@ test("keeps content-ready tours on their detail route and routes incomplete tour
     getTourPublicHref(incomplete, contactHref, "https://site.test/tours/northern-lights"),
     /^mailto:travel@example\.com\?subject=/,
   );
+});
+
+test("uses a configured email when valid and the configured telephone when it is not", () => {
+  assert.equal(
+    getConfiguredContactHref("mailto:travel@example.com", "tel:+16135550123"),
+    "mailto:travel@example.com",
+  );
+  assert.equal(
+    getConfiguredContactHref("mailto:not-an-email", "tel:+16135550123"),
+    "tel:+16135550123",
+  );
+  assert.equal(
+    getTourPublicHref({ ...tour, duration: "" }, "tel:+16135550123"),
+    "tel:+16135550123",
+  );
+});
+
+test("routes linked month tours through contact fallback without changing non-tour destinations", () => {
+  const entries = resolveExploreByMonthEntries(
+    [
+      {
+        month: "Jan",
+        label: "January",
+        destinations: [
+          {
+            id: "tour",
+            tourSlug: tour.slug,
+            name: "",
+            region: "",
+            tag: "",
+            desc: "Winter departure",
+            image: "",
+            href: "",
+          },
+          {
+            id: "route",
+            name: "Beach escape",
+            region: "Asia",
+            tag: "Beach",
+            desc: "Independent route destination",
+            image: "/beach.jpg",
+            href: "/routes/asia",
+          },
+        ],
+      },
+    ],
+    [{ ...tour, description: "", itinerary: [] }],
+    "tel:+16135550123",
+  );
+
+  assert.equal(entries[0]?.destinations[0]?.href, "tel:+16135550123");
+  assert.equal(entries[0]?.destinations[1]?.href, "/routes/asia");
 });

@@ -11,7 +11,7 @@ import {
   type DestinationCategory,
 } from "@/lib/destination-categories";
 import { getTourRegionBadge } from "@/lib/tour-destination-categories";
-import { getTourPublicHref } from "@/lib/tour-content-audit";
+import { getConfiguredContactHref, getTourPublicHref } from "@/lib/tour-content-audit";
 import { getLocalizedStaticText, getLocalizedTourList, getLocalizedTourValue } from "@/lib/localized-content";
 import styles from "./listing.module.css";
 
@@ -35,7 +35,7 @@ export function TourListingCard({
   const duration = getLocalizedTourValue(lang, tour.localizedDuration, tour.duration);
   const href = tour.href ?? getTourPublicHref(
     tour,
-    settings.emailHref.trim() || settings.primaryPhoneHref.trim(),
+    getConfiguredContactHref(settings.emailHref, settings.primaryPhoneHref),
   );
   const regionBadge = getTourRegionBadge(tour, destinationCategories);
 

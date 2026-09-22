@@ -8,10 +8,14 @@ import {
 } from "@/lib/content-values";
 import { getLocalizedContent } from "@/lib/localized-content";
 import {
+  getConfiguredContactHref,
+} from "@/lib/tour-content-audit";
+import {
   getExploreByMonthEntries,
   resolveExploreByMonthEntries,
 } from "@/lib/explore-by-month";
 import type { Tour } from "@/data/tours";
+import { useSiteSettings } from "@/context/site-settings-context";
 import styles from "./explore-by-month-section.module.css";
 
 export function ExploreByMonthSection({
@@ -22,6 +26,7 @@ export function ExploreByMonthSection({
   tours?: Tour[];
 }) {
   const { lang } = useLang();
+  const settings = useSiteSettings();
 
   if (getBooleanContent(content, "isVisible", true) === false) {
     return null;
@@ -30,6 +35,7 @@ export function ExploreByMonthSection({
   const months = resolveExploreByMonthEntries(
     getExploreByMonthEntries(content),
     tours,
+    getConfiguredContactHref(settings.emailHref, settings.primaryPhoneHref),
   );
 
   const eyebrow = `— ${getLocalizedContent(content, "eyebrow", lang, "Explore by Month")}`;
@@ -44,6 +50,7 @@ export function ExploreByMonthSection({
           title={title}
           subtitle={subtitle}
           months={months}
+          tours={tours}
         />
       </div>
     </section>

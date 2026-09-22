@@ -14,7 +14,7 @@ import {
   type DestinationCategory,
 } from "@/lib/destination-categories";
 import { getTourRegionBadge } from "@/lib/tour-destination-categories";
-import { getTourPublicHref } from "@/lib/tour-content-audit";
+import { getConfiguredContactHref, getTourPublicHref } from "@/lib/tour-content-audit";
 import { getLocalizedStaticText, getLocalizedTourList, getLocalizedTourValue } from "@/lib/localized-content";
 
 export function TourCard({
@@ -38,7 +38,7 @@ export function TourCard({
   );
   const href = getTourPublicHref(
     tour,
-    settings.emailHref.trim() || settings.primaryPhoneHref.trim(),
+    getConfiguredContactHref(settings.emailHref, settings.primaryPhoneHref),
   );
 
   return (

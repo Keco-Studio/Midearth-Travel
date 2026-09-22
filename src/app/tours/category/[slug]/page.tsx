@@ -44,6 +44,7 @@ export default async function TourCategoryPage({ params }: Props) {
         summary={category?.summary?.trim() || meta.summary}
         image={category?.image?.trim() || meta.image}
         initialTours={filterToursForCategory(tours, slug)}
+        publishedTours={tours}
         showBrowseSections={slug === "bus-tours"}
         destinationCategories={categories}
       />

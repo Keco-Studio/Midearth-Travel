@@ -41,7 +41,11 @@ import {
   parseLayoutPath,
 } from "@/lib/layout-routes";
 import type { DestinationCategory } from "@/lib/destination-categories";
-import { auditTourContent, type TourContentIssue } from "@/lib/tour-content-audit";
+import {
+  auditTourContent,
+  getConfiguredContactHref,
+  type TourContentIssue,
+} from "@/lib/tour-content-audit";
 import { proLayoutToken } from "@/theme/mid-earth-theme";
 import type { BookingRecord, HomeModuleId, HomeModuleRecord, PaymentRecord, SiteSettings, TourRecord } from "@/types/cms";
 
@@ -659,7 +663,10 @@ function renderWorkspace(
       <div className="cms-tour-library-stack">
         <TourContentAuditReport
           tours={handlers.publishedTours}
-          contactHref={handlers.settings.emailHref.trim() || handlers.settings.primaryPhoneHref.trim()}
+          contactHref={getConfiguredContactHref(
+            handlers.settings.emailHref,
+            handlers.settings.primaryPhoneHref,
+          )}
         />
         <ToursWorkspace
           tours={handlers.tours}

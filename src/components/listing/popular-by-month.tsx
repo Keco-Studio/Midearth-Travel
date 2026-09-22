@@ -5,8 +5,12 @@ import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import {
   destinationsByMonth,
+  type MonthDestination,
   type MonthEntry,
 } from "@/data/destinations-by-month";
+import { getTourBySlug, type Tour } from "@/data/tours";
+import { useSiteSettings } from "@/context/site-settings-context";
+import { getConfiguredContactHref, getTourPublicHref } from "@/lib/tour-content-audit";
 import styles from "./browse-sections.module.css";
 
 type PopularByMonthProps = {
@@ -14,6 +18,7 @@ type PopularByMonthProps = {
   title?: ReactNode;
   subtitle?: ReactNode;
   months?: MonthEntry[];
+  tours?: readonly Tour[];
 };
 
 export function PopularByMonth({
@@ -27,7 +32,9 @@ export function PopularByMonth({
   ),
   subtitle,
   months = destinationsByMonth,
+  tours = [],
 }: PopularByMonthProps) {
+  const settings = useSiteSettings();
   const source = months.length > 0 ? months : destinationsByMonth;
   const [active, setActive] = useState(source[0].month);
   const panel = source.find((m) => m.month === active) ?? source[0];
@@ -60,7 +67,11 @@ export function PopularByMonth({
           {panel.destinations.map((dest) => (
             <Link
               key={`${panel.month}-${dest.id ?? dest.tourSlug ?? dest.name}`}
-              href={dest.href ?? "/#contact"}
+              href={getMonthDestinationHref(
+                dest,
+                tours,
+                getConfiguredContactHref(settings.emailHref, settings.primaryPhoneHref),
+              )}
               className={styles.destCard}
             >
               <div className={styles.destCardImg}>
@@ -86,4 +97,21 @@ export function PopularByMonth({
       </div>
     </div>
   );
+}
+
+function getMonthDestinationHref(
+  destination: MonthDestination,
+  tours: readonly Tour[],
+  contactHref: string,
+): string {
+  const slug = destination.tourSlug?.trim() || getTourSlugFromHref(destination.href);
+  const tour = slug
+    ? tours.find((entry) => entry.slug === slug) ?? getTourBySlug(slug)
+    : undefined;
+
+  return tour ? getTourPublicHref(tour, contactHref) : destination.href ?? "/#contact";
+}
+
+function getTourSlugFromHref(href: string | undefined): string | undefined {
+  return href?.trim().match(/^\/tours\/([^/?#]+)/)?.[1];
 }
