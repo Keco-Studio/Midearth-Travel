@@ -54,9 +54,12 @@ export function getTourIntroDescription(
   tour: Tour,
   lang: "en" | "zh",
 ): string {
-  return lang === "zh" && tour.localizedDescription?.trim()
-    ? tour.localizedDescription.trim()
-    : tour.description.trim();
+  const englishDescription = tour.description.trim();
+  const chineseDescription = tour.localizedDescription?.trim() ?? "";
+
+  return lang === "zh"
+    ? chineseDescription || englishDescription
+    : englishDescription || chineseDescription;
 }
 
 export function getTourPublicHref(

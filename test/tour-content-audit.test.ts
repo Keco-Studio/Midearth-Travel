@@ -51,7 +51,7 @@ test("treats either rendered language description as customer-ready", () => {
 
   assert.equal(isTourDetailReady(localizedOnly, contactHref), true);
   assert.equal(getTourIntroDescription(localizedOnly, "zh"), "极光之旅简介");
-  assert.equal(getTourIntroDescription(localizedOnly, "en"), "");
+  assert.equal(getTourIntroDescription(localizedOnly, "en"), "极光之旅简介");
   assert.deepEqual(auditTourContent([localizedOnly], contactHref), []);
 });
 

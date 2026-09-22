@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { FooterContentProvider } from "@/context/footer-content-context";
 import { LangProvider } from "@/context/lang-context";
 import { NavbarContentProvider } from "@/context/navbar-content-context";
 import { SiteSettingsProvider } from "@/context/site-settings-context";
 import { getHomeModule } from "@/lib/home-content";
+import { resolveStoredLanguage } from "@/lib/localized-content";
 import { loadPublishedHomeModules } from "@/lib/supabase-home-content";
 import { loadGlobalSettings } from "@/lib/supabase-global-settings";
 import "./globals.css";
@@ -26,15 +28,17 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [settings, modules] = await Promise.all([
+  const [settings, modules, cookieStore] = await Promise.all([
     loadGlobalSettings(),
     loadPublishedHomeModules().catch(() => []),
+    cookies(),
   ]);
+  const initialLang = resolveStoredLanguage(cookieStore.get("midearth-lang")?.value ?? null);
   const navbarContent = getHomeModule(modules, "navbar").data;
   const footerContent = getHomeModule(modules, "footer").data;
 
   return (
-    <html lang="en" className="h-full antialiased">
+    <html lang={initialLang === "zh" ? "zh-Hans" : "en"} className="h-full antialiased">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -58,7 +62,7 @@ export default async function RootLayout({
         <SiteSettingsProvider settings={settings}>
           <NavbarContentProvider content={navbarContent}>
             <FooterContentProvider content={footerContent}>
-              <LangProvider>{children}</LangProvider>
+              <LangProvider initialLang={initialLang}>{children}</LangProvider>
             </FooterContentProvider>
           </NavbarContentProvider>
         </SiteSettingsProvider>

@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { resolveStoredLanguage } from "@/lib/localized-content";
+import { serializeLanguageCookie } from "@/lib/language-preferences";
 
 export type Lang = "en" | "zh";
 
@@ -23,12 +24,19 @@ const LangContext = createContext<LangContextValue | null>(null);
 
 const STORAGE_KEY = "midearth-lang";
 
-export function LangProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang | null>(null);
+export function LangProvider({
+  children,
+  initialLang = "en",
+}: {
+  children: ReactNode;
+  initialLang?: Lang;
+}) {
+  const [lang, setLangState] = useState<Lang>(initialLang);
 
   const setLang = useCallback((next: Lang) => {
     setLangState(next);
     localStorage.setItem(STORAGE_KEY, next);
+    document.cookie = serializeLanguageCookie(next);
     document.documentElement.lang = next === "zh" ? "zh-Hans" : "en";
   }, []);
 
@@ -37,22 +45,20 @@ export function LangProvider({ children }: { children: ReactNode }) {
   }, [lang, setLang]);
 
   useEffect(() => {
-    let storedLanguage: Lang;
     try {
-      storedLanguage = resolveStoredLanguage(localStorage.getItem(STORAGE_KEY));
+      const storedLanguage = localStorage.getItem(STORAGE_KEY);
+      if (storedLanguage === "en" || storedLanguage === "zh") {
+        startTransition(() => setLangState(resolveStoredLanguage(storedLanguage)));
+        document.cookie = serializeLanguageCookie(storedLanguage);
+      }
     } catch {
-      storedLanguage = "en";
+      // Keep the server-rendered language if storage is unavailable.
     }
-    startTransition(() => setLangState(storedLanguage));
   }, []);
 
   useEffect(() => {
-    if (lang) {
-      document.documentElement.lang = lang === "zh" ? "zh-Hans" : "en";
-    }
+    document.documentElement.lang = lang === "zh" ? "zh-Hans" : "en";
   }, [lang]);
-
-  if (!lang) return null;
 
   return (
     <LangContext.Provider value={{ lang, setLang, toggleLang }}>
