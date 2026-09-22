@@ -74,11 +74,13 @@ export async function patchFinalCtaContactFields(contact: {
   phoneLabel: string;
   emailLabel: string;
   officeAddress: string;
+  officeAddressZh: string;
 }): Promise<HomeModuleRecord> {
   return patchHomeModuleDataFields("finalCta", {
     phoneLabel: contact.phoneLabel.trim(),
     emailLabel: contact.emailLabel.trim(),
     officeAddress: contact.officeAddress.trim(),
+    officeAddressZh: contact.officeAddressZh.trim(),
   });
 }
 
@@ -123,6 +125,7 @@ export async function patchFinalCtaOfficeAddress(
     phoneLabel: String(finalCta?.data.phoneLabel ?? ""),
     emailLabel: String(finalCta?.data.emailLabel ?? ""),
     officeAddress,
+    officeAddressZh: String(finalCta?.data.officeAddressZh ?? ""),
   });
 }
 

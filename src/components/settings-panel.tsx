@@ -18,6 +18,7 @@ type SettingsFormValues = {
   emailLabel: string;
   emailHref: string;
   officeAddress: string;
+  officeAddressZh: string;
 };
 
 type SettingsPanelProps = {
@@ -44,6 +45,7 @@ export function SettingsPanel({ settings, onSaved }: SettingsPanelProps) {
     emailLabel: settings.emailLabel,
     emailHref: settings.emailHref,
     officeAddress: settings.officeAddress,
+    officeAddressZh: settings.officeAddressZh,
   };
 
   return (
@@ -157,6 +159,13 @@ export function SettingsPanel({ settings, onSaved }: SettingsPanelProps) {
         tooltip="Synced with Homepage Content → Final CTA → Office address."
         fieldProps={{ rows: 3 }}
         rules={[{ max: 160, message: "Office address must be 160 characters or fewer." }]}
+      />
+      <ProFormTextArea
+        name="officeAddressZh"
+        label="中文办公地址"
+        tooltip="切换中文后显示，并同步至 Homepage Content → Final CTA。"
+        fieldProps={{ rows: 3 }}
+        rules={[{ max: 160, message: "Chinese office address must be 160 characters or fewer." }]}
       />
     </ProForm>
   );

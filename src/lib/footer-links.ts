@@ -8,6 +8,7 @@ import {
 export type FooterLink = {
   id: string;
   label: string;
+  labelZh?: string;
   href: string;
 };
 
@@ -20,11 +21,21 @@ export const FOOTER_SERVICE_LINKS_KEY = "serviceLinksData";
 export const FOOTER_LINK_FIELD_KEYS = [FOOTER_SERVICE_LINKS_KEY] as const;
 
 export const footerServiceLinkSeeds: FooterLink[] = [
-  { id: "flights", label: "Flights", href: "/services/flights" },
-  { id: "hotels", label: "Hotels", href: "/services/hotels" },
-  { id: "charters", label: "Charters", href: "/services/charters" },
-  { id: "travel-insurance", label: "Travel Insurance", href: "/services/travel-insurance" },
-  { id: "visa-application", label: "Visa Application", href: "/services/visa-application" },
+  { id: "flights", label: "Flights", labelZh: "机票", href: "/services/flights" },
+  { id: "hotels", label: "Hotels", labelZh: "酒店", href: "/services/hotels" },
+  { id: "charters", label: "Charters", labelZh: "包机服务", href: "/services/charters" },
+  {
+    id: "travel-insurance",
+    label: "Travel Insurance",
+    labelZh: "旅游保险",
+    href: "/services/travel-insurance",
+  },
+  {
+    id: "visa-application",
+    label: "Visa Application",
+    labelZh: "签证申请",
+    href: "/services/visa-application",
+  },
 ];
 
 export function serializeFooterLinks(links: FooterLink[]): string {
@@ -46,13 +57,18 @@ export function getFooterLinkEditorData(content: ContentData): {
   };
 }
 
-export function getPublishedFooterLinks(content: ContentData): {
+export function getPublishedFooterLinks(content: ContentData, lang: "en" | "zh" = "en"): {
   serviceLinks: FooterLink[];
 } {
   const links = getFooterLinkEditorData(content);
 
   return {
-    serviceLinks: links.serviceLinks.filter(isPublishableLink),
+    serviceLinks: links.serviceLinks
+      .filter(isPublishableLink)
+      .map((link) => ({
+        ...link,
+        label: lang === "zh" && link.labelZh?.trim() ? link.labelZh : link.label,
+      })),
   };
 }
 
@@ -121,10 +137,14 @@ function parseFooterLinks(value: string, fallback: FooterLink[]): FooterLink[] {
       return cloneLinks(fallback);
     }
 
+    const fallbackById = new Map(fallback.map((link) => [link.id, link]));
     const links = parsed
       .filter(isFooterLink)
       .slice(0, 8)
-      .map((link) => ({ ...link }));
+      .map((link) => {
+        const labelZh = link.labelZh?.trim() || fallbackById.get(link.id)?.labelZh;
+        return labelZh ? { ...link, labelZh } : { ...link };
+      });
 
     return links.length > 0 ? links : cloneLinks(fallback);
   } catch {
@@ -141,6 +161,7 @@ function isFooterLink(value: unknown): value is FooterLink {
   return (
     typeof link.id === "string" &&
     typeof link.label === "string" &&
+    (link.labelZh === undefined || typeof link.labelZh === "string") &&
     typeof link.href === "string"
   );
 }

@@ -12,6 +12,7 @@ export type GlobalSettingsRow = {
   email_label: string;
   email_href: string;
   office_address: string;
+  office_address_zh?: string | null;
   updated_at: string;
 };
 
@@ -38,6 +39,7 @@ export function canonicalizeSiteSettings(input: SiteSettings): SiteSettings {
     emailLabel: input.emailLabel.trim(),
     emailHref: input.emailHref.trim(),
     officeAddress: input.officeAddress.trim(),
+    officeAddressZh: input.officeAddressZh.trim(),
   };
 
   if (!settings.siteName || !settings.primaryPhoneLabel || !settings.primaryPhoneHref) {
@@ -73,6 +75,7 @@ export function canonicalizeSiteSettings(input: SiteSettings): SiteSettings {
     ["emailLabel", 80],
     ["emailHref", 120],
     ["officeAddress", 160],
+    ["officeAddressZh", 160],
   ];
 
   for (const [key, maxLength] of limits) {
@@ -101,6 +104,7 @@ export function siteSettingsToRow(
     email_label: value.emailLabel,
     email_href: value.emailHref,
     office_address: value.officeAddress,
+    office_address_zh: value.officeAddressZh || null,
     updated_at: updatedAt,
   };
 }
@@ -122,5 +126,6 @@ export function rowToSiteSettings(
     emailLabel: row.email_label,
     emailHref: row.email_href,
     officeAddress: row.office_address,
+    officeAddressZh: row.office_address_zh?.trim() || siteSettingsSeed.officeAddressZh,
   });
 }

@@ -9,6 +9,7 @@ import {
 } from "@/data/destinations-by-month";
 import type { Tour } from "@/data/tours";
 import { useSiteSettings } from "@/context/site-settings-context";
+import { useLang } from "@/context/lang-context";
 import { getConfiguredContactHref } from "@/lib/tour-content-audit";
 import { resolveExploreByMonthEntries } from "@/lib/explore-by-month";
 import styles from "./browse-sections.module.css";
@@ -35,6 +36,7 @@ export function PopularByMonth({
   tours = [],
 }: PopularByMonthProps) {
   const settings = useSiteSettings();
+  const { lang } = useLang();
   const entries = months.length > 0 ? months : destinationsByMonth;
   const source = resolveExploreByMonthEntries(
     entries,
@@ -90,7 +92,11 @@ export function PopularByMonth({
                   {dest.tag} · {dest.region}
                 </div>
                 <div className={styles.destCardName}>{dest.name}</div>
-                <div className={styles.destCardDesc}>{dest.desc}</div>
+                <div className={styles.destCardDesc}>
+                  {lang === "zh" && dest.localizedDesc?.trim()
+                    ? dest.localizedDesc
+                    : dest.desc}
+                </div>
               </div>
             </Link>
           ))}

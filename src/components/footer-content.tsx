@@ -38,7 +38,7 @@ export function FooterContent({
     "© 2026 Midearth Travel Inc. All rights reserved.",
   );
   const tourLinks = getCategoryFooterLinks(categories, lang);
-  const serviceLinks = getPublishedFooterLinks(resolved).serviceLinks;
+  const serviceLinks = getPublishedFooterLinks(resolved, lang).serviceLinks;
   const emailHref = settings.emailHref.trim();
 
   return (
@@ -66,7 +66,7 @@ export function FooterContent({
               <li><a href={settings.primaryPhoneHref} className="transition-colors hover:text-[#f5efe3]">{settings.primaryPhoneLabel}</a></li>
               {settings.secondaryPhoneLabel ? <li><a href={settings.secondaryPhoneHref} className="transition-colors hover:text-[#f5efe3]">{settings.secondaryPhoneLabel}</a></li> : null}
               <li><a href={settings.emailHref} className="transition-colors hover:text-[#f5efe3]">{settings.emailLabel}</a></li>
-              <li><span>{settings.officeAddress}</span></li>
+              <li><span>{lang === "zh" && settings.officeAddressZh.trim() ? settings.officeAddressZh : settings.officeAddress}</span></li>
             </ul>
           </div>
         </div>

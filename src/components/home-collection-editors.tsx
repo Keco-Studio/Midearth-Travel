@@ -606,6 +606,17 @@ export function TestimonialsEditor({
             ),
           },
           {
+            title: "中文评价",
+            dataIndex: "localizedText",
+            render: (_, record) => (
+              <Input.TextArea
+                rows={3}
+                value={record.localizedText ?? ""}
+                onChange={(event) => update(record.id, "localizedText", event.target.value)}
+              />
+            ),
+          },
+          {
             title: "",
             width: 64,
             render: (_, record) => (

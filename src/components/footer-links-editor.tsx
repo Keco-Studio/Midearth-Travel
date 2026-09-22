@@ -50,7 +50,7 @@ function LinkTable({
   const issues = getFooterLinkIssues(links);
   const invalidIds = new Set(issues.map((issue) => issue.id));
 
-  function update(id: string, key: "label" | "href", value: string) {
+  function update(id: string, key: "label" | "labelZh" | "href", value: string) {
     onChange(
       links.map((link) => (link.id === id ? { ...link, [key]: value } : link)),
     );
@@ -136,6 +136,18 @@ function LinkTable({
                 status={invalidIds.has(record.id) ? "error" : undefined}
                 value={record.href}
                 onChange={(event) => update(record.id, "href", event.target.value)}
+              />
+            ),
+          },
+          {
+            title: "中文名称",
+            dataIndex: "labelZh",
+            width: "30%",
+            render: (_, record) => (
+              <Input
+                maxLength={60}
+                value={record.labelZh ?? ""}
+                onChange={(event) => update(record.id, "labelZh", event.target.value)}
               />
             ),
           },

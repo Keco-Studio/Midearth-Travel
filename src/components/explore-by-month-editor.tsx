@@ -197,6 +197,23 @@ export function ExploreByMonthEditor({
                   ),
                 },
                 {
+                  title: "中文简介",
+                  dataIndex: "localizedDesc",
+                  render: (_, dest) => (
+                    <Input.TextArea
+                      rows={2}
+                      placeholder="中文页面显示的月度简介"
+                      value={dest.localizedDesc ?? ""}
+                      onChange={(event) => {
+                        if (!dest.id) return;
+                        updateDestination(month.month, dest.id, {
+                          localizedDesc: event.target.value,
+                        });
+                      }}
+                    />
+                  ),
+                },
+                {
                   title: "",
                   width: 56,
                   render: (_, dest) => (

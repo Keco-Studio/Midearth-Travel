@@ -6,6 +6,7 @@ export type MonthDestination = {
   region: string;
   tag: string;
   desc: string;
+  localizedDesc?: string;
   image: string;
   href?: string;
 };

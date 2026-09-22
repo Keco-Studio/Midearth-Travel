@@ -10,4 +10,5 @@ export const siteSettingsSeed: SiteSettings = {
   emailLabel: "info@midearth.ca",
   emailHref: "mailto:info@midearth.ca",
   officeAddress: "Bronson Avenue, Ottawa, Ontario",
+  officeAddressZh: "加拿大安大略省渥太华市布朗森大道",
 };

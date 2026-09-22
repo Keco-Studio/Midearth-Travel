@@ -44,6 +44,7 @@ export function createEmptyDestination(): MonthDestination {
     id: createDestinationId(),
     tourSlug: "",
     desc: "",
+    localizedDesc: "",
     name: "",
     region: "",
     tag: "",
@@ -79,6 +80,7 @@ export function resolveExploreByMonthEntries(
           region: tour.region,
           tag: tour.tourType,
           desc: dest.desc,
+          localizedDesc: dest.localizedDesc,
           image: tour.image || "/hero/hero-coast.jpg",
           href: getTourPublicHref(tour, contactHref),
         },
@@ -116,6 +118,8 @@ function normalizeDestination(value: unknown): MonthDestination | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const dest = value as Partial<MonthDestination> & { href?: string };
   const desc = typeof dest.desc === "string" ? dest.desc : "";
+  const localizedDesc =
+    typeof dest.localizedDesc === "string" ? dest.localizedDesc : "";
   const name = typeof dest.name === "string" ? dest.name : "";
   const href = typeof dest.href === "string" ? dest.href : "";
   const tourSlug =
@@ -135,6 +139,7 @@ function normalizeDestination(value: unknown): MonthDestination | null {
     region: typeof dest.region === "string" ? dest.region : "",
     tag: typeof dest.tag === "string" ? dest.tag : "",
     desc,
+    localizedDesc,
     image: typeof dest.image === "string" ? dest.image : "",
     href,
   };

@@ -58,6 +58,33 @@ test("footer services omit empty and unsupported CMS destinations", () => {
   });
 });
 
+test("uses configured Chinese labels for Footer service links", () => {
+  const content = {
+    [FOOTER_SERVICE_LINKS_KEY]: serializeFooterLinks([
+      {
+        id: "flights",
+        label: "Flights",
+        labelZh: "机票",
+        href: "/services/flights",
+      },
+    ]),
+  };
+
+  assert.deepEqual(getPublishedFooterLinks(content, "zh").serviceLinks, [
+    { id: "flights", label: "机票", labelZh: "机票", href: "/services/flights" },
+  ]);
+});
+
+test("adds seeded Chinese labels to legacy Footer service links", () => {
+  const content = {
+    [FOOTER_SERVICE_LINKS_KEY]: serializeFooterLinks([
+      { id: "flights", label: "Flights", href: "/services/flights" },
+    ]),
+  };
+
+  assert.equal(getPublishedFooterLinks(content, "zh").serviceLinks[0]?.label, "机票");
+});
+
 test("reports invalid service links with actionable editor errors", () => {
   assert.deepEqual(
     getFooterLinkIssues([

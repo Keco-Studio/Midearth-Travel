@@ -58,5 +58,6 @@ function isSiteSettings(value: unknown): value is SiteSettings {
     settings.emailLabel,
     settings.emailHref,
     settings.officeAddress,
+    settings.officeAddressZh,
   ].every((entry) => typeof entry === "string");
 }

@@ -58,7 +58,7 @@ export function TestimonialsSection({
                 <figure key={t.id} className={styles.slide}>
                   <div className={styles.slideStars}>{"★".repeat(t.rating)}</div>
                   <blockquote className={styles.slideQuote}>
-                    &ldquo;{t.text}&rdquo;
+                    &ldquo;{lang === "zh" && t.localizedText?.trim() ? t.localizedText : t.text}&rdquo;
                   </blockquote>
                   <figcaption className={styles.slideCaption}>
                     <span className={styles.name}>{t.name}</span>

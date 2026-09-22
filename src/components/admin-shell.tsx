@@ -475,6 +475,7 @@ export function AdminShell({
                             phoneLabel: nextSettings.primaryPhoneLabel,
                             emailLabel: nextSettings.emailLabel,
                             officeAddress: nextSettings.officeAddress,
+                            officeAddressZh: nextSettings.officeAddressZh,
                           },
                         }
                       : module,

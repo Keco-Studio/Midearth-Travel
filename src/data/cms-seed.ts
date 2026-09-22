@@ -444,6 +444,13 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
         maxLength: 160,
         helper: "Synced with Global Settings → Office address.",
       },
+      {
+        key: "officeAddressZh",
+        label: "Chinese office address",
+        type: "textarea",
+        maxLength: 160,
+        helper: "Synced with Global Settings → Chinese office address.",
+      },
     ],
     {
       image: "/final-cta-travel-flatlay.jpg",
@@ -456,6 +463,7 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
       phoneLabel: "613-236-5226",
       emailLabel: "info@midearth.ca",
       officeAddress: "Bronson Avenue, Ottawa, Ontario",
+      officeAddressZh: "加拿大安大略省渥太华市布朗森大道",
     },
   ),
   createModule(

@@ -33,8 +33,12 @@ export function FinalCta({ content = {} }: { content?: ContentData }) {
   const emailHref =
     settings.emailHref.trim() || `mailto:${site.email}`;
   const officeAddress =
+    (lang === "zh"
+      ? settings.officeAddressZh.trim() ||
+        getStringContent(content, "officeAddressZh", "").trim()
+      : settings.officeAddress.trim() ||
+        getStringContent(content, "officeAddress", "").trim()) ||
     settings.officeAddress.trim() ||
-    getStringContent(content, "officeAddress", "").trim() ||
     "Bronson Avenue, Ottawa, Ontario";
   const primaryButtonLink = phoneHref;
   const secondaryButtonText = getLocalizedContent(

@@ -138,6 +138,7 @@ export type SiteSettings = {
   emailLabel: string;
   emailHref: string;
   officeAddress: string;
+  officeAddressZh: string;
 };
 
 export type BookingStatus = "new" | "contacted" | "confirmed" | "cancelled" | "completed";
