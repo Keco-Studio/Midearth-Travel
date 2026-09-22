@@ -20,7 +20,10 @@ export async function PUT(request: Request) {
   try {
     const payload = (await request.json()) as {
       categories?: Array<
-        Pick<DestinationCategory, "id" | "titleEn" | "titleZh" | "summary" | "image">
+        Pick<
+          DestinationCategory,
+          "id" | "titleEn" | "titleZh" | "summary" | "summaryZh" | "image"
+        >
       >;
     };
 

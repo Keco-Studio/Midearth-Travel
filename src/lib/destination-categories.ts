@@ -8,6 +8,7 @@ export type DestinationCategory = BrowseCategory & {
   titleEn: string;
   titleZh: string;
   summary?: string;
+  summaryZh?: string;
 };
 
 export type DestinationCategoryRow = {
@@ -15,6 +16,7 @@ export type DestinationCategoryRow = {
   title_en: string;
   title_zh: string;
   summary?: string | null;
+  summary_zh?: string | null;
   image?: string | null;
   sort_order: number;
   updated_at: string;
@@ -52,6 +54,7 @@ export function toDestinationCategoryRow(
     title_en: category.titleEn,
     title_zh: category.titleZh,
     summary: category.summary?.trim() || null,
+    summary_zh: category.summaryZh?.trim() || null,
     image: category.image?.trim() || null,
     sort_order: index + 1,
     updated_at: new Date().toISOString(),
@@ -68,6 +71,7 @@ export function mergeDestinationCategoryRows(
     const titleEn = row?.title_en.trim() || seed.titleEn;
     const titleZh = row?.title_zh.trim() || seed.titleZh;
     const summary = row?.summary?.trim() || seed.summary;
+    const summaryZh = row?.summary_zh?.trim() || seed.summaryZh;
     const image = row?.image?.trim() || seed.image;
 
     return {
@@ -76,6 +80,7 @@ export function mergeDestinationCategoryRows(
       titleEn,
       titleZh,
       summary,
+      summaryZh,
       image,
     };
   });

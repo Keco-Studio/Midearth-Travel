@@ -53,3 +53,20 @@ test("selects the configured category title for the active public language", () 
   assert.equal(getDestinationCategoryTitle("asia", categories, "en"), "East Asia");
   assert.equal(getDestinationCategoryTitle("asia", categories, "zh"), "东亚精选");
 });
+
+test("uses a stored Chinese summary while retaining English fallback", () => {
+  const categories = mergeDestinationCategoryRows([
+    {
+      id: "asia",
+      title_en: "Asia",
+      title_zh: "亚洲",
+      summary: "English summary",
+      summary_zh: "中文简介",
+      sort_order: 2,
+      updated_at: "2026-09-22T12:00:00Z",
+    },
+  ]);
+
+  assert.equal(categories[1].summary, "English summary");
+  assert.equal(categories[1].summaryZh, "中文简介");
+});

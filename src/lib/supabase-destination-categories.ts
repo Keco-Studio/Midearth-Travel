@@ -22,7 +22,10 @@ export async function loadDestinationCategories(): Promise<DestinationCategory[]
 
 export async function saveDestinationCategories(
   categories: Array<
-    Pick<DestinationCategory, "id" | "titleEn" | "titleZh" | "summary" | "image">
+    Pick<
+      DestinationCategory,
+      "id" | "titleEn" | "titleZh" | "summary" | "summaryZh" | "image"
+    >
   >,
 ): Promise<DestinationCategory[]> {
   const inputById = new Map(categories.map((category) => [category.id, category]));
@@ -31,6 +34,7 @@ export async function saveDestinationCategories(
     const titleEn = input?.titleEn.trim() ?? "";
     const titleZh = input?.titleZh.trim() ?? "";
     const summary = input?.summary?.trim() ?? seed.summary ?? "";
+    const summaryZh = input?.summaryZh?.trim() ?? seed.summaryZh;
     const image = input?.image?.trim() ?? seed.image;
 
     if (!titleEn || !titleZh) {
@@ -41,7 +45,7 @@ export async function saveDestinationCategories(
       throw new Error("Destination names must be 80 characters or fewer");
     }
 
-    return { ...seed, title: titleEn, titleEn, titleZh, summary, image };
+    return { ...seed, title: titleEn, titleEn, titleZh, summary, summaryZh, image };
   });
   const rows = canonical.map(toDestinationCategoryRow);
   try {
@@ -51,7 +55,7 @@ export async function saveDestinationCategories(
     const message = error instanceof Error ? error.message : String(error);
     if (/summary|image|column/i.test(message)) {
       await upsertRows(
-        rows.map(({ summary: _summary, image: _image, ...rest }) => rest),
+        rows.map(({ summary: _summary, summary_zh: _summaryZh, image: _image, ...rest }) => rest),
       );
     } else {
       throw error;
@@ -76,7 +80,7 @@ async function ensureRows(): Promise<DestinationCategoryRow[]> {
       await upsertRows(missing);
     } catch {
       await upsertRows(
-        missing.map(({ summary: _summary, image: _image, ...rest }) => rest),
+        missing.map(({ summary: _summary, summary_zh: _summaryZh, image: _image, ...rest }) => rest),
       );
     }
     return listRows();
@@ -93,7 +97,8 @@ async function listRows(): Promise<DestinationCategoryRow[]> {
 
 async function upsertRows(
   rows: Array<
-    DestinationCategoryRow | Omit<DestinationCategoryRow, "summary" | "image">
+    | DestinationCategoryRow
+    | Omit<DestinationCategoryRow, "summary" | "summary_zh" | "image">
   >,
 ): Promise<void> {
   await supabaseJson<DestinationCategoryRow[]>(`/rest/v1/${TABLE}?on_conflict=id`, {

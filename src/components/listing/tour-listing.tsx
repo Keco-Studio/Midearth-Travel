@@ -25,6 +25,7 @@ type Props = {
   localizedTitle?: string;
   titleTextKey?: "allTours";
   summary: string;
+  localizedSummary?: string;
   image: string;
   initialTours: Tour[];
   publishedTours?: Tour[];
@@ -39,6 +40,7 @@ export function TourListing({
   localizedTitle,
   titleTextKey,
   summary,
+  localizedSummary,
   image,
   initialTours,
   publishedTours = initialTours,
@@ -56,6 +58,7 @@ export function TourListing({
   const headerTitle = titleTextKey
     ? getLocalizedStaticText(lang, titleTextKey)
     : getLocalizedTourValue(lang, localizedTitle, title);
+  const headerSummary = getLocalizedTourValue(lang, localizedSummary, summary);
 
   const regions = useMemo(() => {
     const labels = new Set(
@@ -100,7 +103,7 @@ export function TourListing({
   return (
     <main className={styles.page}>
       <Navbar />
-      <SubHero eyebrow={headerEyebrow} title={headerTitle} sub={summary} img={image} />
+      <SubHero eyebrow={headerEyebrow} title={headerTitle} sub={headerSummary} img={image} />
       <section className={styles.section}>
         <div className={styles.container}>
           <div className={styles.filterBar}>

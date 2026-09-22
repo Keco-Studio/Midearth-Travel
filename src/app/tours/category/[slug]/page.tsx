@@ -45,6 +45,7 @@ export default async function TourCategoryPage({ params }: Props) {
         title={title}
         localizedTitle={localizedTitle}
         summary={category?.summary?.trim() || meta.summary}
+        localizedSummary={category?.summaryZh?.trim() || undefined}
         image={category?.image?.trim() || meta.image}
         initialTours={filterToursForCategory(tours, slug)}
         publishedTours={tours}

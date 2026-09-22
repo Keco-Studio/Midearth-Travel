@@ -51,6 +51,7 @@ export default async function RouteRegionPage({ params }: Props) {
         title={title}
         localizedTitle={localizedTitle}
         summary={category?.summary?.trim() || region.summary}
+        localizedSummary={category?.summaryZh?.trim() || undefined}
         image={category?.image?.trim() || region.image}
         initialTours={filterToursForCategory(tours, slug)}
         destinationCategories={categories}
