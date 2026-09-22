@@ -17,19 +17,19 @@ const projectDirectory = dirname(testDirectory);
 const adminApiDirectory = join(projectDirectory, "src/app/api/admin");
 
 const testConfig: AdminAuthConfig = {
-  initialEmail: "admin@example.com",
+  initialEmail: "admin@midearthtravel.ca",
   initialPassword: "correct horse battery staple",
   sessionSecret: "test-only-session-secret-with-at-least-32-characters",
 };
 
 test("verifies a valid signed admin session", async () => {
   const issuedAt = new Date("2026-09-22T00:00:00Z");
-  const token = await createAdminSession("admin@example.com", issuedAt, testConfig);
+  const token = await createAdminSession("admin@midearthtravel.ca", issuedAt, testConfig);
 
   assert.deepEqual(
     await verifyAdminSession(token, new Date("2026-09-22T01:00:00Z"), testConfig),
     {
-      email: "admin@example.com",
+      email: "admin@midearthtravel.ca",
       issuedAt: issuedAt.getTime(),
       expiresAt: new Date("2026-09-22T08:00:00Z").getTime(),
     },
@@ -38,7 +38,7 @@ test("verifies a valid signed admin session", async () => {
 
 test("rejects a tampered signed admin session", async () => {
   const token = await createAdminSession(
-    "admin@example.com",
+    "admin@midearthtravel.ca",
     new Date("2026-09-22T00:00:00Z"),
     testConfig,
   );
@@ -51,7 +51,7 @@ test("rejects a tampered signed admin session", async () => {
 
 test("rejects an expired signed admin session", async () => {
   const token = await createAdminSession(
-    "admin@example.com",
+    "admin@midearthtravel.ca",
     new Date("2026-09-22T00:00:00Z"),
     testConfig,
   );
@@ -64,7 +64,7 @@ test("rejects an expired signed admin session", async () => {
 
 test("rejects a signed admin session issued in the future", async () => {
   const token = await createAdminSession(
-    "admin@example.com",
+    "admin@midearthtravel.ca",
     new Date("2026-09-22T01:00:00Z"),
     testConfig,
   );
@@ -77,13 +77,13 @@ test("rejects a signed admin session issued in the future", async () => {
 
 test("fails closed when initial admin configuration is incomplete", async () => {
   assert.throws(
-    () => getAdminAuthConfig({ ADMIN_INITIAL_EMAIL: "admin@example.com" }),
+    () => getAdminAuthConfig({ ADMIN_INITIAL_EMAIL: "admin@midearthtravel.ca" }),
     AdminAuthConfigurationError,
   );
 
   await assert.rejects(
     createAdminSession(
-      "admin@example.com",
+      "admin@midearthtravel.ca",
       new Date("2026-09-22T00:00:00Z"),
       { ...testConfig, sessionSecret: "" },
     ),
@@ -91,10 +91,59 @@ test("fails closed when initial admin configuration is incomplete", async () => 
   );
 });
 
+test("rejects weak, invalid, and placeholder admin configuration", () => {
+  const validEnvironment = {
+    ADMIN_INITIAL_EMAIL: "admin@midearthtravel.ca",
+    ADMIN_INITIAL_PASSWORD: "correct horse battery staple",
+    ADMIN_SESSION_SECRET: "test-only-session-secret-with-at-least-32-characters",
+  };
+  const invalidEnvironments = [
+    { ...validEnvironment, ADMIN_INITIAL_EMAIL: "   " },
+    { ...validEnvironment, ADMIN_INITIAL_EMAIL: "not-an-email" },
+    { ...validEnvironment, ADMIN_INITIAL_EMAIL: "admin@example.com" },
+    {
+      ...validEnvironment,
+      ADMIN_INITIAL_EMAIL: `${"a".repeat(240)}@midearthtravel.ca`,
+    },
+    { ...validEnvironment, ADMIN_INITIAL_PASSWORD: "short-pass" },
+    { ...validEnvironment, ADMIN_SESSION_SECRET: "s".repeat(31) },
+    {
+      ...validEnvironment,
+      ADMIN_INITIAL_PASSWORD: "replace_with_initial_admin_password",
+    },
+    {
+      ...validEnvironment,
+      ADMIN_SESSION_SECRET: "replace_with_a_long_random_session_secret",
+    },
+  ];
+
+  for (const environment of invalidEnvironments) {
+    assert.throws(
+      () => getAdminAuthConfig(environment),
+      AdminAuthConfigurationError,
+    );
+  }
+});
+
+test("normalizes a valid configured admin email", () => {
+  assert.deepEqual(
+    getAdminAuthConfig({
+      ADMIN_INITIAL_EMAIL: "  Admin@MidearthTravel.ca  ",
+      ADMIN_INITIAL_PASSWORD: "correct horse battery staple",
+      ADMIN_SESSION_SECRET: "test-only-session-secret-with-at-least-32-characters",
+    }),
+    {
+      initialEmail: "Admin@MidearthTravel.ca",
+      initialPassword: "correct horse battery staple",
+      sessionSecret: "test-only-session-secret-with-at-least-32-characters",
+    },
+  );
+});
+
 test("validates both initial credentials without exposing which one failed", async () => {
   assert.equal(
     await validateAdminCredentials(
-      "admin@example.com",
+      "admin@midearthtravel.ca",
       "correct horse battery staple",
       testConfig,
     ),
@@ -102,14 +151,14 @@ test("validates both initial credentials without exposing which one failed", asy
   );
   assert.equal(
     await validateAdminCredentials(
-      "other@example.com",
+      "other@midearthtravel.ca",
       "correct horse battery staple",
       testConfig,
     ),
     false,
   );
   assert.equal(
-    await validateAdminCredentials("admin@example.com", "wrong password", testConfig),
+    await validateAdminCredentials("admin@midearthtravel.ca", "wrong password", testConfig),
     false,
   );
 });

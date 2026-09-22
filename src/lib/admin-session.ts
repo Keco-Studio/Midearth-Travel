@@ -1,6 +1,12 @@
 export const ADMIN_SESSION_MAX_AGE_SECONDS = 8 * 60 * 60;
 
 const ADMIN_SESSION_MAX_AGE_MS = ADMIN_SESSION_MAX_AGE_SECONDS * 1000;
+const ADMIN_EMAIL_MAX_LENGTH = 254;
+const ADMIN_PASSWORD_MIN_LENGTH = 12;
+const ADMIN_SESSION_SECRET_MIN_LENGTH = 32;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EXAMPLE_EMAIL_DOMAIN_PATTERN = /@example\.(?:com|net|org)$/i;
+const PLACEHOLDER_PATTERN = /(?:^|[_\s-])(?:example|placeholder|change[_\s-]?me|replace[_\s-]?(?:me|with))(?:$|[_\s-])/i;
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
 
@@ -23,8 +29,8 @@ type SessionPayload = {
 };
 
 export class AdminAuthConfigurationError extends Error {
-  constructor(missingVariables: string[]) {
-    super(`Missing admin authentication configuration: ${missingVariables.join(", ")}`);
+  constructor(invalidVariables: string[]) {
+    super(`Invalid or missing admin authentication configuration: ${invalidVariables.join(", ")}`);
     this.name = "AdminAuthConfigurationError";
   }
 }
@@ -134,23 +140,47 @@ export async function verifyAdminSession(
 }
 
 function validateConfig(config: AdminAuthConfig): AdminAuthConfig {
-  const missingVariables = [
-    ["ADMIN_INITIAL_EMAIL", config.initialEmail.trim()],
-    ["ADMIN_INITIAL_PASSWORD", config.initialPassword],
-    ["ADMIN_SESSION_SECRET", config.sessionSecret],
+  const initialEmail = config.initialEmail.trim();
+  const invalidVariables = [
+    [
+      "ADMIN_INITIAL_EMAIL",
+      !isValidAdminEmail(initialEmail) || isPlaceholder(initialEmail),
+    ],
+    [
+      "ADMIN_INITIAL_PASSWORD",
+      config.initialPassword.length < ADMIN_PASSWORD_MIN_LENGTH ||
+        isPlaceholder(config.initialPassword),
+    ],
+    [
+      "ADMIN_SESSION_SECRET",
+      config.sessionSecret.length < ADMIN_SESSION_SECRET_MIN_LENGTH ||
+        isPlaceholder(config.sessionSecret),
+    ],
   ]
-    .filter(([, value]) => !value)
-    .map(([name]) => name);
+    .filter(([, invalid]) => invalid)
+    .map(([name]) => name as string);
 
-  if (missingVariables.length > 0) {
-    throw new AdminAuthConfigurationError(missingVariables);
+  if (invalidVariables.length > 0) {
+    throw new AdminAuthConfigurationError(invalidVariables);
   }
 
   return {
-    initialEmail: config.initialEmail.trim(),
+    initialEmail,
     initialPassword: config.initialPassword,
     sessionSecret: config.sessionSecret,
   };
+}
+
+function isValidAdminEmail(value: string): boolean {
+  return (
+    value.length <= ADMIN_EMAIL_MAX_LENGTH &&
+    EMAIL_PATTERN.test(value) &&
+    !EXAMPLE_EMAIL_DOMAIN_PATTERN.test(value)
+  );
+}
+
+function isPlaceholder(value: string): boolean {
+  return PLACEHOLDER_PATTERN.test(value.trim());
 }
 
 async function hashCredential(value: string): Promise<Uint8Array> {

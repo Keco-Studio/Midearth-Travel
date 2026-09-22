@@ -1,4 +1,6 @@
 import { cookies } from "next/headers";
+import { validateAdminLoginAttempt } from "@/lib/admin-login-attempts";
+import { parseAdminLoginPayload } from "@/lib/admin-login-input";
 import {
   ADMIN_SESSION_COOKIE_NAME,
   ADMIN_SESSION_MAX_AGE_SECONDS,
@@ -17,13 +19,18 @@ export async function POST(request: Request) {
     return invalidCredentialsResponse();
   }
 
-  if (!isLoginPayload(payload)) return invalidCredentialsResponse();
+  const login = parseAdminLoginPayload(payload);
+  if (!login) return invalidCredentialsResponse();
 
   try {
-    const isValid = await validateAdminCredentials(payload.email, payload.password);
+    const isValid = await validateAdminLoginAttempt(
+      login.email,
+      request.headers.get("x-forwarded-for"),
+      () => validateAdminCredentials(login.email, login.password),
+    );
     if (!isValid) return invalidCredentialsResponse();
 
-    const token = await createAdminSession(payload.email);
+    const token = await createAdminSession(login.email);
     const cookieStore = await cookies();
     cookieStore.set(ADMIN_SESSION_COOKIE_NAME, token, {
       httpOnly: true,
@@ -45,12 +52,6 @@ export async function POST(request: Request) {
       { status: 500 },
     );
   }
-}
-
-function isLoginPayload(value: unknown): value is { email: string; password: string } {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
-  const payload = value as { email?: unknown; password?: unknown };
-  return typeof payload.email === "string" && typeof payload.password === "string";
 }
 
 function invalidCredentialsResponse(): Response {

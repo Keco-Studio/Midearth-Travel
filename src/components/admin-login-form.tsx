@@ -4,6 +4,10 @@ import { LockOutlined, MailOutlined } from "@ant-design/icons";
 import { Alert, Button, Card, Form, Input, Typography } from "antd";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import {
+  ADMIN_LOGIN_EMAIL_MAX_LENGTH,
+  ADMIN_LOGIN_PASSWORD_MAX_LENGTH,
+} from "@/lib/admin-login-input";
 
 type LoginValues = {
   email: string;
@@ -69,6 +73,7 @@ export function AdminLoginForm() {
               prefix={<MailOutlined />}
               autoComplete="username"
               inputMode="email"
+              maxLength={ADMIN_LOGIN_EMAIL_MAX_LENGTH}
               size="large"
             />
           </Form.Item>
@@ -80,6 +85,7 @@ export function AdminLoginForm() {
             <Input.Password
               prefix={<LockOutlined />}
               autoComplete="current-password"
+              maxLength={ADMIN_LOGIN_PASSWORD_MAX_LENGTH}
               size="large"
             />
           </Form.Item>
