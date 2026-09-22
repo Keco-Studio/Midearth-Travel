@@ -10,7 +10,7 @@ import { loadAdminHomeModules } from "@/lib/supabase-home-content";
 import { loadGlobalSettings } from "@/lib/supabase-global-settings";
 import { withSyncedFinalCtaContactFields } from "@/lib/office-address-sync";
 import { loadPaymentOrders } from "@/lib/supabase-payments";
-import { loadAdminTours } from "@/lib/supabase-tours";
+import { loadAdminTours, loadPublishedTours } from "@/lib/supabase-tours";
 
 export default async function AdminPage() {
   const [
@@ -22,6 +22,7 @@ export default async function AdminPage() {
     payments,
     bookings,
     tours,
+    publishedTours,
   ] = await Promise.all([
       loadAdminHomeModules().catch((error) => {
         console.error("Unable to preload homepage modules", error);
@@ -43,6 +44,10 @@ export default async function AdminPage() {
         console.error("Unable to preload tours", error);
         return [];
       }),
+      loadPublishedTours().catch((error) => {
+        console.error("Unable to preload published tours", error);
+        return [];
+      }),
     ]);
 
   return (
@@ -55,6 +60,7 @@ export default async function AdminPage() {
       initialPayments={payments}
       initialBookings={bookings}
       initialTours={tours}
+      initialPublishedTours={publishedTours}
     />
   );
 }

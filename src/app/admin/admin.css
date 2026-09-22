@@ -10,6 +10,11 @@
   text-rendering: optimizeLegibility;
 }
 
+.cms-tour-library-stack {
+  display: grid;
+  gap: 24px;
+}
+
 .ant-pro-layout .ant-pro-sider-logo {
   padding-inline: 16px;
 }

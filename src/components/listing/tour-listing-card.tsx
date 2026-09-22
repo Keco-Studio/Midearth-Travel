@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useLang } from "@/context/lang-context";
+import { useSiteSettings } from "@/context/site-settings-context";
 import { getTourPriceLabel } from "@/data/tour-filters";
 import type { RegionListingCard } from "@/data/destinations-by-region";
 import {
@@ -10,6 +11,7 @@ import {
   type DestinationCategory,
 } from "@/lib/destination-categories";
 import { getTourRegionBadge } from "@/lib/tour-destination-categories";
+import { getTourPublicHref } from "@/lib/tour-content-audit";
 import { getLocalizedStaticText, getLocalizedTourList, getLocalizedTourValue } from "@/lib/localized-content";
 import styles from "./listing.module.css";
 
@@ -21,6 +23,7 @@ export function TourListingCard({
   destinationCategories?: DestinationCategory[];
 }) {
   const { lang } = useLang();
+  const settings = useSiteSettings();
   const price = getTourPriceLabel(tour);
   const priceFrom = price.startsWith("from ");
   const highlights = getLocalizedTourList(
@@ -30,7 +33,10 @@ export function TourListingCard({
   );
   const title = getLocalizedTourValue(lang, tour.localizedTitle, tour.title);
   const duration = getLocalizedTourValue(lang, tour.localizedDuration, tour.duration);
-  const href = tour.href ?? `/tours/${tour.slug}`;
+  const href = tour.href ?? getTourPublicHref(
+    tour,
+    settings.emailHref.trim() || settings.primaryPhoneHref.trim(),
+  );
   const regionBadge = getTourRegionBadge(tour, destinationCategories);
 
   return (

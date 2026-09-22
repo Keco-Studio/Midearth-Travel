@@ -64,7 +64,6 @@ export function TourDetail({ tour }: { tour: Tour }) {
   const departuresLine = departures.length > 0 ? departures.join(" · ") : undefined;
   const departuresComma = departures.length > 0 ? departures.join(", ") : undefined;
   const tags = getLocalizedTourList(lang, tour.localizedHighlights, tour.tags);
-  const bookingMailto = getBookingMailto(tour);
   const gallery = tour.gallery?.length ? tour.gallery : [tour.image];
   const included = getLocalizedTourList(
     lang,
@@ -94,6 +93,20 @@ export function TourDetail({ tour }: { tour: Tour }) {
   const pdfTitle = getLocalizedTourValue(lang, tour.localizedPdfTitle, tour.pdfTitle ?? "");
   const phoneHref = settings.primaryPhoneHref.trim() || "tel:+16132365226";
   const phoneLabel = settings.primaryPhoneLabel.trim() || "613-236-5226";
+  const bookingMailto =
+    getBookingMailto(
+      tour,
+      settings.emailHref.trim() || settings.primaryPhoneHref.trim(),
+    ) || phoneHref;
+  const bookingRecipient = settings.emailHref.trim() || settings.primaryPhoneHref.trim();
+
+  function handleBookingClick(event: React.MouseEvent<HTMLAnchorElement>) {
+    const href = getBookingMailto(tour, bookingRecipient, window.location.href);
+    if (!href) return;
+
+    event.preventDefault();
+    window.location.assign(href);
+  }
   const bookingTourCode = tour.code
     ? lang === "zh"
       ? `（行程编号 ${tour.code}）`
@@ -378,6 +391,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
                   ) : null}
                   <a
                     href={bookingMailto}
+                    onClick={handleBookingClick}
                     className={cn(
                       buttonVariants({ variant: "default" }),
                       "w-full",

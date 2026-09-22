@@ -324,11 +324,26 @@ export function getTourNotIncluded(tour: Tour): string[] {
   return tour.notIncluded ?? defaultTourNotIncluded;
 }
 
-export function getBookingMailto(tour: Tour): string {
-  const subject = encodeURIComponent(
-    `Booking request — ${getTourDisplayTitle(tour)}${tour.code ? ` (${tour.code})` : ""}`,
-  );
-  return `mailto:info@midearth.ca?subject=${subject}`;
+export function getBookingMailto(
+  tour: Tour,
+  recipient: string,
+  pageUrl?: string,
+): string {
+  const email = recipient.trim().replace(/^mailto:/i, "").split(/[?#]/, 1)[0].trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "";
+
+  const title = getTourDisplayTitle(tour).trim();
+  const code = tour.code?.trim();
+  const subject = `Booking request - ${title}${code ? ` (${code})` : ""}`;
+  const body = [
+    "Booking request",
+    `Tour: ${title}`,
+    ...(code ? [`Code: ${code}`] : []),
+    ...(pageUrl?.trim() ? [`Page: ${pageUrl.trim()}`] : []),
+  ].join("\n");
+  const query = new URLSearchParams({ subject, body }).toString().replaceAll("+", "%20");
+
+  return `mailto:${email}?${query}`;
 }
 
 export const tourCategories = [

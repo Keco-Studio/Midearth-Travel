@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useLang } from "@/context/lang-context";
+import { useSiteSettings } from "@/context/site-settings-context";
 import {
   getTourCategoryLabel,
   getTourDisplayPrice,
@@ -13,6 +14,7 @@ import {
   type DestinationCategory,
 } from "@/lib/destination-categories";
 import { getTourRegionBadge } from "@/lib/tour-destination-categories";
+import { getTourPublicHref } from "@/lib/tour-content-audit";
 import { getLocalizedStaticText, getLocalizedTourList, getLocalizedTourValue } from "@/lib/localized-content";
 
 export function TourCard({
@@ -23,6 +25,7 @@ export function TourCard({
   destinationCategories?: DestinationCategory[];
 }) {
   const { lang } = useLang();
+  const settings = useSiteSettings();
   const price = getTourDisplayPrice(tour);
   const priceFrom = price.startsWith("from ");
   const regionBadge = getTourRegionBadge(tour, destinationCategories);
@@ -33,10 +36,14 @@ export function TourCard({
     tour.localizedHighlights,
     tour.highlights ?? tour.tags,
   );
+  const href = getTourPublicHref(
+    tour,
+    settings.emailHref.trim() || settings.primaryPhoneHref.trim(),
+  );
 
   return (
     <article className="tour-card">
-      <Link className="tour-card-img-btn" href={`/tours/${tour.slug}`}>
+      <Link className="tour-card-img-btn" href={href}>
         <Image
           src={tour.image}
           alt={title}
@@ -55,7 +62,7 @@ export function TourCard({
           <span>{duration}</span>
         </div>
         <h3 className="tour-card-title">
-          <Link href={`/tours/${tour.slug}`}>{title}</Link>
+          <Link href={href}>{title}</Link>
         </h3>
         <div className="tour-card-highlights">
           {highlights.slice(0, 4).map((h) => (
@@ -75,7 +82,7 @@ export function TourCard({
               <span className="price-contact">{price}</span>
             )}
           </div>
-          <Link className="link-arrow sm" href={`/tours/${tour.slug}`}>
+          <Link className="link-arrow sm" href={href}>
             {getLocalizedStaticText(lang, "viewTour")} →
           </Link>
         </div>
