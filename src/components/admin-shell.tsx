@@ -47,6 +47,7 @@ import {
   getConfiguredContactHref,
   type TourContentIssue,
 } from "@/lib/tour-content-audit";
+import { mapPublishedTourRecords } from "@/lib/tour-content";
 import { proLayoutToken } from "@/theme/mid-earth-theme";
 import type { BookingRecord, HomeModuleId, HomeModuleRecord, PaymentRecord, SiteSettings, TourRecord } from "@/types/cms";
 
@@ -63,7 +64,6 @@ type AdminShellProps = {
   initialPayments: PaymentRecord[];
   initialBookings?: BookingRecord[];
   initialTours?: TourRecord[];
-  initialPublishedTours?: Tour[];
 };
 
 export function AdminShell({
@@ -75,7 +75,6 @@ export function AdminShell({
   initialPayments,
   initialBookings = bookingSeeds,
   initialTours = [],
-  initialPublishedTours = [],
 }: AdminShellProps) {
   const { message } = App.useApp();
   const router = useRouter();
@@ -99,6 +98,7 @@ export function AdminShell({
     initialBookings.length > 0 ? initialBookings : bookingSeeds,
   );
   const [tours, setTours] = useState(initialTours);
+  const publishedTours = useMemo(() => mapPublishedTourRecords(tours), [tours]);
   const [supplementalDirtyModuleIds, setSupplementalDirtyModuleIds] = useState<
     HomeModuleId[]
   >([]);
@@ -447,7 +447,7 @@ export function AdminShell({
           payments: initialPayments,
           bookings,
           tours,
-          publishedTours: initialPublishedTours,
+          publishedTours,
           onDestinationCategoriesChange: setDestinationCategories,
           onServicesChange: setServices,
           onTestimonialsChange: setTestimonials,

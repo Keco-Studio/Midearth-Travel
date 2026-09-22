@@ -110,8 +110,8 @@ export function SettingsPanel({ settings, onSaved }: SettingsPanelProps) {
         rules={[
           { required: true, message: "Primary phone href is required." },
           {
-            pattern: /^tel:/,
-            message: "Primary phone href must start with tel:",
+            pattern: /^tel:(?=(?:\D*\d){3})\+?[0-9][0-9(). -]*$/i,
+            message: "Enter a valid telephone link, such as tel:+16132365226.",
           },
         ]}
       />
@@ -125,8 +125,8 @@ export function SettingsPanel({ settings, onSaved }: SettingsPanelProps) {
         label="Secondary phone href"
         rules={[
           {
-            pattern: /^tel:/,
-            message: "Secondary phone href must start with tel:",
+            pattern: /^tel:(?=(?:\D*\d){3})\+?[0-9][0-9(). -]*$/i,
+            message: "Enter a valid telephone link, such as tel:+16132362323.",
           },
         ]}
       />
@@ -146,8 +146,8 @@ export function SettingsPanel({ settings, onSaved }: SettingsPanelProps) {
         rules={[
           { required: true, message: "Email href is required." },
           {
-            pattern: /^mailto:/,
-            message: "Email href must start with mailto:",
+            pattern: /^mailto:[^\s@?]+@[^\s@?]+\.[^\s@?]+$/i,
+            message: "Enter a valid email link, such as mailto:info@example.com.",
           },
         ]}
       />

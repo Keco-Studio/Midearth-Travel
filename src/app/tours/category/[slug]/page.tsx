@@ -34,13 +34,16 @@ export default async function TourCategoryPage({ params }: Props) {
     loadDestinationCategories(),
   ]);
   const title = getDestinationCategoryTitle(slug, categories);
+  const localizedTitle = getDestinationCategoryTitle(slug, categories, "zh");
   const category = categories.find((item) => item.slug === slug || item.id === slug);
 
   return (
     <>
       <TourListing
         eyebrow="Category"
+        eyebrowTextKey="category"
         title={title}
+        localizedTitle={localizedTitle}
         summary={category?.summary?.trim() || meta.summary}
         image={category?.image?.trim() || meta.image}
         initialTours={filterToursForCategory(tours, slug)}
@@ -48,7 +51,7 @@ export default async function TourCategoryPage({ params }: Props) {
         showBrowseSections={slug === "bus-tours"}
         destinationCategories={categories}
       />
-      <Footer />
+      <Footer categories={categories} />
     </>
   );
 }

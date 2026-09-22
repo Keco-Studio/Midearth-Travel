@@ -5,6 +5,7 @@ import { tourSeeds } from "../src/data/cms-seed.ts";
 import { defaultTourNotIncluded, getTourNotIncluded, tours } from "../src/data/tours.ts";
 import {
   mapTourRecordToPublicTour,
+  mapPublishedTourRecords,
   mergeTourRows,
   toTourRow,
   type TourRow,
@@ -195,4 +196,21 @@ test("excludes non-published records from the public mapping", () => {
     .map(mapTourRecordToPublicTour);
 
   assert.equal(publicTours.some((tour) => tour.slug === seed.slug), false);
+});
+
+test("derives the published audit collection from the current edited tour records", () => {
+  const edited = {
+    ...seed,
+    description: "Current edited description",
+    status: "published" as const,
+  };
+
+  const result = mapPublishedTourRecords([
+    edited,
+    { ...seed, slug: "draft-tour", status: "draft" as const },
+  ]);
+
+  assert.equal(result.length, 1);
+  assert.equal(result[0]?.description, "Current edited description");
+  assert.equal(result.some((tour) => tour.slug === "draft-tour"), false);
 });

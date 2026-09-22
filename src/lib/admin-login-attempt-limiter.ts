@@ -22,6 +22,7 @@ export type AdminLoginAttemptLimiter = Readonly<{
   ) => Promise<boolean>;
 }>;
 
+/** Creates an in-memory limiter; capacity and attempt windows are per process instance. */
 export function createAdminLoginAttemptLimiter(
   options: AdminLoginAttemptLimiterOptions = {},
 ): AdminLoginAttemptLimiter {
@@ -58,7 +59,10 @@ export function createAdminLoginAttemptLimiter(
             ? existingWindow
             : null;
 
-        if (activeWindow?.failedAttempts === MAX_FAILED_ATTEMPTS) return false;
+        if (activeWindow && activeWindow.failedAttempts >= MAX_FAILED_ATTEMPTS) return false;
+        if (!activeWindow && !canTrackNewAttempt(attempts, maxTrackedKeys)) {
+          return false;
+        }
 
         const credentialsAreValid = await validateCredentials();
         if (credentialsAreValid) {
@@ -69,8 +73,8 @@ export function createAdminLoginAttemptLimiter(
         if (activeWindow) {
           activeWindow.failedAttempts += 1;
         } else {
-          if (!attempts.has(key)) {
-            evictOldestAttemptIfFull(attempts, maxTrackedKeys);
+          if (!evictOldestUnblockedAttemptIfFull(attempts, maxTrackedKeys)) {
+            return false;
           }
           attempts.set(key, { failedAttempts: 1, startedAt: now });
         }
@@ -91,14 +95,32 @@ function pruneExpiredAttempts(attempts: Map<string, AttemptWindow>, now: number)
   }
 }
 
-function evictOldestAttemptIfFull(
+function canTrackNewAttempt(
   attempts: Map<string, AttemptWindow>,
   maxTrackedKeys: number,
-): void {
-  if (attempts.size < maxTrackedKeys) return;
+): boolean {
+  return (
+    attempts.size < maxTrackedKeys ||
+    [...attempts.values()].some(
+      (attempt) => attempt.failedAttempts < MAX_FAILED_ATTEMPTS,
+    )
+  );
+}
 
-  const oldestKey = attempts.keys().next().value;
-  if (oldestKey !== undefined) attempts.delete(oldestKey);
+function evictOldestUnblockedAttemptIfFull(
+  attempts: Map<string, AttemptWindow>,
+  maxTrackedKeys: number,
+): boolean {
+  if (attempts.size < maxTrackedKeys) return true;
+
+  for (const [key, attempt] of attempts) {
+    if (attempt.failedAttempts < MAX_FAILED_ATTEMPTS) {
+      attempts.delete(key);
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function createAttemptKey(email: string, source: string): string {

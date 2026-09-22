@@ -26,7 +26,10 @@ import { TourPdfDownload } from "@/components/tour/tour-pdf-download";
 import { TourCheckoutButton } from "@/components/tour/tour-checkout-button";
 import { useLang } from "@/context/lang-context";
 import { useSiteSettings } from "@/context/site-settings-context";
-import { getConfiguredContactHref } from "@/lib/tour-content-audit";
+import {
+  getConfiguredContactHref,
+  getTourIntroDescription,
+} from "@/lib/tour-content-audit";
 import { getLocalizedStaticText, getLocalizedTourList, getLocalizedTourValue } from "@/lib/localized-content";
 import styles from "@/components/tour/tour-detail.module.css";
 
@@ -92,13 +95,17 @@ export function TourDetail({ tour }: { tour: Tour }) {
     tour.essentials?.escortedCoach ?? "",
   );
   const pdfTitle = getLocalizedTourValue(lang, tour.localizedPdfTitle, tour.pdfTitle ?? "");
-  const phoneHref = settings.primaryPhoneHref.trim() || "tel:+16132365226";
+  const configuredContactHref = getConfiguredContactHref("", settings.primaryPhoneHref);
+  const phoneHref = configuredContactHref.startsWith("tel:")
+    ? configuredContactHref
+    : "tel:+16132365226";
   const phoneLabel = settings.primaryPhoneLabel.trim() || "613-236-5226";
   const bookingRecipient = getConfiguredContactHref(
     settings.emailHref,
     settings.primaryPhoneHref,
   );
   const bookingMailto = getBookingMailto(tour, bookingRecipient) || phoneHref;
+  const introDescription = getTourIntroDescription(tour, lang);
 
   function handleBookingClick(event: React.MouseEvent<HTMLAnchorElement>) {
     const href = getBookingMailto(tour, bookingRecipient, window.location.href);
@@ -181,6 +188,9 @@ export function TourDetail({ tour }: { tour: Tour }) {
             </div>
 
             <div className={styles.overviewMain}>
+              {introDescription ? (
+                <p className={styles.introDescription}>{introDescription}</p>
+              ) : null}
               {tour.itinerary && tour.itinerary.length > 0 ? (
                 <section className={styles.dayByDaySection}>
                   <h2 className="text-3xl font-light tracking-tight md:text-4xl">

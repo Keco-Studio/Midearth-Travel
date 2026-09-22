@@ -177,13 +177,13 @@ test("prunes expired windows before enforcing capacity", async () => {
   assert.equal(credentialChecks, 0, "active oldest window must survive stale-record pruning");
 });
 
-test("evicts the oldest active window when capacity is reached", async () => {
+test("evicts the oldest unblocked active window when capacity is reached", async () => {
   const limiter = createAdminLoginAttemptLimiter({ maxTrackedKeys: 2 });
   const now = new Date("2026-09-22T00:00:00Z").getTime();
   const rejectCredentials = async () => false;
 
+  await limiter.validate("oldest@midearthtravel.ca", "direct", rejectCredentials, now);
   for (let attempt = 0; attempt < 5; attempt += 1) {
-    await limiter.validate("oldest@midearthtravel.ca", "direct", rejectCredentials, now);
     await limiter.validate("newer@midearthtravel.ca", "direct", rejectCredentials, now + 1);
   }
   await limiter.validate("new@midearthtravel.ca", "direct", rejectCredentials, now + 2);
@@ -212,6 +212,45 @@ test("evicts the oldest active window when capacity is reached", async () => {
 
   assert.equal(oldestChecks, 1, "oldest window must be evicted first");
   assert.equal(newerChecks, 0, "newer active window must remain blocked");
+});
+
+test("fails closed at capacity rather than evicting blocked windows", async () => {
+  const limiter = createAdminLoginAttemptLimiter({ maxTrackedKeys: 2 });
+  const now = new Date("2026-09-22T00:00:00Z").getTime();
+  const rejectCredentials = async () => false;
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    await limiter.validate("blocked-a@midearthtravel.ca", "direct", rejectCredentials, now);
+    await limiter.validate("blocked-b@midearthtravel.ca", "direct", rejectCredentials, now + 1);
+  }
+
+  let churnChecks = 0;
+  assert.equal(
+    await limiter.validate(
+      "churn@midearthtravel.ca",
+      "direct",
+      async () => {
+        churnChecks += 1;
+        return true;
+      },
+      now + 2,
+    ),
+    false,
+  );
+
+  let blockedChecks = 0;
+  await limiter.validate(
+    "blocked-a@midearthtravel.ca",
+    "direct",
+    async () => {
+      blockedChecks += 1;
+      return true;
+    },
+    now + 2,
+  );
+
+  assert.equal(churnChecks, 0, "capacity churn must not reach credential validation");
+  assert.equal(blockedChecks, 0, "blocked keys must survive capacity churn until expiry");
 });
 
 test("rejects excess concurrent unique keys without growing pending state", async () => {

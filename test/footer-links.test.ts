@@ -4,6 +4,7 @@ import {
   FOOTER_SERVICE_LINKS_KEY,
   footerServiceLinkSeeds,
   getFooterLinkEditorData,
+  getFooterLinkIssues,
   getCategoryFooterLinks,
   getPublishedFooterLinks,
   serializeFooterLinks,
@@ -55,6 +56,20 @@ test("footer services omit empty and unsupported CMS destinations", () => {
       { id: "custom-service", label: "Custom Service", href: "/#about" },
     ],
   });
+});
+
+test("reports invalid service links with actionable editor errors", () => {
+  assert.deepEqual(
+    getFooterLinkIssues([
+      { id: "empty", label: "", href: "/services/flights" },
+      { id: "unsafe", label: "Unsafe", href: "javascript:alert(1)" },
+      { id: "valid", label: "Hotels", href: "/services/hotels" },
+    ]),
+    [
+      { id: "empty", message: "Add a label before publishing this service link." },
+      { id: "unsafe", message: "Use a supported public service link." },
+    ],
+  );
 });
 
 test("preserves stored footer service links through canonicalization before publishing", () => {

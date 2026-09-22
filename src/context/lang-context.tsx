@@ -2,13 +2,14 @@
 
 import {
   createContext,
+  startTransition,
   useCallback,
   useContext,
   useEffect,
-  startTransition,
   useState,
   type ReactNode,
 } from "react";
+import { resolveStoredLanguage } from "@/lib/localized-content";
 
 export type Lang = "en" | "zh";
 
@@ -23,7 +24,7 @@ const LangContext = createContext<LangContextValue | null>(null);
 const STORAGE_KEY = "midearth-lang";
 
 export function LangProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("en");
+  const [lang, setLangState] = useState<Lang | null>(null);
 
   const setLang = useCallback((next: Lang) => {
     setLangState(next);
@@ -32,19 +33,26 @@ export function LangProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const toggleLang = useCallback(() => {
-    setLang(lang === "en" ? "zh" : "en");
+    setLang(lang === "zh" ? "en" : "zh");
   }, [lang, setLang]);
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === "en" || stored === "zh") {
-      startTransition(() => setLangState(stored));
+    let storedLanguage: Lang;
+    try {
+      storedLanguage = resolveStoredLanguage(localStorage.getItem(STORAGE_KEY));
+    } catch {
+      storedLanguage = "en";
     }
+    startTransition(() => setLangState(storedLanguage));
   }, []);
 
   useEffect(() => {
-    document.documentElement.lang = lang === "zh" ? "zh-Hans" : "en";
+    if (lang) {
+      document.documentElement.lang = lang === "zh" ? "zh-Hans" : "en";
+    }
   }, [lang]);
+
+  if (!lang) return null;
 
   return (
     <LangContext.Provider value={{ lang, setLang, toggleLang }}>

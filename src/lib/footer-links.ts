@@ -11,6 +11,11 @@ export type FooterLink = {
   href: string;
 };
 
+export type FooterLinkIssue = {
+  id: string;
+  message: string;
+};
+
 export const FOOTER_SERVICE_LINKS_KEY = "serviceLinksData";
 export const FOOTER_LINK_FIELD_KEYS = [FOOTER_SERVICE_LINKS_KEY] as const;
 
@@ -49,6 +54,26 @@ export function getPublishedFooterLinks(content: ContentData): {
   return {
     serviceLinks: links.serviceLinks.filter(isPublishableLink),
   };
+}
+
+export function getFooterLinkIssues(
+  links: readonly FooterLink[],
+): FooterLinkIssue[] {
+  return links.flatMap((link) => {
+    if (!link.label.trim()) {
+      return [{
+        id: link.id,
+        message: "Add a label before publishing this service link.",
+      }];
+    }
+    if (!isSupportedPublicHref(link.href)) {
+      return [{
+        id: link.id,
+        message: "Use a supported public service link.",
+      }];
+    }
+    return [];
+  });
 }
 
 export function getCategoryFooterLinks(

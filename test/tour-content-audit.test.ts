@@ -4,10 +4,12 @@ import { getBookingMailto, type Tour } from "../src/data/tours.ts";
 import {
   auditTourContent,
   getConfiguredContactHref,
+  getTourIntroDescription,
   getTourPublicHref,
   isTourDetailReady,
 } from "../src/lib/tour-content-audit.ts";
 import { resolveExploreByMonthEntries } from "../src/lib/explore-by-month.ts";
+import { siteSettingsSeed } from "../src/data/site-settings.ts";
 
 const contactHref = "mailto:travel@example.com";
 
@@ -38,6 +40,19 @@ test("reports image-backed tours missing a customer-ready description", () => {
       },
     ],
   );
+});
+
+test("treats either rendered language description as customer-ready", () => {
+  const localizedOnly = {
+    ...tour,
+    description: "",
+    localizedDescription: "极光之旅简介",
+  };
+
+  assert.equal(isTourDetailReady(localizedOnly, contactHref), true);
+  assert.equal(getTourIntroDescription(localizedOnly, "zh"), "极光之旅简介");
+  assert.equal(getTourIntroDescription(localizedOnly, "en"), "");
+  assert.deepEqual(auditTourContent([localizedOnly], contactHref), []);
 });
 
 test("encodes title, code, and page URL in a booking email", () => {
@@ -87,6 +102,14 @@ test("uses a configured email when valid and the configured telephone when it is
     getTourPublicHref({ ...tour, duration: "" }, "tel:+16135550123"),
     "tel:+16135550123",
   );
+  assert.equal(
+    getConfiguredContactHref("mailto:", "tel:"),
+    siteSettingsSeed.emailHref,
+  );
+  assert.notEqual(
+    getTourPublicHref({ ...tour, duration: "" }, "tel:"),
+    "tel:",
+  );
 });
 
 test("routes linked month tours through contact fallback without changing non-tour destinations", () => {
@@ -124,4 +147,44 @@ test("routes linked month tours through contact fallback without changing non-to
 
   assert.equal(entries[0]?.destinations[0]?.href, "tel:+16135550123");
   assert.equal(entries[0]?.destinations[1]?.href, "/routes/asia");
+});
+
+test("omits unpublished month tour references instead of reviving static tour links", () => {
+  const entries = resolveExploreByMonthEntries(
+    [
+      {
+        month: "Feb",
+        label: "February",
+        destinations: [
+          {
+            id: "unpublished",
+            tourSlug: "highlights-of-japan",
+            name: "Old static title",
+            region: "Asia",
+            tag: "Culture",
+            desc: "Old static description",
+            image: "/old.jpg",
+            href: "/tours/highlights-of-japan",
+          },
+          {
+            id: "route",
+            name: "Asia inspiration",
+            region: "Asia",
+            tag: "Region",
+            desc: "Explicit non-tour destination",
+            image: "/asia.jpg",
+            href: "/routes/asia",
+          },
+        ],
+      },
+    ],
+    [],
+    contactHref,
+  );
+
+  assert.deepEqual(
+    entries[0]?.destinations.map((destination) => destination.id),
+    ["route"],
+  );
+  assert.equal(entries[0]?.destinations[0]?.href, "/routes/asia");
 });

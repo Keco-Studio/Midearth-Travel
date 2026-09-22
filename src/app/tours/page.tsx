@@ -19,7 +19,9 @@ export default async function AllToursPage() {
     <>
       <TourListing
         eyebrow="Category"
+        eyebrowTextKey="category"
         title={meta.title}
+        titleTextKey="allTours"
         summary={meta.summary}
         image={meta.image}
         initialTours={filterToursForCategory(tours, "all")}

@@ -113,6 +113,12 @@ export function resolvePdfUrl(fileName: string): string | undefined {
   return `/pdfs/${encodeURIComponent(trimmed)}`;
 }
 
+export function mapPublishedTourRecords(records: readonly TourRecord[]): Tour[] {
+  return records
+    .filter((record) => record.status === "published")
+    .map(mapTourRecordToPublicTour);
+}
+
 export function mapTourRecordToPublicTour(record: TourRecord): Tour {
   const base = tours.find((tour) => tour.slug === record.slug);
   const seed = tourSeeds.find((tour) => tour.slug === record.slug);

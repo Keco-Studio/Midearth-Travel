@@ -54,6 +54,13 @@ const staticText = {
     call: "Call",
     readyFor: "Ready for {{title}}?",
     bookingCtaDescription: "Email us to reserve your seats, or call our Ottawa office - we'll confirm availability and next steps{{tourCode}}.",
+    hotSales: "Hot Sales",
+    hotSalesDescription: "Our most popular tour packages with departures from Ottawa throughout the year",
+    startingFrom: "Starting from",
+    callForQuoteShort: "Call for Quote",
+    category: "Category",
+    regionHeader: "Region",
+    allTours: "All Tours",
   },
   zh: {
     bookNow: "立即预订",
@@ -106,10 +113,21 @@ const staticText = {
     call: "致电",
     readyFor: "准备好前往 {{title}} 了吗？",
     bookingCtaDescription: "请通过电子邮件预留座位，或致电渥太华办公室，我们将确认可用情况和后续安排{{tourCode}}。",
+    hotSales: "热门优惠",
+    hotSalesDescription: "从渥太华出发的全年热门旅游套餐",
+    startingFrom: "起价",
+    callForQuoteShort: "联系我们报价",
+    category: "分类",
+    regionHeader: "地区",
+    allTours: "全部旅游行程",
   },
 } as const;
 
 export type LocalizedStaticTextKey = keyof typeof staticText.en;
+
+export function resolveStoredLanguage(value: string | null): Lang {
+  return value === "zh" ? "zh" : "en";
+}
 
 function getPopulatedString(data: LocalizedData, key: string): string | undefined {
   const value = data[key];

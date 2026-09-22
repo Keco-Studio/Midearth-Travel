@@ -40,19 +40,22 @@ export default async function RouteRegionPage({ params }: Props) {
     loadDestinationCategories(),
   ]);
   const title = getDestinationCategoryTitle(slug, categories);
+  const localizedTitle = getDestinationCategoryTitle(slug, categories, "zh");
   const category = categories.find((item) => item.slug === slug || item.id === slug);
 
   return (
     <>
       <TourListing
         eyebrow="Region"
+        eyebrowTextKey="regionHeader"
         title={title}
+        localizedTitle={localizedTitle}
         summary={category?.summary?.trim() || region.summary}
         image={category?.image?.trim() || region.image}
         initialTours={filterToursForCategory(tours, slug)}
         destinationCategories={categories}
       />
-      <Footer />
+      <Footer categories={categories} />
     </>
   );
 }

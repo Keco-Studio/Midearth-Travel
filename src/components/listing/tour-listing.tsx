@@ -20,7 +20,10 @@ import { TourListingCard } from "./tour-listing-card";
 
 type Props = {
   eyebrow: string;
+  eyebrowTextKey?: "category" | "regionHeader";
   title: string;
+  localizedTitle?: string;
+  titleTextKey?: "allTours";
   summary: string;
   image: string;
   initialTours: Tour[];
@@ -31,7 +34,10 @@ type Props = {
 
 export function TourListing({
   eyebrow,
+  eyebrowTextKey,
   title,
+  localizedTitle,
+  titleTextKey,
   summary,
   image,
   initialTours,
@@ -44,6 +50,12 @@ export function TourListing({
   const [region, setRegion] = useState("all");
   const [duration, setDuration] = useState("all");
   const [sort, setSort] = useState("featured");
+  const headerEyebrow = eyebrowTextKey
+    ? getLocalizedStaticText(lang, eyebrowTextKey)
+    : eyebrow;
+  const headerTitle = titleTextKey
+    ? getLocalizedStaticText(lang, titleTextKey)
+    : getLocalizedTourValue(lang, localizedTitle, title);
 
   const regions = useMemo(() => {
     const labels = new Set(
@@ -88,7 +100,7 @@ export function TourListing({
   return (
     <main className={styles.page}>
       <Navbar />
-      <SubHero eyebrow={eyebrow} title={title} sub={summary} img={image} />
+      <SubHero eyebrow={headerEyebrow} title={headerTitle} sub={summary} img={image} />
       <section className={styles.section}>
         <div className={styles.container}>
           <div className={styles.filterBar}>
@@ -188,7 +200,7 @@ export function TourListing({
         {showBrowseSections && (
           <div className={styles.regionSection}>
             <div className={styles.container}>
-              <DestinationsByRegion />
+              <DestinationsByRegion tours={publishedTours} />
             </div>
           </div>
         )}

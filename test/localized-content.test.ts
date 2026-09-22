@@ -5,6 +5,7 @@ import {
   getLocalizedStaticText,
   getLocalizedTourList,
   getLocalizedTourValue,
+  resolveStoredLanguage,
 } from "../src/lib/localized-content.ts";
 
 test("uses the selected Chinese CMS value and falls back to English", () => {
@@ -40,6 +41,16 @@ test("resolves listing card and tour detail labels from the selected language", 
   assert.equal(getLocalizedStaticText("zh", "dayByDay"), "每日行程");
   assert.equal(getLocalizedStaticText("zh", "tourFares"), "行程价格");
   assert.equal(getLocalizedStaticText("zh", "callForQuote"), "请联系我们获取报价。价格因季节和房型而异。");
+  assert.equal(getLocalizedStaticText("zh", "hotSales"), "热门优惠");
+  assert.equal(getLocalizedStaticText("zh", "category"), "分类");
+  assert.equal(getLocalizedStaticText("zh", "regionHeader"), "地区");
+});
+
+test("resolves persisted language before the provider exposes localized UI", () => {
+  assert.equal(resolveStoredLanguage("zh"), "zh");
+  assert.equal(resolveStoredLanguage("en"), "en");
+  assert.equal(resolveStoredLanguage(null), "en");
+  assert.equal(resolveStoredLanguage("unsupported"), "en");
 });
 
 test("interpolates an optional tour code into the localized booking CTA", () => {

@@ -1,8 +1,8 @@
 import {
   destinationCategorySeeds,
   type DestinationCategory,
-} from "@/lib/destination-categories";
-import type { TourRecord } from "@/types/cms";
+} from "./destination-categories.ts";
+import type { TourRecord } from "../types/cms.ts";
 
 const regionAliasToId: Record<string, string> = {
   "north america": "north-america",

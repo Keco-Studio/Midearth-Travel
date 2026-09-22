@@ -1,4 +1,4 @@
-import { getTourBySlug, type Tour } from "@/data/tours";
+import type { Tour } from "./tours.ts";
 
 export type RegionShowcaseRef =
   | { tourSlug: string }
@@ -151,21 +151,21 @@ export type RegionListingCard = Tour & { href?: string };
 
 export function resolveRegionCards(
   items: RegionShowcaseRef[],
+  tours: readonly Tour[],
   limit = REGION_CARD_LIMIT,
 ): RegionListingCard[] {
-  return items.slice(0, limit).map((item) => {
+  const toursBySlug = new Map(tours.map((tour) => [tour.slug, tour]));
+
+  return items.flatMap((item) => {
     if ("tourSlug" in item) {
-      const tour = getTourBySlug(item.tourSlug);
-      if (!tour) {
-        throw new Error(`Tour not found: ${item.tourSlug}`);
-      }
-      return tour;
+      const tour = toursBySlug.get(item.tourSlug);
+      return tour ? [tour] : [];
     }
     const { href, ...rest } = item.showcase;
-    return {
+    return [{
       ...rest,
       description: "",
       href,
-    };
-  });
+    }];
+  }).slice(0, limit);
 }

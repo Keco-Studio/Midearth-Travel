@@ -1,10 +1,11 @@
 "use client";
 
 import { DeleteOutlined, LinkOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Input, Space, Table, Tooltip, Typography } from "antd";
+import { Alert, Button, Input, Space, Table, Tooltip, Typography } from "antd";
 import {
   FOOTER_SERVICE_LINKS_KEY,
   getFooterLinkEditorData,
+  getFooterLinkIssues,
   serializeFooterLinks,
   type FooterLink,
 } from "@/lib/footer-links";
@@ -46,6 +47,9 @@ function LinkTable({
   links: FooterLink[];
   onChange: (links: FooterLink[]) => void;
 }) {
+  const issues = getFooterLinkIssues(links);
+  const invalidIds = new Set(issues.map((issue) => issue.id));
+
   function update(id: string, key: "label" | "href", value: string) {
     onChange(
       links.map((link) => (link.id === id ? { ...link, [key]: value } : link)),
@@ -73,6 +77,26 @@ function LinkTable({
 
   return (
     <div>
+      {issues.length > 0 ? (
+        <Alert
+          type="error"
+          showIcon
+          style={{ marginBottom: 12 }}
+          message={`${issues.length} service ${issues.length === 1 ? "link needs" : "links need"} attention`}
+          description={
+            <ul style={{ margin: 0, paddingLeft: 20 }}>
+              {issues.map((issue) => {
+                const link = links.find((item) => item.id === issue.id);
+                return (
+                  <li key={issue.id}>
+                    {link?.label.trim() || "Unnamed link"}: {issue.message}
+                  </li>
+                );
+              })}
+            </ul>
+          }
+        />
+      ) : null}
       <Space
         align="center"
         style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}
@@ -96,6 +120,7 @@ function LinkTable({
             render: (_, record) => (
               <Input
                 maxLength={60}
+                status={invalidIds.has(record.id) ? "error" : undefined}
                 value={record.label}
                 onChange={(event) => update(record.id, "label", event.target.value)}
               />
@@ -108,6 +133,7 @@ function LinkTable({
               <Input
                 maxLength={240}
                 prefix={<LinkOutlined />}
+                status={invalidIds.has(record.id) ? "error" : undefined}
                 value={record.href}
                 onChange={(event) => update(record.id, "href", event.target.value)}
               />

@@ -1,4 +1,9 @@
 import { getBookingMailto, type Tour } from "../data/tours.ts";
+import { siteSettingsSeed } from "../data/site-settings.ts";
+import {
+  isUsableMailtoHref,
+  isUsableTelephoneHref,
+} from "./global-settings.ts";
 
 export { getBookingMailto } from "../data/tours.ts";
 
@@ -40,7 +45,18 @@ export function getConfiguredContactHref(
   phoneHref: string,
 ): string {
   const email = getEmailRecipient(emailHref);
-  return email ? `mailto:${email}` : getTelephoneHref(phoneHref);
+  if (email) return `mailto:${email}`;
+  if (isUsableTelephoneHref(phoneHref)) return phoneHref.trim();
+  return siteSettingsSeed.emailHref;
+}
+
+export function getTourIntroDescription(
+  tour: Tour,
+  lang: "en" | "zh",
+): string {
+  return lang === "zh" && tour.localizedDescription?.trim()
+    ? tour.localizedDescription.trim()
+    : tour.description.trim();
 }
 
 export function getTourPublicHref(
@@ -63,7 +79,11 @@ function getMissingTourContent(
 
   if (!hasText(tour.title)) missing.push("title");
   if (!hasText(tour.duration)) missing.push("duration");
-  if (!hasText(tour.description) && !(tour.itinerary?.length)) {
+  if (
+    !hasText(tour.description) &&
+    !hasText(tour.localizedDescription) &&
+    !(tour.itinerary?.length)
+  ) {
     missing.push("descriptionOrItinerary");
   }
   if (!hasText(tour.image)) missing.push("image");
@@ -73,16 +93,18 @@ function getMissingTourContent(
 }
 
 function getEmailRecipient(value: string): string | null {
-  const candidate = value.trim().replace(/^mailto:/i, "").split(/[?#]/, 1)[0].trim();
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(candidate) ? candidate : null;
+  const href = /^mailto:/i.test(value.trim()) ? value.trim() : `mailto:${value.trim()}`;
+  return isUsableMailtoHref(href) ? href.replace(/^mailto:/i, "") : null;
 }
 
 function getTelephoneHref(value: string): string {
-  return /^tel:\S+$/i.test(value.trim()) ? value.trim() : "tel:";
+  return isUsableTelephoneHref(value)
+    ? value.trim()
+    : siteSettingsSeed.primaryPhoneHref;
 }
 
 function hasContactHref(value: string): boolean {
-  return getEmailRecipient(value) !== null || /^tel:\S+$/i.test(value.trim());
+  return getEmailRecipient(value) !== null || isUsableTelephoneHref(value);
 }
 
 function hasText(value: string | undefined): boolean {
