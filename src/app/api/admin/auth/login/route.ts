@@ -1,13 +1,10 @@
-import { cookies } from "next/headers";
 import { validateAdminLoginAttempt } from "@/lib/admin-login-attempts";
 import { parseAdminLoginPayload } from "@/lib/admin-login-input";
 import {
-  ADMIN_SESSION_COOKIE_NAME,
-  ADMIN_SESSION_MAX_AGE_SECONDS,
   AdminAuthConfigurationError,
-  createAdminSession,
   validateAdminCredentials,
 } from "@/lib/admin-auth";
+import { setAdminSessionCookie } from "@/lib/admin-session-cookie";
 
 const INVALID_CREDENTIALS = "Invalid email or password";
 
@@ -30,15 +27,7 @@ export async function POST(request: Request) {
     );
     if (!isValid) return invalidCredentialsResponse();
 
-    const token = await createAdminSession(login.email);
-    const cookieStore = await cookies();
-    cookieStore.set(ADMIN_SESSION_COOKIE_NAME, token, {
-      httpOnly: true,
-      sameSite: "lax",
-      path: "/",
-      secure: process.env.NODE_ENV === "production",
-      maxAge: ADMIN_SESSION_MAX_AGE_SECONDS,
-    });
+    await setAdminSessionCookie(login.email);
 
     return Response.json({ ok: true });
   } catch (error) {

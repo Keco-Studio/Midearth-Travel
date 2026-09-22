@@ -244,15 +244,17 @@ test("uses server-only auth and secure bounded cookie settings", () => {
   const authSource = readProjectFile("src/lib/admin-auth.ts");
   const loginSource = readProjectFile("src/app/api/admin/auth/login/route.ts");
   const logoutSource = readProjectFile("src/app/api/admin/auth/logout/route.ts");
+  const sessionCookieSource = readProjectFile("src/lib/admin-session-cookie.ts");
 
   assert.ok(authSource.includes('import "server-only"'));
   assert.ok(authSource.includes("await cookies()"));
-  assert.ok(loginSource.includes("await cookies()"));
-  assert.ok(loginSource.includes("httpOnly: true"));
-  assert.ok(loginSource.includes('sameSite: "lax"'));
-  assert.ok(loginSource.includes('path: "/"'));
-  assert.ok(loginSource.includes('secure: process.env.NODE_ENV === "production"'));
-  assert.ok(loginSource.includes("maxAge: ADMIN_SESSION_MAX_AGE_SECONDS"));
+  assert.ok(loginSource.includes("setAdminSessionCookie"));
+  assert.ok(sessionCookieSource.includes("await cookies()"));
+  assert.ok(sessionCookieSource.includes("httpOnly: true"));
+  assert.ok(sessionCookieSource.includes('sameSite: "lax"'));
+  assert.ok(sessionCookieSource.includes('path: "/"'));
+  assert.ok(sessionCookieSource.includes('secure: process.env.NODE_ENV === "production"'));
+  assert.ok(sessionCookieSource.includes("maxAge: ADMIN_SESSION_MAX_AGE_SECONDS"));
   assert.ok(loginSource.includes("Invalid email or password"));
   assert.ok(logoutSource.includes("await cookies()"));
   assert.ok(logoutSource.includes("ADMIN_SESSION_COOKIE_NAME"));

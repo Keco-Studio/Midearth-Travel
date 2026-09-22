@@ -1,3 +1,5 @@
+import { findAdminUser, normalizeAdminEmail, verifyAdminPassword } from "./admin-users.ts";
+
 export const ADMIN_SESSION_MAX_AGE_SECONDS = 8 * 60 * 60;
 
 const ADMIN_SESSION_MAX_AGE_MS = ADMIN_SESSION_MAX_AGE_SECONDS * 1000;
@@ -61,7 +63,12 @@ export async function validateAdminCredentials(
 
   const emailMatches = constantTimeEqual(providedEmail, expectedEmail);
   const passwordMatches = constantTimeEqual(providedPassword, expectedPassword);
-  return (Number(emailMatches) & Number(passwordMatches)) === 1;
+  if ((Number(emailMatches) & Number(passwordMatches)) === 1) return true;
+
+  const user = await findAdminUser(normalizeAdminEmail(email));
+  return user
+    ? verifyAdminPassword(password, user.passwordSalt, user.passwordHash)
+    : false;
 }
 
 export async function createAdminSession(

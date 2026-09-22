@@ -64,7 +64,9 @@ Copy `.env.example` to `.env.local` for local development, and configure the sam
 - `ADMIN_INITIAL_PASSWORD`: a non-placeholder password of at least 12 characters.
 - `ADMIN_SESSION_SECRET`: a non-placeholder, random secret of at least 32 characters used to sign the HttpOnly admin session cookie.
 
-The CMS is intentionally unlisted from public navigation. Administrators open `/admin` directly; visitors without a valid session are redirected to `/admin/login`, and anonymous `/api/admin/**` requests receive `401 Unauthorized`. There is no invitation or self-registration flow in this release. Change the initial password through deployment configuration and redeploy when access must be rotated.
+The CMS is intentionally unlisted from public navigation. Administrators open `/admin` directly; visitors without a valid session are redirected to `/admin/login`, and anonymous `/api/admin/**` requests receive `401 Unauthorized`. The configured initial account remains the bootstrap owner; change its password through deployment configuration and redeploy when access must be rotated.
+
+Apply `supabase/migrations/202609220003_admin_invitations.sql` with `supabase db push` before using administrator invitations. `SUPABASE_SERVICE_ROLE_KEY` is required server-side for this feature. In the CMS header, open the account avatar and choose **Invite administrator** to create a copyable registration link. Send that link manually: it is valid for seven days and can be used once. There is no public registration link.
 
 Login throttling treats requests as `direct` unless `ADMIN_TRUST_PROXY_HEADERS` is set to the exact, lowercase value `true`. Set it only when a trusted reverse proxy overwrites `X-Forwarded-For`; then only the first comma-separated forwarded address is used when it is non-blank, otherwise the source remains `direct`. Any other value, including `TRUE`, leaves forwarded headers untrusted.
 

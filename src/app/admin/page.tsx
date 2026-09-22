@@ -14,7 +14,7 @@ import { loadPaymentOrders } from "@/lib/supabase-payments";
 import { loadAdminTours } from "@/lib/supabase-tours";
 
 export default async function AdminPage() {
-  await requireAdminSession();
+  const session = await requireAdminSession();
 
   const [
     homeModules,
@@ -50,6 +50,7 @@ export default async function AdminPage() {
 
   return (
     <AdminShell
+      adminEmail={session.email}
       initialDestinationCategories={destinationCategories}
       initialHomeModules={withSyncedFinalCtaContactFields(homeModules, settings)}
       initialServices={services}

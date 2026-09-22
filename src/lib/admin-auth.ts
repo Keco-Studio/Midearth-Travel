@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import {
   getAdminAuthConfig,
   verifyAdminSession,
+  type AdminSession,
 } from "@/lib/admin-session";
 
 export {
@@ -15,7 +16,8 @@ export {
   validateAdminCredentials,
   verifyAdminSession,
 } from "@/lib/admin-session";
-export type { AdminAuthConfig, AdminSession } from "@/lib/admin-session";
+export type { AdminAuthConfig } from "@/lib/admin-session";
+export type { AdminSession } from "@/lib/admin-session";
 
 export const ADMIN_SESSION_COOKIE_NAME = "midearth-admin-session";
 
@@ -28,7 +30,7 @@ export class AdminAuthorizationError extends Error {
 
 export async function requireAdminSession(
   context: "page" | "route" = "page",
-): Promise<void> {
+): Promise<AdminSession> {
   const token = (await cookies()).get(ADMIN_SESSION_COOKIE_NAME)?.value;
   if (!token) {
     if (context === "route") throw new AdminAuthorizationError();
@@ -38,7 +40,7 @@ export async function requireAdminSession(
   const config = getAdminAuthConfig();
   const session = await verifyAdminSession(token, new Date(), config);
 
-  if (session) return;
+  if (session) return session;
   if (context === "route") throw new AdminAuthorizationError();
   redirect("/admin/login");
 }

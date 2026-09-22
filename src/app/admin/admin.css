@@ -51,6 +51,14 @@
   margin-bottom: 20px;
 }
 
+.cms-invitation-link {
+  margin-top: 24px;
+}
+
+.cms-invitation-link .ant-typography {
+  margin-bottom: 8px;
+}
+
 .cms-tour-library-stack {
   display: grid;
   gap: 24px;

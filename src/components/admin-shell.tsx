@@ -1,10 +1,9 @@
 "use client";
 
 import { PageContainer, ProLayout } from "@ant-design/pro-components";
-import { DownloadOutlined, LogoutOutlined } from "@ant-design/icons";
+import { DownloadOutlined } from "@ant-design/icons";
 import { App, Button, Card, Empty, Space, Table, Tag, Tooltip, type TableColumnsType } from "antd";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   useCallback,
   useMemo,
@@ -12,6 +11,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { BookingsWorkspace } from "@/components/bookings-workspace";
+import { AdminAccountMenu } from "@/components/admin-account-menu";
 import { HomeModuleEditor } from "@/components/home-module-editor";
 import { PaymentsWorkspace } from "@/components/payments-workspace";
 import { SettingsPanel } from "@/components/settings-panel";
@@ -56,6 +56,7 @@ const getClientHydrationSnapshot = () => true;
 const getServerHydrationSnapshot = () => false;
 
 type AdminShellProps = {
+  adminEmail: string;
   initialHomeModules: HomeModuleRecord[];
   initialDestinationCategories: DestinationCategory[];
   initialServices: Service[];
@@ -67,6 +68,7 @@ type AdminShellProps = {
 };
 
 export function AdminShell({
+  adminEmail,
   initialHomeModules,
   initialDestinationCategories,
   initialServices,
@@ -77,7 +79,6 @@ export function AdminShell({
   initialTours = [],
 }: AdminShellProps) {
   const { message } = App.useApp();
-  const router = useRouter();
   const mounted = useSyncExternalStore(
     subscribeToHydration,
     getClientHydrationSnapshot,
@@ -87,7 +88,6 @@ export function AdminShell({
     mergeLoadedHomeModules(createInitialAdminState(), initialHomeModules),
   );
   const [pendingAction, setPendingAction] = useState<"save" | "publish" | null>(null);
-  const [loggingOut, setLoggingOut] = useState(false);
   const [destinationCategories, setDestinationCategories] = useState(
     initialDestinationCategories,
   );
@@ -291,19 +291,6 @@ export function AdminShell({
     message.info("Preview draft opened");
   }
 
-  async function handleLogout() {
-    setLoggingOut(true);
-    try {
-      const response = await fetch("/api/admin/auth/logout", { method: "POST" });
-      if (!response.ok) throw new Error("Logout failed");
-      router.replace("/admin/login");
-      router.refresh();
-    } catch {
-      message.error("Unable to log out");
-      setLoggingOut(false);
-    }
-  }
-
   if (!mounted) {
     return (
       <div
@@ -410,13 +397,7 @@ export function AdminShell({
                 pendingAction,
               },
             )}
-            <Button
-              icon={<LogoutOutlined />}
-              loading={loggingOut}
-              onClick={handleLogout}
-            >
-              Log out
-            </Button>
+            <AdminAccountMenu email={adminEmail} />
           </Space>
         }
         tags={renderPageTags(
