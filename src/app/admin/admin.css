@@ -66,6 +66,18 @@
   min-width: 0;
 }
 
+.cms-workspace-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: flex-end;
+  min-height: 56px;
+  padding: 12px 24px;
+  border-bottom: 1px solid #d5d9d6;
+  background: #ffffff;
+}
+
 .cms-admin-account-email {
   max-width: min(32vw, 280px);
   overflow: hidden;

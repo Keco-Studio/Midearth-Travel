@@ -311,7 +311,6 @@ export function AdminShell({
       fixSiderbar
       fixedHeader
       siderWidth={256}
-      rightContentRender={() => <AdminAccountMenu email={adminEmail} />}
       route={layoutRouteConfig}
       location={{ pathname }}
       menu={{
@@ -372,6 +371,9 @@ export function AdminShell({
       token={proLayoutToken}
       contentStyle={{ padding: 0 }}
     >
+      <div className="cms-workspace-topbar">
+        <AdminAccountMenu email={adminEmail} />
+      </div>
       <PageContainer
         title={
           <Tooltip title={pageTitle}>

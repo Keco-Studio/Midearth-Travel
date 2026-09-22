@@ -10,7 +10,7 @@ const readProjectFile = (path: string) => readFileSync(join(projectDirectory, pa
 test("renders an account menu instead of a standalone logout button", () => {
   const source = readProjectFile("src/components/admin-shell.tsx");
   assert.match(source, /AdminAccountMenu/);
-  assert.match(source, /rightContentRender/);
+  assert.match(source, /cms-workspace-topbar/);
   assert.doesNotMatch(source, />\s*Log out\s*<\/Button>/);
 });
 
