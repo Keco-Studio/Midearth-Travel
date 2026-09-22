@@ -380,6 +380,7 @@ export function AdminShell({
         <AdminAccountMenu email={adminEmail} />
       </div>
       <PageContainer
+        breadcrumb={{ items: [] }}
         title={
           <Tooltip title={pageTitle}>
             <span className="cms-page-header-title">{pageTitle}</span>

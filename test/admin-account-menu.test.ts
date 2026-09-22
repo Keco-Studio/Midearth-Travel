@@ -12,7 +12,7 @@ test("renders an account menu instead of a standalone logout button", () => {
   assert.match(source, /AdminAccountMenu/);
   assert.match(source, /cms-workspace-topbar/);
   assert.match(source, /Breadcrumb/);
-  assert.doesNotMatch(source, /breadcrumb=\{\{/);
+  assert.match(source, /breadcrumb=\{\{ items: \[\] \}\}/);
   assert.doesNotMatch(source, />\s*Log out\s*<\/Button>/);
 });
 
