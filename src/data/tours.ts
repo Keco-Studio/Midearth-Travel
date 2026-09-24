@@ -31,10 +31,14 @@ export type Tour = {
   duration: string;
   localizedDuration?: string;
   description: string;
+  /** Sanitized rich-text HTML for the detail page; description remains plain text for metadata/search. */
+  descriptionHtml?: string;
   localizedDescription?: string;
+  localizedDescriptionHtml?: string;
   image: string;
   tags: string[];
   tourType: string;
+  localizedTourType?: string;
   rating?: number;
   reviewCount?: number;
   departures?: string[];
@@ -44,6 +48,7 @@ export type Tour = {
   highlights?: string[];
   localizedHighlights?: string[];
   itinerary?: TourDay[];
+  localizedItinerary?: TourDay[];
   essentials?: {
     departureTime?: string;
     meetingPlace?: string;

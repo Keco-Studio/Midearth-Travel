@@ -4,6 +4,7 @@ import { getBookingMailto, type Tour } from "../src/data/tours.ts";
 import {
   auditTourContent,
   getConfiguredContactHref,
+  getTourDisplayItinerary,
   getTourIntroDescription,
   getTourPublicHref,
   isTourDetailReady,
@@ -53,6 +54,30 @@ test("treats either rendered language description as customer-ready", () => {
   assert.equal(getTourIntroDescription(localizedOnly, "zh"), "极光之旅简介");
   assert.equal(getTourIntroDescription(localizedOnly, "en"), "极光之旅简介");
   assert.deepEqual(auditTourContent([localizedOnly], contactHref), []);
+});
+
+test("does not render a Chinese day-by-day itinerary as a tour introduction", () => {
+  const localizedItinerary = {
+    ...tour,
+    localizedDescription:
+      "第 1 天：渥太华 - 里维耶尔迪卢普\n清晨从渥太华出发。",
+  };
+
+  assert.equal(getTourIntroDescription(localizedItinerary, "zh"), "");
+  assert.equal(getTourIntroDescription(localizedItinerary, "en"), tour.description);
+});
+
+test("uses the localized itinerary on Chinese tour detail pages", () => {
+  const englishItinerary = [{ day: 1, title: "Ottawa", description: "Depart Ottawa." }];
+  const chineseItinerary = [{ day: 1, title: "渥太华", description: "从渥太华出发。" }];
+  const localizedTour = {
+    ...tour,
+    itinerary: englishItinerary,
+    localizedItinerary: chineseItinerary,
+  };
+
+  assert.deepEqual(getTourDisplayItinerary(localizedTour, "zh"), chineseItinerary);
+  assert.deepEqual(getTourDisplayItinerary(localizedTour, "en"), englishItinerary);
 });
 
 test("encodes title, code, and page URL in a booking email", () => {

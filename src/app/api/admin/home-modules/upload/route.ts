@@ -1,5 +1,5 @@
 import { assertAdminRequest } from "@/lib/admin-auth";
-import { EXPECTED_HOME_MODULE_IDS } from "@/lib/content-rules";
+import { EXPECTED_CONTENT_MODULE_IDS } from "@/lib/content-rules";
 import {
   isSupportedImageUploadContentType,
   validateInlineImageFile,
@@ -54,5 +54,5 @@ export async function POST(request: Request) {
 }
 
 function isHomeModuleId(value: string): value is HomeModuleId {
-  return EXPECTED_HOME_MODULE_IDS.includes(value as HomeModuleId);
+  return EXPECTED_CONTENT_MODULE_IDS.includes(value as HomeModuleId);
 }

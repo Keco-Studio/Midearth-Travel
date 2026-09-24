@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Navbar } from "@/components/navbar";
 import { parseDurationDays } from "@/data/tour-filters";
 import type { Tour } from "@/data/tours";
+import type { BusToursContent } from "@/lib/bus-tours-content";
 import {
   destinationCategorySeeds,
   type DestinationCategory,
@@ -29,6 +30,8 @@ type Props = {
   image: string;
   initialTours: Tour[];
   publishedTours?: Tour[];
+  browseMonths?: import("@/data/destinations-by-month").MonthEntry[];
+  browseContent?: BusToursContent;
   showBrowseSections?: boolean;
   destinationCategories?: DestinationCategory[];
 };
@@ -44,6 +47,8 @@ export function TourListing({
   image,
   initialTours,
   publishedTours = initialTours,
+  browseMonths,
+  browseContent,
   showBrowseSections = false,
   destinationCategories = destinationCategorySeeds,
 }: Props) {
@@ -59,27 +64,34 @@ export function TourListing({
     ? getLocalizedStaticText(lang, titleTextKey)
     : getLocalizedTourValue(lang, localizedTitle, title);
   const headerSummary = getLocalizedTourValue(lang, localizedSummary, summary);
+  const browseTours = showBrowseSections ? initialTours : publishedTours;
 
   const regions = useMemo(() => {
     const labels = new Set(
-      initialTours.map((tour) => getTourRegionBadge(tour, destinationCategories)),
+      initialTours.map((tour) => getTourRegionBadge(tour, destinationCategories, lang)),
     );
     return ["all", ...[...labels].sort((a, b) => a.localeCompare(b))];
-  }, [destinationCategories, initialTours]);
+  }, [destinationCategories, initialTours, lang]);
+
+  useEffect(() => {
+    if (region !== "all" && !regions.includes(region)) {
+      setRegion("all");
+    }
+  }, [region, regions]);
 
   const filtered = useMemo(() => {
     let list = [...initialTours];
     if (search) {
       const q = search.toLowerCase();
       list = list.filter((t) =>
-        `${getLocalizedTourValue(lang, t.localizedTitle, t.title)} ${t.tags.join(" ")} ${getTourRegionBadge(t, destinationCategories)} ${getLocalizedTourValue(lang, t.localizedDescription, t.description)}`
+        `${getLocalizedTourValue(lang, t.localizedTitle, t.title)} ${t.tags.join(" ")} ${getTourRegionBadge(t, destinationCategories, lang)} ${getLocalizedTourValue(lang, t.localizedDescription, t.description)}`
           .toLowerCase()
           .includes(q),
       );
     }
     if (region !== "all") {
       list = list.filter(
-        (t) => getTourRegionBadge(t, destinationCategories) === region,
+        (t) => getTourRegionBadge(t, destinationCategories, lang) === region,
       );
     }
     if (duration !== "all") {
@@ -99,6 +111,13 @@ export function TourListing({
     }
     return list;
   }, [destinationCategories, initialTours, lang, search, region, duration, sort]);
+
+  const browseFilteredTours = useMemo(() => {
+    if (region === "all") return browseTours;
+    return browseTours.filter(
+      (tour) => getTourRegionBadge(tour, destinationCategories, lang) === region,
+    );
+  }, [browseTours, destinationCategories, lang, region]);
 
   return (
     <main className={styles.page}>
@@ -168,7 +187,13 @@ export function TourListing({
           </div>
 
           {showBrowseSections ? (
-            <PopularByMonth tours={publishedTours} />
+            <PopularByMonth
+              eyebrow={lang === "zh" ? browseContent?.monthEyebrowZh : browseContent?.monthEyebrowEn}
+              title={lang === "zh" ? browseContent?.monthTitleZh : browseContent?.monthTitleEn}
+              tours={browseFilteredTours}
+              months={browseMonths}
+              requireTourMatch
+            />
           ) : (
             <>
               <div className={styles.filterCount}>
@@ -203,7 +228,13 @@ export function TourListing({
         {showBrowseSections && (
           <div className={styles.regionSection}>
             <div className={styles.container}>
-              <DestinationsByRegion tours={publishedTours} />
+              <DestinationsByRegion
+                tours={browseFilteredTours}
+                onlyLiveTours
+                eyebrow={lang === "zh" ? browseContent?.regionEyebrowZh : browseContent?.regionEyebrowEn}
+                title={lang === "zh" ? browseContent?.regionTitleZh : browseContent?.regionTitleEn}
+                destinationCategories={destinationCategories}
+              />
             </div>
           </div>
         )}

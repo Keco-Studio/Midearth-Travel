@@ -40,6 +40,7 @@ export function PackagesSection({ tours }: { tours?: Tour[] }) {
           {packages.map((tour) => {
             const title = getLocalizedTourValue(lang, tour.localizedTitle, tour.title);
             const duration = getLocalizedTourValue(lang, tour.localizedDuration, tour.duration);
+            const tourType = getLocalizedTourValue(lang, tour.localizedTourType, tour.tourType);
             const tags = getLocalizedTourList(
               lang,
               tour.localizedHighlights,
@@ -89,7 +90,7 @@ export function PackagesSection({ tours }: { tours?: Tour[] }) {
                         </div>
                         <div className="flex items-center gap-1.5">
                           <Users className="h-4 w-4" />
-                          <span>{tour.tourType}</span>
+                          <span>{tourType}</span>
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2">

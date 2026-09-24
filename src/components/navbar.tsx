@@ -52,14 +52,10 @@ export function Navbar({ content }: { content?: ContentData }) {
   );
   const logoImage = getStringContent(resolvedContent, "logoImage", "").trim();
   const logoImageSolid = getStringContent(resolvedContent, "logoImageSolid", "").trim();
-  const bookNowLabel = getLocalizedContent(resolvedContent, "bookNowLabel", lang, "Book Now");
-  const bookNowLink =
-    settings.primaryPhoneHref.trim() || "tel:+16132365226";
   const phoneLabel =
     getStringContent(resolvedContent, "primaryPhoneLabel", "").trim() ||
     settings.primaryPhoneLabel.trim() ||
     "613-236-5226";
-  const phoneHref = settings.primaryPhoneHref.trim() || "tel:+16132365226";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -100,7 +96,7 @@ export function Navbar({ content }: { content?: ContentData }) {
     {
       key: "contact",
       label: getLocalizedContent(resolvedContent, "contactLabel", lang, "Contact"),
-      href: "/#contact",
+      href: "/contact",
     },
   ];
 
@@ -141,7 +137,7 @@ export function Navbar({ content }: { content?: ContentData }) {
 
         <div className="header-right">
           <div className="header-contact">
-            <a href={phoneHref}>{phoneLabel}</a>
+            <span>{phoneLabel}</span>
           </div>
           <button
             className="header-pill"
@@ -153,9 +149,6 @@ export function Navbar({ content }: { content?: ContentData }) {
             <span className="lang-divider">/</span>
             <span className={lang === "zh" ? "active" : ""}>中文</span>
           </button>
-          <Link href={bookNowLink} className="header-pill">
-            {bookNowLabel}
-          </Link>
           <button
             className="hamburger"
             onClick={() => setDrawerOpen(true)}
@@ -213,13 +206,6 @@ export function Navbar({ content }: { content?: ContentData }) {
                 <span className="lang-divider">/</span>
                 <span className={lang === "zh" ? "active" : ""}>中文</span>
               </button>
-              <Link
-                href={bookNowLink}
-                className="header-pill header-pill-drawer"
-                onClick={() => setDrawerOpen(false)}
-              >
-                {bookNowLabel}
-              </Link>
               <div className="drawer-contact">
                 <div>{phoneLabel}</div>
                 <div>{settings.emailLabel}</div>

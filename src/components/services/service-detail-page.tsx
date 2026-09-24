@@ -11,6 +11,7 @@ import {
   type ServiceNavItem,
   type ServicePageContent,
 } from "@/data/service-pages";
+import { getLocalizedServicePage } from "@/data/services";
 import { useSiteSettings } from "@/context/site-settings-context";
 import { useLang } from "@/context/lang-context";
 import { type ContentData } from "@/lib/content-values";
@@ -34,11 +35,12 @@ export function ServiceDetailPage({
 }) {
   const settings = useSiteSettings();
   const { lang } = useLang();
+  const localizedContent = getLocalizedServicePage(content, lang);
   const signOff = getLocalizedContent(
     servicePageContent ?? {},
     "servicePageSignOff",
     lang,
-    content.signOff,
+    localizedContent.signOff,
   );
   const resolvedBackground =
     backgroundImage?.trim() || SERVICE_BACKGROUND_IMAGE;
@@ -72,21 +74,21 @@ export function ServiceDetailPage({
                     className={active ? styles.sideNavActive : styles.sideNavLink}
                     aria-current={active ? "page" : undefined}
                   >
-                    {item.label}
+                    {lang === "zh" && item.labelZh?.trim() ? item.labelZh : item.label}
                   </Link>
                 );
               })}
             </nav>
-            <ServiceQuoteForm serviceLabel={content.quoteLabel} />
+            <ServiceQuoteForm serviceLabel={localizedContent.quoteLabel} />
           </aside>
 
           <section className={styles.content}>
-            <h1 className={styles.title}>{content.title}</h1>
-            <p className={styles.intro}>{content.intro}</p>
+            <h1 className={styles.title}>{localizedContent.title}</h1>
+            <p className={styles.intro}>{localizedContent.intro}</p>
 
-            {content.deals?.length ? (
+            {localizedContent.deals?.length ? (
               <ul className={styles.deals}>
-                {content.deals.map((deal) => (
+                {localizedContent.deals.map((deal) => (
                   <li key={deal.id} className={styles.deal}>
                     <span className={styles.dealRoute}>{deal.route}</span>
                     <span className={styles.dealPrice}>: {deal.priceLabel}</span>
@@ -95,8 +97,8 @@ export function ServiceDetailPage({
               </ul>
             ) : null}
 
-            {content.disclaimer ? (
-              <p className={styles.disclaimer}>{content.disclaimer}</p>
+            {localizedContent.disclaimer ? (
+              <p className={styles.disclaimer}>{localizedContent.disclaimer}</p>
             ) : null}
             <p className={styles.signOff}>{signOff}</p>
 
@@ -115,18 +117,16 @@ export function ServiceDetailPage({
                 <p className={styles.whatsappHint}>{whatsappLabel}</p>
                 <p className={styles.contactLine}>
                   {getLocalizedStaticText(lang, "phone")}:{" "}
-                  <a href={settings.primaryPhoneHref}>{settings.primaryPhoneLabel}</a>
+                  {settings.primaryPhoneLabel}
                 </p>
                 {settings.secondaryPhoneLabel ? (
                   <p className={styles.contactLineIndent}>
-                    <a href={settings.secondaryPhoneHref}>
-                      {settings.secondaryPhoneLabel}
-                    </a>
+                    {settings.secondaryPhoneLabel}
                   </p>
                 ) : null}
                 <p className={styles.contactLine}>
                   {getLocalizedStaticText(lang, "email")}:{" "}
-                  <a href={settings.emailHref}>{settings.emailLabel}</a>
+                  {settings.emailLabel}
                 </p>
               </div>
             </div>

@@ -9,6 +9,7 @@ export type ServiceNavItem = {
   id: string;
   slug: string;
   label: string;
+  labelZh?: string;
   href: string;
 };
 
@@ -34,6 +35,7 @@ export function servicesToNavItems(list: readonly Service[]): ServiceNavItem[] {
     id: service.id,
     slug: service.slug,
     label: service.title,
+    labelZh: service.titleZh,
     href: `/services/${service.slug}`,
   }));
 }

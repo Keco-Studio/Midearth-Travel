@@ -1,7 +1,7 @@
 import type { TourRecord } from "../types/cms.ts";
 
 export const TOUR_TYPE_STORAGE_KEY = "midearth-cms.tour-library.v1";
-export const DEFAULT_TOUR_TYPES = ["Bus Tour", "Group Tour", "Sun Destinations"] as const;
+export const DEFAULT_TOUR_TYPES = [] as const;
 
 export type TourTypeStorageState = {
   version: 1;

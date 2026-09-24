@@ -31,6 +31,18 @@ export function getSidebarNavigation(expandedWorkspace: Workspace | null): Sideb
           children: expandedWorkspace === "home" ? getVisibleHomeModuleItems(expandedWorkspace) : [],
         },
         {
+          id: "bookingPage",
+          label: "Booking Page",
+          eyebrow: "Public page content",
+          children: [],
+        },
+        {
+          id: "contactPage",
+          label: "Contact Us",
+          eyebrow: "Public page content",
+          children: [],
+        },
+        {
           id: "tours",
           label: "Tour Library",
           eyebrow: "Published tours",

@@ -28,9 +28,14 @@ export function TourCard({
   const settings = useSiteSettings();
   const price = getTourDisplayPrice(tour);
   const priceFrom = price.startsWith("from ");
-  const regionBadge = getTourRegionBadge(tour, destinationCategories);
+  const regionBadge = getTourRegionBadge(tour, destinationCategories, lang);
   const title = getLocalizedTourValue(lang, tour.localizedTitle, tour.title);
   const duration = getLocalizedTourValue(lang, tour.localizedDuration, tour.duration);
+  const category = getLocalizedTourValue(
+    lang,
+    tour.localizedTourType,
+    getTourCategoryLabel(tour),
+  );
   const highlights = getLocalizedTourList(
     lang,
     tour.localizedHighlights,
@@ -57,7 +62,7 @@ export function TourCard({
       </Link>
       <div className="tour-card-body">
         <div className="tour-card-meta">
-          <span>{getTourCategoryLabel(tour)}</span>
+          <span>{category}</span>
           <span className="dot">·</span>
           <span>{duration}</span>
         </div>

@@ -110,11 +110,6 @@
   }
 }
 
-.cms-tour-library-stack {
-  display: grid;
-  gap: 24px;
-}
-
 .ant-pro-layout .ant-pro-sider-logo {
   padding-inline: 16px;
 }
@@ -634,6 +629,44 @@
 
 .cms-tour-editor-image-preview .ant-image-img {
   object-fit: cover;
+}
+
+.cms-tour-editor-gallery {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.cms-tour-editor-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 10px;
+}
+
+.cms-tour-editor-gallery-item {
+  overflow: hidden;
+  border: 1px solid #e4ded1;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.cms-tour-editor-gallery-item .ant-image,
+.cms-tour-editor-gallery-item .ant-image-img {
+  display: block;
+  width: 100% !important;
+  aspect-ratio: 4 / 3;
+}
+
+.cms-tour-editor-gallery-item .ant-image-img {
+  object-fit: cover;
+}
+
+.cms-tour-editor-gallery-actions {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px;
+  border-top: 1px solid #efe9dd;
 }
 
 .cms-tour-editor-file-row {

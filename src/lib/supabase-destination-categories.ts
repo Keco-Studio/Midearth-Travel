@@ -24,7 +24,7 @@ export async function saveDestinationCategories(
   categories: Array<
     Pick<
       DestinationCategory,
-      "id" | "titleEn" | "titleZh" | "summary" | "summaryZh" | "image"
+      "id" | "titleEn" | "titleZh" | "summary" | "summaryZh" | "image" | "busContent"
     >
   >,
 ): Promise<DestinationCategory[]> {
@@ -45,7 +45,16 @@ export async function saveDestinationCategories(
       throw new Error("Destination names must be 80 characters or fewer");
     }
 
-    return { ...seed, title: titleEn, titleEn, titleZh, summary, summaryZh, image };
+    return {
+      ...seed,
+      title: titleEn,
+      titleEn,
+      titleZh,
+      summary,
+      summaryZh,
+      image,
+      busContent: seed.id === "bus-tours" ? input?.busContent ?? seed.busContent : undefined,
+    };
   });
   const rows = canonical.map(toDestinationCategoryRow);
   try {
@@ -53,9 +62,9 @@ export async function saveDestinationCategories(
   } catch (error) {
     // Columns may not exist yet — retry with title-only payload so names still save.
     const message = error instanceof Error ? error.message : String(error);
-    if (/summary|image|column/i.test(message)) {
+    if (/summary|image|bus_content|column/i.test(message)) {
       await upsertRows(
-        rows.map(({ summary: _summary, summary_zh: _summaryZh, image: _image, ...rest }) => rest),
+        rows.map(({ summary: _summary, summary_zh: _summaryZh, image: _image, bus_content: _busContent, ...rest }) => rest),
       );
     } else {
       throw error;
@@ -80,7 +89,7 @@ async function ensureRows(): Promise<DestinationCategoryRow[]> {
       await upsertRows(missing);
     } catch {
       await upsertRows(
-        missing.map(({ summary: _summary, summary_zh: _summaryZh, image: _image, ...rest }) => rest),
+        missing.map(({ summary: _summary, summary_zh: _summaryZh, image: _image, bus_content: _busContent, ...rest }) => rest),
       );
     }
     return listRows();
@@ -98,7 +107,7 @@ async function listRows(): Promise<DestinationCategoryRow[]> {
 async function upsertRows(
   rows: Array<
     | DestinationCategoryRow
-    | Omit<DestinationCategoryRow, "summary" | "summary_zh" | "image">
+    | Omit<DestinationCategoryRow, "summary" | "summary_zh" | "image" | "bus_content">
   >,
 ): Promise<void> {
   await supabaseJson<DestinationCategoryRow[]>(`/rest/v1/${TABLE}?on_conflict=id`, {

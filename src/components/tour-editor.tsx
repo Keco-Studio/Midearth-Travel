@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  ArrowDownOutlined,
+  ArrowUpOutlined,
   DeleteOutlined,
   FilePdfOutlined,
   UploadOutlined,
@@ -15,6 +17,7 @@ import {
   Row,
   Space,
   Switch,
+  Tooltip,
   Typography,
   Upload,
   Select,
@@ -22,7 +25,6 @@ import {
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { RichTextEditor } from "@/components/rich-text-editor";
-import { TourTypeAutoComplete } from "@/components/tour-type-autocomplete";
 import {
   applyDestinationCategoryAssignments,
   resolveTourDestinationCategoryIds,
@@ -34,7 +36,6 @@ import type { TourRecord } from "@/types/cms";
 
 type TourEditorProps = {
   tour: TourRecord;
-  tourTypeOptions: string[];
   destinationCategories?: DestinationCategory[];
   onCancel: () => void;
   onUpdate: (tour: TourRecord) => void;
@@ -51,12 +52,11 @@ const requiredRules = {
   title: [{ required: true, whitespace: true, message: "Enter an English title" }],
   slug: [{ required: true, whitespace: true, message: "Enter a slug" }],
   duration: [{ required: true, whitespace: true, message: "Enter an English duration" }],
-  tourType: [{ required: true, whitespace: true, message: "Enter or select a tour type" }],
+  tourType: [{ required: true, whitespace: true, message: "Enter a tour type" }],
 };
 
 export function TourEditor({
   tour,
-  tourTypeOptions,
   destinationCategories = destinationCategorySeeds,
   onCancel,
   onUpdate,
@@ -66,7 +66,11 @@ export function TourEditor({
   const [form] = Form.useForm<TourRecord>();
   const [imagePreview, setImagePreview] = useState(tour.image || "/file.svg");
   const [pdfFileName, setPdfFileName] = useState(tour.pdfFileName);
+  const [galleryImages, setGalleryImages] = useState(() =>
+    tour.galleryImages.split(/\r?\n/).map((url) => url.trim()).filter(Boolean),
+  );
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingGalleryCount, setUploadingGalleryCount] = useState(0);
   const [uploadingPdf, setUploadingPdf] = useState(false);
 
   const initialValues = useMemo(
@@ -101,6 +105,39 @@ export function TourEditor({
     form.setFieldValue("image", "");
   }
 
+  async function handleGallerySelection(file: File) {
+    const validation = validateInlineImageFile(file);
+    if (!validation.ok) {
+      message.error(validation.error);
+      return;
+    }
+
+    setUploadingGalleryCount((count) => count + 1);
+    try {
+      const url = await onImageUpload(file);
+      setGalleryImages((current) => (current.includes(url) ? current : [...current, url]));
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : "Gallery image upload failed");
+    } finally {
+      setUploadingGalleryCount((count) => count - 1);
+    }
+  }
+
+  function removeGalleryImage(url: string) {
+    setGalleryImages((current) => current.filter((image) => image !== url));
+  }
+
+  function moveGalleryImage(index: number, offset: -1 | 1) {
+    setGalleryImages((current) => {
+      const nextIndex = index + offset;
+      if (nextIndex < 0 || nextIndex >= current.length) return current;
+
+      const next = [...current];
+      [next[index], next[nextIndex]] = [next[nextIndex], next[index]];
+      return next;
+    });
+  }
+
   async function handlePdfSelection(file: File) {
     if (!file.type.toLocaleLowerCase("en").includes("pdf") && !file.name.toLowerCase().endsWith(".pdf")) {
       message.error("Select a PDF file");
@@ -111,6 +148,8 @@ export function TourEditor({
       return Upload.LIST_IGNORE;
     }
 
+    const previousPdfFileName = pdfFileName;
+    setPdfFileName(file.name);
     setUploadingPdf(true);
     try {
       const formData = new FormData();
@@ -122,13 +161,13 @@ export function TourEditor({
         body: formData,
       });
       const payload = (await response.json()) as { url?: string; error?: string };
-      if (!response.ok || !payload.url) {
+      if (!response.ok || typeof payload.url !== "string" || !payload.url.trim()) {
         throw new Error(payload.error ?? "Tour PDF upload failed");
       }
       setPdfFileName(payload.url);
-      form.setFieldValue("pdfFileName", payload.url);
       message.success("PDF uploaded");
     } catch (error) {
+      setPdfFileName(previousPdfFileName);
       message.error(error instanceof Error ? error.message : "Tour PDF upload failed");
     } finally {
       setUploadingPdf(false);
@@ -138,13 +177,14 @@ export function TourEditor({
 
   function removePdf() {
     setPdfFileName("");
-    form.setFieldValue("pdfFileName", "");
   }
 
   function handleFinish(values: TourRecord) {
     const merged: TourRecord = {
       ...tour,
       ...values,
+      pdfFileName,
+      galleryImages: galleryImages.join("\n"),
       essentials: {
         ...tour.essentials,
         ...values.essentials,
@@ -172,9 +212,6 @@ export function TourEditor({
         <Form.Item name="image" hidden>
           <Input />
         </Form.Item>
-        <Form.Item name="pdfFileName" hidden>
-          <Input />
-        </Form.Item>
         <Form.Item name="region" hidden>
           <Input />
         </Form.Item>
@@ -197,22 +234,27 @@ export function TourEditor({
             </Col>
             <Col xs={24} lg={12}>
               <Form.Item name="localizedTitle" label="Title (Chinese)">
-                <Input />
+                <Input lang="zh-CN" inputMode="text" className="font-zh" />
               </Form.Item>
             </Col>
-            <Col xs={24} md={8}>
-              <Form.Item name="slug" label="Slug" rules={requiredRules.slug}>
+            <Col xs={24} md={6}>
+              <Form.Item name="slug" label="Slug (URL identifier)" rules={requiredRules.slug}>
                 <Input readOnly />
               </Form.Item>
             </Col>
-            <Col xs={24} md={8}>
+            <Col xs={24} md={6}>
               <Form.Item name="code" label="Tour code">
                 <Input />
               </Form.Item>
             </Col>
-            <Col xs={24} md={8}>
-              <Form.Item name="tourType" label="Tour type" rules={requiredRules.tourType}>
-                <TourTypeAutoComplete options={tourTypeOptions} />
+            <Col xs={24} md={6}>
+              <Form.Item name="tourType" label="Tour type (English)" rules={requiredRules.tourType}>
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={6}>
+              <Form.Item name="localizedTourType" label="Tour type (Chinese)">
+                <Input lang="zh-CN" inputMode="text" className="font-zh" />
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>
@@ -432,14 +474,61 @@ export function TourEditor({
                   Remove image
                 </Button>
               </Space>
-              <Form.Item
-                name="galleryImages"
-                label="Gallery images"
-                style={{ marginTop: 16 }}
-                extra="One image URL per line. Cover image is always first on the tour page."
-              >
-                <Input.TextArea rows={4} placeholder={"https://...\n/path/to/image.jpg"} />
-              </Form.Item>
+              <div className="cms-tour-editor-gallery">
+                <Typography.Text className="cms-tour-editor-field-label">Gallery images</Typography.Text>
+                <Upload
+                  accept="image/*"
+                  multiple
+                  showUploadList={false}
+                  disabled={uploadingGalleryCount > 0}
+                  beforeUpload={(file) => {
+                    void handleGallerySelection(file);
+                    return Upload.LIST_IGNORE;
+                  }}
+                >
+                  <Button icon={<UploadOutlined />} loading={uploadingGalleryCount > 0}>
+                    Upload gallery images
+                  </Button>
+                </Upload>
+                {galleryImages.length > 0 ? (
+                  <div className="cms-tour-editor-gallery-grid">
+                    {galleryImages.map((url, index) => (
+                      <div key={url} className="cms-tour-editor-gallery-item">
+                        <Image src={url} alt={`Gallery image ${index + 1}`} preview={false} />
+                        <div className="cms-tour-editor-gallery-actions">
+                          <Tooltip title="Move earlier">
+                            <Button
+                              aria-label="Move image earlier"
+                              disabled={index === 0}
+                              icon={<ArrowUpOutlined />}
+                              onClick={() => moveGalleryImage(index, -1)}
+                              size="small"
+                            />
+                          </Tooltip>
+                          <Tooltip title="Move later">
+                            <Button
+                              aria-label="Move image later"
+                              disabled={index === galleryImages.length - 1}
+                              icon={<ArrowDownOutlined />}
+                              onClick={() => moveGalleryImage(index, 1)}
+                              size="small"
+                            />
+                          </Tooltip>
+                          <Tooltip title="Remove image">
+                            <Button
+                              aria-label="Remove gallery image"
+                              danger
+                              icon={<DeleteOutlined />}
+                              onClick={() => removeGalleryImage(url)}
+                              size="small"
+                            />
+                          </Tooltip>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
             </Col>
             <Col xs={24} lg={14}>
               <Row gutter={[16, 0]}>

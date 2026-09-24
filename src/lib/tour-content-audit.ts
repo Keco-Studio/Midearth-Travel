@@ -4,6 +4,7 @@ import {
   isUsableMailtoHref,
   isUsableTelephoneHref,
 } from "./global-settings.ts";
+import { hasDayByDayHeading } from "./tour-itinerary-parser.ts";
 
 export { getBookingMailto } from "../data/tours.ts";
 
@@ -57,9 +58,43 @@ export function getTourIntroDescription(
   const englishDescription = tour.description.trim();
   const chineseDescription = tour.localizedDescription?.trim() ?? "";
 
-  return lang === "zh"
-    ? chineseDescription || englishDescription
-    : englishDescription || chineseDescription;
+  return getIntroDescriptionForLanguage(
+    lang === "zh" ? chineseDescription : englishDescription,
+    lang === "zh" ? englishDescription : chineseDescription,
+  );
+}
+
+export function getTourIntroDescriptionHtml(
+  tour: Tour,
+  lang: "en" | "zh",
+): string {
+  const englishDescription = tour.descriptionHtml?.trim() ?? "";
+  const chineseDescription = tour.localizedDescriptionHtml?.trim() ?? "";
+
+  return getIntroDescriptionForLanguage(
+    lang === "zh" ? chineseDescription : englishDescription,
+    lang === "zh" ? englishDescription : chineseDescription,
+  );
+}
+
+export function getTourDisplayItinerary(
+  tour: Tour,
+  lang: "en" | "zh",
+) {
+  return lang === "zh" && tour.localizedItinerary?.length
+    ? tour.localizedItinerary
+    : tour.itinerary;
+}
+
+function getIntroDescriptionForLanguage(
+  preferredDescription: string,
+  fallbackDescription: string,
+): string {
+  if (preferredDescription) {
+    return hasDayByDayHeading(preferredDescription) ? "" : preferredDescription;
+  }
+
+  return hasDayByDayHeading(fallbackDescription) ? "" : fallbackDescription;
 }
 
 export function getTourPublicHref(

@@ -108,10 +108,8 @@ test("builds deduplicated options and minimal persisted overrides", () => {
   const currentTours = applyTourTypeOverrides(sourceTours, { alpha: "Expedition" });
 
   assert.deepEqual(getTourTypeOptions(currentTours, ["expedition", "Rail Tour"]), [
-    "Bus Tour",
-    "Group Tour",
-    "Sun Destinations",
     "Expedition",
+    "Group Tour",
     "Rail Tour",
   ]);
   assert.deepEqual(buildTourTypeStorageState(sourceTours, currentTours, ["Expedition"]), {

@@ -149,10 +149,32 @@ export const destinationsByRegion: RegionGroup[] = [
 
 export type RegionListingCard = Tour & { href?: string };
 
+export type LiveRegionGroup = {
+  name: string;
+  tours: Tour[];
+};
+
+export function groupToursByRegion(
+  tours: readonly Tour[],
+  getRegionName: (tour: Tour) => string = (tour) => tour.region.trim(),
+): LiveRegionGroup[] {
+  const groups = new Map<string, Tour[]>();
+  for (const tour of tours) {
+    const name = getRegionName(tour).trim() || "Other destinations";
+    const group = groups.get(name) ?? [];
+    group.push(tour);
+    groups.set(name, group);
+  }
+  return [...groups.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([name, groupedTours]) => ({ name, tours: groupedTours }));
+}
+
 export function resolveRegionCards(
   items: RegionShowcaseRef[],
   tours: readonly Tour[],
   limit = REGION_CARD_LIMIT,
+  onlyLiveTours = false,
 ): RegionListingCard[] {
   const toursBySlug = new Map(tours.map((tour) => [tour.slug, tour]));
 
@@ -161,6 +183,7 @@ export function resolveRegionCards(
       const tour = toursBySlug.get(item.tourSlug);
       return tour ? [tour] : [];
     }
+    if (onlyLiveTours) return [];
     const { href, ...rest } = item.showcase;
     return [{
       ...rest,

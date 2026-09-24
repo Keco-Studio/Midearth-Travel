@@ -10,6 +10,52 @@ export type CheckoutInput = {
   bookingId?: string;
 };
 
+export type TourBookingInput = {
+  tourSlug: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  departureDate: string;
+  adults: number;
+  children: number;
+  notes: string;
+};
+
+export function validateTourBookingInput(value: unknown): TourBookingInput {
+  if (!value || typeof value !== "object") throw new Error("Request body is required");
+
+  const input = value as Record<string, unknown>;
+  const tourSlug = typeof input.tourSlug === "string" ? input.tourSlug.trim() : "";
+  const customerName = typeof input.customerName === "string" ? input.customerName.trim() : "";
+  const customerEmail = typeof input.customerEmail === "string" ? input.customerEmail.trim() : "";
+  const customerPhone = typeof input.customerPhone === "string" ? input.customerPhone.trim() : "";
+  const departureDate = typeof input.departureDate === "string" ? input.departureDate.trim() : "";
+  const notes = typeof input.notes === "string" ? input.notes.trim() : "";
+  const adults = Number(input.adults);
+  const children = Number(input.children);
+
+  if (!tourSlug || !customerName || !customerPhone || !departureDate || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
+    throw new Error("Please complete all required booking details");
+  }
+  if (!Number.isInteger(adults) || adults < 1) {
+    throw new Error("At least one adult is required");
+  }
+  if (!Number.isInteger(children) || children < 0) {
+    throw new Error("Children must be zero or more");
+  }
+
+  return {
+    tourSlug,
+    customerName,
+    customerEmail,
+    customerPhone,
+    departureDate,
+    adults,
+    children,
+    notes,
+  };
+}
+
 export function validateCheckoutInput(value: unknown): CheckoutInput {
   if (!value || typeof value !== "object") throw new Error("Request body is required");
   const input = value as Record<string, unknown>;

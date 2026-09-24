@@ -1,12 +1,16 @@
 "use client";
 
 import { Input, Table, Typography } from "antd";
+import { BusToursContentEditor } from "@/components/bus-tours-content-editor";
+import { getBusToursContent } from "@/lib/bus-tours-content";
 import type { DestinationCategory } from "@/lib/destination-categories";
+import type { TourRecord } from "@/types/cms";
 
 type DestinationCategoryEditorProps = {
   categories: DestinationCategory[];
   onChange: (categories: DestinationCategory[]) => void;
   onDirtyChange: (dirty: boolean) => void;
+  tours: TourRecord[];
 };
 
 type EditableKey = "titleEn" | "titleZh" | "summary" | "summaryZh" | "image";
@@ -15,7 +19,10 @@ export function DestinationCategoryEditor({
   categories,
   onChange,
   onDirtyChange,
+  tours,
 }: DestinationCategoryEditorProps) {
+  const busTours = categories.find((category) => category.id === "bus-tours");
+
   function updateField(id: string, key: EditableKey, value: string) {
     onDirtyChange(true);
     onChange(
@@ -110,6 +117,20 @@ export function DestinationCategoryEditor({
           },
         ]}
       />
+      {busTours ? (
+        <BusToursContentEditor
+          content={getBusToursContent(busTours.busContent)}
+          tours={tours}
+          onDirtyChange={onDirtyChange}
+          onChange={(busContent) =>
+            onChange(
+              categories.map((category) =>
+                category.id === "bus-tours" ? { ...category, busContent } : category,
+              ),
+            )
+          }
+        />
+      ) : null}
     </section>
   );
 }

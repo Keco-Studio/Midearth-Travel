@@ -8,6 +8,7 @@ import { useLang } from "@/context/lang-context";
 import styles from "./newsletter.module.css";
 import { getStringContent, type ContentData } from "@/lib/content-values";
 import { getLocalizedContent } from "@/lib/localized-content";
+import { getContactQuoteHref } from "@/lib/contact-prefill";
 
 export function Newsletter({ content = {} }: { content?: ContentData }) {
   const settings = useSiteSettings();
@@ -23,11 +24,19 @@ export function Newsletter({ content = {} }: { content?: ContentData }) {
     "Contact us today for personalized travel quotes and the best deals on flights, hotels, and tour packages",
   );
   const emailPlaceholder = getLocalizedContent(content, "emailPlaceholder", lang, "Enter your email");
-  const mailtoRecipient = getStringContent(
+  const contactLineTemplate = getLocalizedContent(
     content,
-    "mailtoRecipient",
-    settings.emailLabel,
+    "contactLine",
+    lang,
+    "",
   );
+  const contactLine = contactLineTemplate
+    .replaceAll("{{primaryPhone}}", settings.primaryPhoneLabel)
+    .replaceAll(
+      "{{secondaryPhone}}",
+      settings.secondaryPhoneLabel ? ` / ${settings.secondaryPhoneLabel}` : "",
+    )
+    .replaceAll("{{email}}", settings.emailLabel);
   const wechatQrImage = getStringContent(content, "wechatQrImage", "/contact/wechat-qr.jpg");
   const whatsappQrImage = getStringContent(content, "whatsappQrImage", "/contact/whatsapp-qr.jpg");
   const wechatQrLabel = getLocalizedContent(content, "wechatQrLabel", lang, "微信扫码咨询");
@@ -35,7 +44,7 @@ export function Newsletter({ content = {} }: { content?: ContentData }) {
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    window.location.href = `mailto:${mailtoRecipient}?subject=Quote%20Request&body=Email:%20${encodeURIComponent(email)}`;
+    window.location.href = getContactQuoteHref(undefined, email);
   }
 
   return (
@@ -69,17 +78,7 @@ export function Newsletter({ content = {} }: { content?: ContentData }) {
           </div>
         </form>
 
-        <p className={styles.contact}>
-          Call us at{" "}
-          <a href={settings.primaryPhoneHref}>{settings.primaryPhoneLabel}</a>
-          {settings.secondaryPhoneLabel ? (
-            <>
-              {" / "}
-              <a href={settings.secondaryPhoneHref}>{settings.secondaryPhoneLabel}</a>
-            </>
-          ) : null}{" "}
-          or email <a href={settings.emailHref}>{settings.emailLabel}</a>
-        </p>
+        {contactLine ? <p className={styles.contact}>{contactLine}</p> : null}
 
         <div className={styles.qrSection}>
           <div className={styles.qrItem}>

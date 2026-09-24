@@ -11,6 +11,7 @@ test("accepts only supported public footer destinations", () => {
     ["/tours/grand-canyon", true],
     ["/routes/asia", true],
     ["/services/flights", true],
+    ["/contact", true],
     ["mailto:hello@example.com", true],
     ["tel:+16135551212", true],
     ["https://example.com/travel", true],

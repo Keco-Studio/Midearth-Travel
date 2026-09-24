@@ -120,6 +120,81 @@ export async function updateBookingStatus(
   return rowToBooking(row);
 }
 
+export async function createQuoteRequest(input: {
+  name: string;
+  email: string;
+  phone: string;
+  requirements: string;
+}): Promise<BookingRecord> {
+  const now = new Date().toISOString();
+  const id = `quote-${crypto.randomUUID()}`;
+  const booking: BookingRecord = {
+    id,
+    reference: `QR-${new Date().getUTCFullYear()}-${id.slice(-8).toUpperCase()}`,
+    status: "new",
+    source: "quote_request",
+    customerName: input.name.trim(),
+    customerEmail: input.email.trim(),
+    customerPhone: input.phone.trim(),
+    notes: input.requirements.trim(),
+    createdAt: now,
+    updatedAt: now,
+  };
+  const rows = await request<BookingRow[]>("/rest/v1/bookings", {
+    method: "POST",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify(bookingToRow(booking)),
+  });
+  if (!rows[0]) throw new Error("Unable to save quote request");
+  return rowToBooking(rows[0]);
+}
+
+export async function createTourBooking(input: {
+  tourSlug: string;
+  tourTitle: string;
+  tourCode?: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  departureDate: string;
+  adults: number;
+  children: number;
+  notes: string;
+}): Promise<BookingRecord> {
+  const now = new Date().toISOString();
+  const id = `tour-${crypto.randomUUID()}`;
+  const selectedDepartureIsIsoDate = /^\d{4}-\d{2}-\d{2}$/.test(input.departureDate);
+  const details = [
+    `Requested departure: ${input.departureDate}`,
+    `Travel party: ${input.adults} adult${input.adults === 1 ? "" : "s"}, ${input.children} child${input.children === 1 ? "" : "ren"}`,
+    input.notes,
+  ].filter(Boolean);
+  const booking: BookingRecord = {
+    id,
+    reference: `TB-${new Date().getUTCFullYear()}-${id.slice(-8).toUpperCase()}`,
+    status: "new",
+    source: "tour_email",
+    tourSlug: input.tourSlug,
+    tourTitle: input.tourTitle,
+    tourCode: input.tourCode,
+    customerName: input.customerName,
+    customerEmail: input.customerEmail,
+    customerPhone: input.customerPhone,
+    departureDate: selectedDepartureIsIsoDate ? input.departureDate : undefined,
+    partySize: input.adults + input.children,
+    notes: details.join("\n"),
+    createdAt: now,
+    updatedAt: now,
+  };
+  const rows = await request<BookingRow[]>("/rest/v1/bookings", {
+    method: "POST",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify(bookingToRow(booking)),
+  });
+  if (!rows[0]) throw new Error("Unable to save tour booking");
+  return rowToBooking(rows[0]);
+}
+
 async function ensureBookings(): Promise<BookingRow[]> {
   const rows = await request<BookingRow[]>(
     "/rest/v1/bookings?select=*&order=created_at.desc",

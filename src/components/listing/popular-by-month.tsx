@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   destinationsByMonth,
   type MonthEntry,
@@ -20,6 +20,7 @@ type PopularByMonthProps = {
   subtitle?: ReactNode;
   months?: MonthEntry[];
   tours?: readonly Tour[];
+  requireTourMatch?: boolean;
 };
 
 export function PopularByMonth({
@@ -34,17 +35,28 @@ export function PopularByMonth({
   subtitle,
   months = destinationsByMonth,
   tours = [],
+  requireTourMatch = false,
 }: PopularByMonthProps) {
   const settings = useSiteSettings();
   const { lang } = useLang();
   const entries = months.length > 0 ? months : destinationsByMonth;
-  const source = resolveExploreByMonthEntries(
+  const resolvedSource = resolveExploreByMonthEntries(
     entries,
     tours,
     getConfiguredContactHref(settings.emailHref, settings.primaryPhoneHref),
+    { requireTourMatch },
   );
-  const [active, setActive] = useState(source[0].month);
-  const panel = source.find((m) => m.month === active) ?? source[0];
+  const source = requireTourMatch
+    ? resolvedSource.filter((month) => month.destinations.length > 0)
+    : resolvedSource;
+  const [active, setActive] = useState(source[0]?.month ?? "");
+  useEffect(() => {
+    if (!source.some((month) => month.month === active)) {
+      setActive(source[0]?.month ?? "");
+    }
+  }, [active, source]);
+  const activeMonth = source.find((m) => m.month === active) ?? source[0];
+  const panel = activeMonth ?? { month: "", label: "", destinations: [] };
 
   return (
     <div className={styles.browseBlock}>

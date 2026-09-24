@@ -27,6 +27,7 @@ test("mapExcelRowToTourRecord maps workbook columns to TourRecord", () => {
       "code(required)": "AC02",
       "status（Option）": "published",
       "title(required)": "A Taste of Cathay",
+      ChineseTourType: "团队旅行",
       "image(required)": "https://example.com/tour.jpg",
       "region(required)": "Asia",
       "duration(required)": "8 days, 7 nights",
@@ -63,6 +64,7 @@ test("mapExcelRowToTourRecord maps workbook columns to TourRecord", () => {
   assert.equal(record?.code, "AC02");
   assert.equal(record?.slug, "a-taste-of-cathay");
   assert.equal(record?.tourType, "Group Tour");
+  assert.equal(record?.localizedTourType, "团队旅行");
   assert.equal(record?.fares.quad, "$999");
   assert.equal(record?.fares.triple, "$0");
   assert.equal(record?.specialOffer, true);
@@ -77,6 +79,25 @@ test("parseItineraryFromRichText extracts day-by-day content", () => {
   assert.deepEqual(itinerary, [
     { day: 1, title: "Toronto - Montreal", description: "Morning departure." },
     { day: 2, title: "Montreal", description: "City tour." },
+  ]);
+});
+
+test("parseItineraryFromRichText extracts Chinese day-by-day content", () => {
+  const itinerary = parseItineraryFromRichText(
+    "<p><strong>第 1 天：渥太华 - 里维耶尔迪卢普</strong> 清晨从渥太华出发，前往魁北克。</p><p><strong>第 2 天：坎贝尔顿 - 佩尔塞</strong> 早餐后继续沿海旅行。</p>",
+  );
+
+  assert.deepEqual(itinerary, [
+    {
+      day: 1,
+      title: "渥太华 - 里维耶尔迪卢普",
+      description: "清晨从渥太华出发，前往魁北克。",
+    },
+    {
+      day: 2,
+      title: "坎贝尔顿 - 佩尔塞",
+      description: "早餐后继续沿海旅行。",
+    },
   ]);
 });
 

@@ -74,10 +74,6 @@ The language selector persists the visitor's choice in browser storage across na
 
 The Footer Tours column is derived from the configured destination categories, in this order: North America (`/routes/north-america`), Asia (`/routes/asia`), Europe (`/routes/europe`), Sun Destinations (`/routes/sun-destinations`), Bus Tours (`/tours/category/bus-tours`), and Vacation Packages (`/tours/category/vacation-packages`). Invalid or empty internal links are omitted rather than rendered as a link to a missing page.
 
-### Panda Tour Content Audit
-
-Open `/admin`, then use the **Published Tour Content Audit** panel to review published, image-backed tours that are missing customer-ready detail. Select **Download CSV** to export `published-tour-content-audit.csv` and send it to Panda for forwarding to the client. The export includes the tour title, slug, image, and missing fields; it does not invent itinerary or marketing copy. Public cards for incomplete tours open an encoded contact enquiry instead of a nonexistent detail page.
-
 ## 修改内容
 
 - **Tour 列表/详情**：编辑 `src/data/tours.ts`

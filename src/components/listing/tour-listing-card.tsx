@@ -37,7 +37,14 @@ export function TourListingCard({
     tour,
     getConfiguredContactHref(settings.emailHref, settings.primaryPhoneHref),
   );
-  const regionBadge = getTourRegionBadge(tour, destinationCategories);
+  const regionBadge = getTourRegionBadge(tour, destinationCategories, lang);
+  const tourType = getLocalizedTourValue(
+    lang,
+    tour.localizedTourType,
+    lang === "zh" && tour.tourType.trim().toLocaleLowerCase("en") === "bus tour"
+      ? "巴士旅行团"
+      : tour.tourType,
+  );
 
   return (
     <article className={styles.tourCard}>
@@ -55,7 +62,7 @@ export function TourListingCard({
       </Link>
       <div className={styles.tourCardBody}>
         <div className={styles.tourCardMeta}>
-          <span>{tour.tourType}</span>
+          <span>{tourType}</span>
           <span className={styles.tourCardMetaDot}>·</span>
           <span>{duration}</span>
         </div>

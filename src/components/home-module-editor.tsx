@@ -140,6 +140,7 @@ export function HomeModuleEditor({
           categories={destinationCategories}
           onDirtyChange={setSupplementalDirty}
           onChange={onDestinationCategoriesChange}
+          tours={tours}
         />
       ) : null}
       {module.id === "exploreByMonth" ? (
@@ -191,6 +192,9 @@ function getFieldSectionHeader(
   moduleId: HomeModuleRecord["id"],
   fieldKey: string,
 ): string | null {
+  if (moduleId === "bookingPage" || moduleId === "contactPage") {
+    return fieldKey === "backgroundImage" ? "Page media & copy" : null;
+  }
   if (moduleId !== "hero") return null;
   const cardMatch = /^card(\d)IconImage$/.exec(fieldKey);
   if (cardMatch) return `Feature card ${cardMatch[1]}`;

@@ -56,11 +56,11 @@ test("resolves persisted language before the provider exposes localized UI", () 
 test("interpolates an optional tour code into the localized booking CTA", () => {
   assert.equal(
     getLocalizedStaticText("en", "bookingCtaDescription", { tourCode: " for tour EH-12" }),
-    "Email us to reserve your seats, or call our Ottawa office - we'll confirm availability and next steps for tour EH-12.",
+    "Contact us for a quote or help planning your trip for tour EH-12.",
   );
   assert.equal(
     getLocalizedStaticText("zh", "bookingCtaDescription", { tourCode: "（行程编号 EH-12）" }),
-    "请通过电子邮件预留座位，或致电渥太华办公室，我们将确认可用情况和后续安排（行程编号 EH-12）。",
+    "联系我们获取报价或协助规划行程（行程编号 EH-12）。",
   );
 });
 

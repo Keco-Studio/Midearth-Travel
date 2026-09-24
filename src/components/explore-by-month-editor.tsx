@@ -16,6 +16,7 @@ import type { ContentValue, TourRecord } from "@/types/cms";
 type ExploreByMonthEditorProps = {
   content: ContentData;
   tours: TourRecord[];
+  tourFilter?: (tour: TourRecord) => boolean;
   onChange: (key: string, value: ContentValue) => void;
 };
 
@@ -29,6 +30,7 @@ type TourOption = {
 export function ExploreByMonthEditor({
   content,
   tours,
+  tourFilter,
   onChange,
 }: ExploreByMonthEditorProps) {
   const months = getExploreByMonthEntries(content);
@@ -36,7 +38,11 @@ export function ExploreByMonthEditor({
   const tourOptions = useMemo<TourOption[]>(
     () =>
       [...tours]
-        .filter((tour) => tour.status === "published" || tour.status === "draft")
+        .filter(
+          (tour) =>
+            (tour.status === "published" || tour.status === "draft") &&
+            (tourFilter?.(tour) ?? true),
+        )
         .sort((a, b) => {
           const aFlag = a.travelNewsPackage ? 0 : 1;
           const bFlag = b.travelNewsPackage ? 0 : 1;
@@ -49,7 +55,7 @@ export function ExploreByMonthEditor({
           region: tour.region,
           tourType: tour.tourType,
         })),
-    [tours],
+    [tourFilter, tours],
   );
 
   function commit(next: MonthEntry[]) {

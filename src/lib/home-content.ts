@@ -24,6 +24,12 @@ export type HomeModuleRow = {
 
 export type HomeModuleDataMode = "draft" | "published";
 
+const cmsChineseDefaultModules = new Set<HomeModuleId>([
+  "footer",
+  "bookingPage",
+  "contactPage",
+]);
+
 export function toHomeModuleRow(module: HomeModuleRecord): HomeModuleRow {
   return {
     id: module.id,
@@ -86,8 +92,19 @@ export function canonicalizeHomeModule(
 
   const normalizedCandidateData = normalizeLegacyLocalizedData(candidate.data, seed.fields);
   const data = seed.fields.reduce<Record<string, ContentValue>>((result, field) => {
-    let value = normalizedCandidateData[field.key] ?? seed.data[field.key] ?? defaultFieldValue(field);
+    const storedValue = normalizedCandidateData[field.key];
     const seedValue = seed.data[field.key];
+    const useCmsChineseDefault =
+      (cmsChineseDefaultModules.has(candidate.id) ||
+        (candidate.id === "finalCta" && field.key === "primaryButtonTextZh")) &&
+      field.key.endsWith("Zh") &&
+      typeof storedValue === "string" &&
+      !storedValue.trim() &&
+      typeof seedValue === "string" &&
+      seedValue.trim();
+    let value = useCmsChineseDefault
+      ? seedValue
+      : storedValue ?? seedValue ?? defaultFieldValue(field);
     if (
       field.type === "image" &&
       typeof value === "string" &&

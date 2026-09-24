@@ -6,20 +6,30 @@ export type ServiceDeal = {
 
 export type ServicePageFields = {
   title: string;
+  titleZh?: string;
   intro: string;
+  introZh?: string;
   signOff: string;
+  signOffZh?: string;
   disclaimer: string;
+  disclaimerZh?: string;
   quoteLabel: string;
+  quoteLabelZh?: string;
   metaTitle: string;
+  metaTitleZh?: string;
   metaDescription: string;
+  metaDescriptionZh?: string;
   deals: ServiceDeal[];
+  dealsZh?: ServiceDeal[];
 };
 
 export type Service = {
   id: string;
   slug: string;
   title: string;
+  titleZh?: string;
   summary: string;
+  summaryZh?: string;
   image: string;
   page: ServicePageFields;
 };
@@ -59,14 +69,57 @@ export function createEmptyServicePage(title = "New Service"): ServicePageFields
   const trimmed = title.trim() || "New Service";
   return {
     title: trimmed.toUpperCase(),
+    titleZh: "",
     intro: "",
+    introZh: "",
     signOff: "Thanks",
+    signOffZh: "",
     disclaimer: "",
+    disclaimerZh: "",
     quoteLabel: trimmed,
+    quoteLabelZh: "",
     metaTitle: `${trimmed} | Midearth Travel`,
+    metaTitleZh: "",
     metaDescription: "",
+    metaDescriptionZh: "",
     deals: [],
+    dealsZh: [],
   };
+}
+
+export function getLocalizedServicePage(
+  page: ServicePageFields,
+  lang: "en" | "zh",
+): ServicePageFields {
+  if (lang === "en") return clonePage(page);
+
+  return {
+    ...page,
+    title: populated(page.titleZh, page.title),
+    intro: populated(page.introZh, page.intro),
+    signOff: populated(page.signOffZh, page.signOff),
+    disclaimer: populated(page.disclaimerZh, page.disclaimer),
+    quoteLabel: populated(page.quoteLabelZh, page.quoteLabel),
+    metaTitle: populated(page.metaTitleZh, page.metaTitle),
+    metaDescription: populated(page.metaDescriptionZh, page.metaDescription),
+    deals: page.dealsZh && page.dealsZh.length > 0 ? cloneDeals(page.dealsZh) : cloneDeals(page.deals),
+  };
+}
+
+function populated(value: string | undefined, fallback: string): string {
+  return value?.trim() ? value : fallback;
+}
+
+function clonePage(page: ServicePageFields): ServicePageFields {
+  return {
+    ...page,
+    deals: cloneDeals(page.deals),
+    dealsZh: page.dealsZh ? cloneDeals(page.dealsZh) : [],
+  };
+}
+
+function cloneDeals(deals: ServiceDeal[]): ServiceDeal[] {
+  return deals.map((deal) => ({ ...deal }));
 }
 
 export function createEmptyService(): Service {
@@ -75,7 +128,9 @@ export function createEmptyService(): Service {
     id: `service-${stamp}`,
     slug: `new-service-${stamp}`,
     title: "New Service",
+    titleZh: "",
     summary: "Describe this travel service.",
+    summaryZh: "",
     image: DEFAULT_SERVICE_IMAGE,
     page: createEmptyServicePage("New Service"),
   };
