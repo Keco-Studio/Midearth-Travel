@@ -30,6 +30,16 @@ export const layoutRouteConfig: { routes: LayoutRoute[] } = {
           })),
         },
         {
+          path: "/booking-page",
+          name: "Booking Page",
+          workspace: "bookingPage",
+        },
+        {
+          path: "/contact-page",
+          name: "Contact Us",
+          workspace: "contactPage",
+        },
+        {
           path: "/tours",
           name: "Tour Library",
           workspace: "tours",
@@ -68,6 +78,9 @@ export function getPathFromAdminState(
     return `/home/${selectedHomeModuleId}`;
   }
 
+  if (workspace === "bookingPage") return "/booking-page";
+  if (workspace === "contactPage") return "/contact-page";
+
   return `/${workspace}`;
 }
 
@@ -83,6 +96,9 @@ export function parseLayoutPath(pathname: string): {
   if (pathname === "/home") {
     return { workspace: "home", moduleId: "navbar" };
   }
+
+  if (pathname === "/booking-page") return { workspace: "bookingPage" };
+  if (pathname === "/contact-page") return { workspace: "contactPage" };
 
   const workspace = pathname.replace("/", "") as Workspace;
   if (

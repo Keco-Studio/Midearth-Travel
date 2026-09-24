@@ -6,6 +6,7 @@ import { site } from "@/data/site";
 import { getStringContent, type ContentData } from "@/lib/content-values";
 import { useLang } from "@/context/lang-context";
 import { getLocalizedContent, getLocalizedStaticText } from "@/lib/localized-content";
+import { getContactQuoteHref } from "@/lib/contact-prefill";
 
 export function FinalCta({ content = {} }: { content?: ContentData }) {
   const settings = useSiteSettings();
@@ -19,19 +20,20 @@ export function FinalCta({ content = {} }: { content?: ContentData }) {
     lang,
     "Use the form, or call the office. Either reaches a real desk in downtown Ottawa.",
   );
-  const primaryButtonText = getLocalizedContent(content, "primaryButtonText", lang, "Start a booking");
+  const primaryButtonText = getLocalizedContent(
+    content,
+    "primaryButtonText",
+    lang,
+    "Contact us",
+  );
   const phoneLabel =
     settings.primaryPhoneLabel.trim() ||
     getStringContent(content, "phoneLabel", "").trim() ||
     site.phone;
-  const phoneHref =
-    settings.primaryPhoneHref.trim() || `tel:${site.phoneTel}`;
   const emailLabel =
     settings.emailLabel.trim() ||
     getStringContent(content, "emailLabel", "").trim() ||
     site.email;
-  const emailHref =
-    settings.emailHref.trim() || `mailto:${site.email}`;
   const officeAddress =
     (lang === "zh"
       ? settings.officeAddressZh.trim() ||
@@ -40,14 +42,7 @@ export function FinalCta({ content = {} }: { content?: ContentData }) {
         getStringContent(content, "officeAddress", "").trim()) ||
     settings.officeAddress.trim() ||
     "Bronson Avenue, Ottawa, Ontario";
-  const primaryButtonLink = phoneHref;
-  const secondaryButtonText = getLocalizedContent(
-    content,
-    "secondaryButtonText",
-    lang,
-    "Send a message",
-  );
-  const secondaryButtonLink = "/#contact";
+  const primaryButtonLink = getContactQuoteHref();
 
   return (
     <section className="final-cta">
@@ -60,33 +55,30 @@ export function FinalCta({ content = {} }: { content?: ContentData }) {
             <div className="eyebrow">— {eyebrow}</div>
             <h2 className="section-title">{title}</h2>
             <p>{description}</p>
-            <div className="final-cta-actions">
-              <Link href={primaryButtonLink}>
-                <button type="button" className="btn btn-lg btn-primary">
-                  {primaryButtonText}
-                </button>
-              </Link>
-              <Link href={secondaryButtonLink}>
-                <button type="button" className="btn btn-lg btn-ghost">
-                  {secondaryButtonText}
-                </button>
-              </Link>
-            </div>
-            <div className="final-cta-meta">
-              <div>
-                <span className="muted">{getLocalizedStaticText(lang, "phone")}</span>
-                <br />
-                <a href={phoneHref}>{phoneLabel}</a>
+            <div className="final-cta-contact-grid">
+              <div className="final-cta-actions">
+                <Link href={primaryButtonLink}>
+                  <button type="button" className="btn btn-lg btn-primary">
+                    {primaryButtonText}
+                  </button>
+                </Link>
               </div>
-              <div>
-                <span className="muted">{getLocalizedStaticText(lang, "email")}</span>
-                <br />
-                <a href={emailHref}>{emailLabel}</a>
-              </div>
-              <div>
-                <span className="muted">{getLocalizedStaticText(lang, "office")}</span>
-                <br />
-                {officeAddress}
+              <div className="final-cta-meta">
+                <div>
+                  <span className="muted">{getLocalizedStaticText(lang, "phone")}</span>
+                  <br />
+                  {phoneLabel}
+                </div>
+                <div>
+                  <span className="muted">{getLocalizedStaticText(lang, "email")}</span>
+                  <br />
+                  {emailLabel}
+                </div>
+                <div>
+                  <span className="muted">{getLocalizedStaticText(lang, "office")}</span>
+                  <br />
+                  {officeAddress}
+                </div>
               </div>
             </div>
           </div>

@@ -43,7 +43,9 @@ export async function saveHomepageServices(input: Service[]): Promise<Service[]>
   const canonical = input.map((value, index) => {
     const id = value.id?.trim();
     const title = value.title?.trim() ?? "";
+    const titleZh = value.titleZh?.trim() ?? "";
     const summary = value.summary?.trim() ?? "";
+    const summaryZh = value.summaryZh?.trim() ?? "";
     const slug = (value.slug?.trim() ?? "").toLocaleLowerCase("en");
     const image = value.image?.trim() ?? "";
     const page = normalizePageFields(value.page, undefined, title);
@@ -59,11 +61,22 @@ export async function saveHomepageServices(input: Service[]): Promise<Service[]>
       throw new Error(`Duplicate service slug: ${slug}`);
     }
     seenSlugs.add(slug);
-    if (title.length > 80 || summary.length > 180) {
+    if (title.length > 80 || titleZh.length > 80 || summary.length > 180 || summaryZh.length > 180) {
       throw new Error("Service title or summary is too long");
     }
     if (page.title.length > 120 || page.intro.length > 4000) {
       throw new Error("Service page title or intro is too long");
+    }
+    if (
+      (page.titleZh?.length ?? 0) > 120 ||
+      (page.introZh?.length ?? 0) > 4000 ||
+      (page.signOffZh?.length ?? 0) > 80 ||
+      (page.disclaimerZh?.length ?? 0) > 500 ||
+      (page.quoteLabelZh?.length ?? 0) > 120 ||
+      (page.metaTitleZh?.length ?? 0) > 160 ||
+      (page.metaDescriptionZh?.length ?? 0) > 400
+    ) {
+      throw new Error("Chinese service page content is too long");
     }
     if (page.disclaimer.length > 500 || page.signOff.length > 80) {
       throw new Error("Service page disclaimer or sign-off is too long");
@@ -75,21 +88,37 @@ export async function saveHomepageServices(input: Service[]): Promise<Service[]>
     return {
       id,
       title,
+      titleZh,
       summary,
+      summaryZh,
       slug,
       image,
       page: {
         ...page,
         title: page.title.trim() || title.toUpperCase(),
+        titleZh: page.titleZh?.trim() ?? "",
         intro: page.intro.trim(),
+        introZh: page.introZh?.trim() ?? "",
         signOff: page.signOff.trim() || "Thanks",
+        signOffZh: page.signOffZh?.trim() ?? "",
         disclaimer: page.disclaimer.trim(),
+        disclaimerZh: page.disclaimerZh?.trim() ?? "",
         quoteLabel: page.quoteLabel.trim() || title,
+        quoteLabelZh: page.quoteLabelZh?.trim() ?? "",
         metaTitle: page.metaTitle.trim() || `${title} | Midearth Travel`,
+        metaTitleZh: page.metaTitleZh?.trim() ?? "",
         metaDescription: page.metaDescription.trim(),
+        metaDescriptionZh: page.metaDescriptionZh?.trim() ?? "",
         deals: page.deals
           .map((deal, dealIndex) => ({
             id: deal.id.trim() || `deal-${dealIndex + 1}`,
+            route: deal.route.trim(),
+            priceLabel: deal.priceLabel.trim(),
+          }))
+          .filter((deal) => deal.route || deal.priceLabel),
+        dealsZh: (page.dealsZh ?? [])
+          .map((deal, dealIndex) => ({
+            id: deal.id.trim() || `deal-zh-${dealIndex + 1}`,
             route: deal.route.trim(),
             priceLabel: deal.priceLabel.trim(),
           }))
@@ -204,7 +233,9 @@ async function ensureServices(): Promise<ServiceRow[]> {
           id: row.id,
           slug: row.slug,
           title: row.title,
+          titleZh: row.title_zh ?? "",
           summary: row.summary,
+          summaryZh: row.summary_zh ?? "",
           image: row.image,
           page: normalizePageFields(row.page_content, seed?.page, row.title),
         },
@@ -235,7 +266,11 @@ async function upsertTestimonials(rows: TestimonialRow[]): Promise<void> {
     if (!/text_zh|column/i.test(message)) throw error;
     await upsert(
       "homepage_testimonials",
-      rows.map(({ text_zh: _textZh, ...row }) => row),
+      rows.map((row) => {
+        const { text_zh, ...legacyRow } = row;
+        void text_zh;
+        return legacyRow;
+      }),
     );
   }
 }

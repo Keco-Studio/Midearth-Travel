@@ -70,6 +70,7 @@ export function getTourRegionBadge(
     vacationPackage?: boolean;
   },
   categories: readonly DestinationCategory[] = destinationCategorySeeds,
+  lang: "en" | "zh" = "en",
 ): string {
   const ids =
     Array.isArray(tour.destinationCategoryIds) && tour.destinationCategoryIds.length > 0
@@ -84,8 +85,8 @@ export function getTourRegionBadge(
   if (ids.length > 0) {
     const matched = categories.filter((category) => ids.includes(category.id));
     const regionCategory = matched.find((category) => category.kind === "route");
-    if (regionCategory?.titleEn.trim()) return regionCategory.titleEn.trim();
-    if (matched[0]?.titleEn.trim()) return matched[0].titleEn.trim();
+    if (regionCategory?.titleEn.trim()) return lang === "zh" && regionCategory.titleZh.trim() ? regionCategory.titleZh.trim() : regionCategory.titleEn.trim();
+    if (matched[0]?.titleEn.trim()) return lang === "zh" && matched[0].titleZh.trim() ? matched[0].titleZh.trim() : matched[0].titleEn.trim();
   }
 
   const regionLower = tour.region.trim().toLocaleLowerCase("en");
@@ -101,13 +102,13 @@ export function getTourRegionBadge(
   );
   if (seedMatch) {
     const live = categories.find((category) => category.id === seedMatch.id);
-    if (live?.titleEn.trim()) return live.titleEn.trim();
+    if (live?.titleEn.trim()) return lang === "zh" && live.titleZh.trim() ? live.titleZh.trim() : live.titleEn.trim();
   }
 
   const aliasId = regionAliasToId[regionLower];
   if (aliasId) {
     const byAlias = categories.find((category) => category.id === aliasId);
-    if (byAlias?.titleEn.trim()) return byAlias.titleEn.trim();
+    if (byAlias?.titleEn.trim()) return lang === "zh" && byAlias.titleZh.trim() ? byAlias.titleZh.trim() : byAlias.titleEn.trim();
   }
 
   return tour.region.trim();

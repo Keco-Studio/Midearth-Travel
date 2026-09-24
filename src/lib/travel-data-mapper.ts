@@ -22,6 +22,7 @@ export function mapTravelToursToRecords(): TourRecord[] {
       duration: tour.duration,
       localizedDuration: "",
       tourType: tour.tourType,
+      localizedTourType: "",
       departureCity: tour.departureCity ?? "",
       localizedDepartureCity: "",
       departures: tour.departures?.join(", ") ?? "",

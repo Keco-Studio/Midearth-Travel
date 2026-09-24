@@ -1,9 +1,16 @@
 import type { TourDay } from "../data/tours.ts";
 import { richTextToPlainText } from "./rich-text-content.ts";
 
-/** Matches "Day 1:", "Day 1 (Monday or Wednesday):", etc. */
+/** Matches English and Chinese day headings, such as "Day 1:" and "第 1 天：". */
 export const DAY_HEADING_PATTERN =
-  /Day\s+(\d+)(?:\s*\(([^)]*)\))?\s*:/i;
+  /Day\s+\d+(?:\s*\([^)]*\))?\s*:|第\s*\d+\s*天\s*[：:]/i;
+
+const DAY_HEADING_SPLIT_PATTERN =
+  /(?=Day\s+\d+(?:\s*\([^)]*\))?\s*:|第\s*\d+\s*天\s*[：:])/i;
+const ENGLISH_DAY_SEGMENT_PATTERN =
+  /^Day\s+(\d+)(?:\s*\(([^)]*)\))?\s*:\s*([\s\S]*)$/i;
+const CHINESE_DAY_SEGMENT_PATTERN =
+  /^第\s*(\d+)\s*天\s*[：:]\s*([\s\S]*)$/;
 
 const narrativeStartPattern =
   /\b(Depart|Arrive|Visit|Continue|Transfer|Overnight|Today|After|In the|This morning|We |Our |Upon |Enjoy |Pick )\b/;
@@ -13,24 +20,30 @@ export function hasDayByDayHeading(text: string): boolean {
 }
 
 export function parseItineraryFromRichText(description: string): TourDay[] {
-  const plain = richTextToPlainText(description);
+  // CMS day headings are normally bold. Preserve the boundary after the heading
+  // so the route title and narrative can be separated after stripping markup.
+  const plain = richTextToPlainText(
+    description.replace(/<\/strong>\s*/gi, "</strong><br />"),
+  );
   if (!plain || !hasDayByDayHeading(plain)) {
     return [];
   }
 
-  const segments = plain.split(/(?=Day\s+\d+(?:\s*\([^)]*\))?\s*:)/i).filter(Boolean);
+  const segments = plain.split(DAY_HEADING_SPLIT_PATTERN).filter(Boolean);
   const days: TourDay[] = [];
 
   for (const segment of segments) {
-    const match =
-      /^Day\s+(\d+)(?:\s*\(([^)]*)\))?\s*:\s*([\s\S]*)$/i.exec(segment.trim());
-    if (!match) continue;
+    const trimmedSegment = segment.trim();
+    const englishMatch = ENGLISH_DAY_SEGMENT_PATTERN.exec(trimmedSegment);
+    const chineseMatch = CHINESE_DAY_SEGMENT_PATTERN.exec(trimmedSegment);
+    if (!englishMatch && !chineseMatch) continue;
 
-    const day = Number.parseInt(match[1], 10);
+    const day = Number.parseInt(englishMatch?.[1] ?? chineseMatch?.[1] ?? "", 10);
     if (!Number.isFinite(day)) continue;
 
-    const note = match[2]?.trim() || undefined;
-    const { title, description: body } = splitDayTitleAndBody(match[3] ?? "");
+    const note = englishMatch?.[2]?.trim() || undefined;
+    const bodySource = englishMatch?.[3] ?? chineseMatch?.[2] ?? "";
+    const { title, description: body } = splitDayTitleAndBody(bodySource);
     if (!title && !body) continue;
 
     const dayEntry: TourDay = {

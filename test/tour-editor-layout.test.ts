@@ -28,11 +28,11 @@ test("tour editor preserves its section order and interaction handlers", () => {
   }
 
   for (const contract of [
-    "onFinish={onUpdate}",
+    "onFinish={handleFinish}",
     "void handleImageSelection(file)",
     "onImageUpload",
     "onClick={removeImage}",
-    "beforeUpload={handlePdfSelection}",
+    "void handlePdfSelection(file)",
     "onClick={removePdf}",
     "onClick={onCancel}",
     'htmlType="submit"',
@@ -65,6 +65,51 @@ test("tour editor exposes all persisted tour detail fields", () => {
   ]) {
     assert.ok(editorSource.includes(field), `missing tour detail field: ${field}`);
   }
+});
+
+test("tour editor marks the Chinese title as a Chinese text input", () => {
+  assert.match(
+    editorSource,
+    /name="localizedTitle"[\s\S]{0,180}<Input lang="zh-CN" inputMode="text" className="font-zh" \/>/,
+  );
+});
+
+test("tour editor separates the URL slug from the localized tour type", () => {
+  assert.match(
+    editorSource,
+    /name="slug" label="Slug \(URL identifier\)"[\s\S]{0,120}<Input readOnly \/>/,
+  );
+  assert.match(
+    editorSource,
+    /name="localizedTourType" label="Tour type \(Chinese\)"[\s\S]{0,180}<Input lang="zh-CN" inputMode="text" className="font-zh" \/>/,
+  );
+  assert.match(
+    editorSource,
+    /name="tourType" label="Tour type \(English\)" rules=\{requiredRules\.tourType\}[\s\S]{0,80}<Input \/>/,
+  );
+  assert.doesNotMatch(editorSource, /TourTypeAutoComplete/);
+});
+
+test("tour editor accepts only local PDF uploads", () => {
+  assert.ok(editorSource.includes('accept="application/pdf,.pdf"'));
+  assert.ok(editorSource.includes('void handlePdfSelection(file)'));
+  assert.ok(editorSource.includes('onClick={removePdf}'));
+  assert.doesNotMatch(editorSource, /label="PDF URL"/);
+  assert.doesNotMatch(editorSource, /placeholder="https:\/\/\.\.\.\/itinerary\.pdf"/);
+});
+
+test("tour editor manages gallery images through local uploads", () => {
+  assert.ok(editorSource.includes("handleGallerySelection"));
+  assert.ok(editorSource.includes("multiple"));
+  assert.ok(editorSource.includes("galleryImages: galleryImages.join"));
+  assert.doesNotMatch(editorSource, /name="galleryImages"/);
+  assert.doesNotMatch(editorSource, /One image URL per line/);
+});
+
+test("tour editor shows a selected PDF while its upload is in progress", () => {
+  assert.ok(editorSource.includes('setPdfFileName(file.name)'));
+  assert.ok(editorSource.includes('const previousPdfFileName = pdfFileName'));
+  assert.ok(editorSource.includes('setPdfFileName(previousPdfFileName)'));
 });
 
 test("tour editor exposes only presentational layout hooks", () => {

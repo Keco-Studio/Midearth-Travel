@@ -2,7 +2,7 @@ import { tourSeeds } from "../data/cms-seed.ts";
 import { tours, type Tour, type TourFare, type TourPolicy } from "../data/tours.ts";
 import type { ContentStatus, TourRecord } from "../types/cms.ts";
 import { parseItineraryFromRichText, hasDayByDayHeading } from "./tour-itinerary-parser.ts";
-import { richTextToPlainText } from "./rich-text-content.ts";
+import { normalizeRichText, richTextToPlainText } from "./rich-text-content.ts";
 import { resolveTourDestinationCategoryIds } from "./tour-destination-categories.ts";
 import { validateTourEditorRecord } from "./tour-editor-state.ts";
 
@@ -34,6 +34,7 @@ const emptyEssentialFields: TourRecord["essentials"] = {
 const emptyTourDetailFields = {
   departureCity: "",
   localizedDepartureCity: "",
+  localizedTourType: "",
   admissions: "",
   localizedAdmissions: "",
   cancellation: "",
@@ -88,8 +89,7 @@ function resolvePublicDescription(
   const plain = richTextToPlainText(record.description);
 
   if (isItineraryDescription(plain)) {
-    // Day-by-day HTML belongs in itinerary; keep a short card/meta blurb instead.
-    return base?.description || splitList(record.highlights).join(" · ") || "";
+    return "";
   }
 
   const descriptionChanged = seed ? record.description !== seed.description : true;
@@ -98,6 +98,25 @@ function resolvePublicDescription(
   }
 
   return base?.description ?? plain;
+}
+
+function resolvePublicDescriptionHtml(
+  record: TourRecord,
+  base: Tour | undefined,
+  seed: TourRecord | undefined,
+): string {
+  const plain = richTextToPlainText(record.description);
+
+  if (isItineraryDescription(plain)) {
+    return "";
+  }
+
+  const descriptionChanged = seed ? record.description !== seed.description : true;
+  if (descriptionChanged || !base?.description) {
+    return normalizeRichText(record.description);
+  }
+
+  return normalizeRichText(base.description);
 }
 
 export function resolvePdfUrl(fileName: string): string | undefined {
@@ -123,6 +142,7 @@ export function mapTourRecordToPublicTour(record: TourRecord): Tour {
   const base = tours.find((tour) => tour.slug === record.slug);
   const seed = tourSeeds.find((tour) => tour.slug === record.slug);
   const description = resolvePublicDescription(record, base, seed);
+  const descriptionHtml = resolvePublicDescriptionHtml(record, base, seed);
   const highlights = splitList(record.highlights);
   const localizedHighlights = splitList(record.localizedHighlights);
   const departures = splitList(record.departures);
@@ -134,6 +154,7 @@ export function mapTourRecordToPublicTour(record: TourRecord): Tour {
   const policies = mapPolicies(record);
   const fares = mapFares(record);
   const importedItinerary = parseItineraryFromRichText(record.description);
+  const localizedItinerary = parseItineraryFromRichText(record.localizedDescription);
   const itinerary =
     importedItinerary.length > 0
       ? importedItinerary
@@ -171,11 +192,15 @@ export function mapTourRecordToPublicTour(record: TourRecord): Tour {
     duration: record.duration,
     localizedDuration: record.localizedDuration.trim() || undefined,
     description,
+    descriptionHtml: descriptionHtml || undefined,
     localizedDescription:
       richTextToPlainText(record.localizedDescription).trim() || undefined,
+    localizedDescriptionHtml:
+      normalizeRichText(record.localizedDescription).trim() || undefined,
     image: record.image,
     tags: highlights.length > 0 ? highlights : base?.tags ?? [],
     tourType: record.tourType,
+    localizedTourType: record.localizedTourType.trim() || undefined,
     departureCity: record.departureCity || undefined,
     localizedDepartureCity: record.localizedDepartureCity.trim() || undefined,
     departures: departures.length > 0 ? departures : undefined,
@@ -185,6 +210,8 @@ export function mapTourRecordToPublicTour(record: TourRecord): Tour {
     localizedHighlights:
       localizedHighlights.length > 0 ? localizedHighlights : undefined,
     itinerary: itinerary.length > 0 ? itinerary : undefined,
+    localizedItinerary:
+      localizedItinerary.length > 0 ? localizedItinerary : undefined,
     essentials: {
       departureTime: record.essentials.departureTime,
       meetingPlace: record.essentials.meetingPlace,

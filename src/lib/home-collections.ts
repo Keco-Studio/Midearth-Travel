@@ -11,7 +11,9 @@ export type ServiceRow = {
   id: string;
   slug: string;
   title: string;
+  title_zh?: string | null;
   summary: string;
+  summary_zh?: string | null;
   image: string;
   page_content: unknown;
   sort_order: number;
@@ -45,7 +47,9 @@ export function mergeServiceRows(rows: readonly ServiceRow[]): Service[] {
         id: row.id,
         slug: row.slug.trim() || seed?.slug || row.id,
         title: row.title.trim() || seed?.title || "Untitled service",
+        titleZh: stringOr((row as unknown as Record<string, unknown>).title_zh, seed?.titleZh ?? ""),
         summary: row.summary.trim() || seed?.summary || "",
+        summaryZh: stringOr((row as unknown as Record<string, unknown>).summary_zh, seed?.summaryZh ?? ""),
         image: row.image.trim() || seed?.image || "",
         page: normalizePageFields(row.page_content, seed?.page, row.title),
       };
@@ -80,7 +84,9 @@ export function serviceToRow(service: Service, index: number): ServiceRow {
     id: service.id,
     slug: service.slug,
     title: service.title,
+    title_zh: service.titleZh?.trim() ?? "",
     summary: service.summary,
+    summary_zh: service.summaryZh?.trim() ?? "",
     image: service.image,
     page_content: service.page,
     sort_order: index + 1,
@@ -128,13 +134,21 @@ export function normalizePageFields(
   const raw = value as Record<string, unknown>;
   return {
     title: stringOr(raw.title, base.title),
+    titleZh: stringOr(raw.titleZh, base.titleZh ?? ""),
     intro: stringOr(raw.intro, base.intro),
+    introZh: stringOr(raw.introZh, base.introZh ?? ""),
     signOff: stringOr(raw.signOff, base.signOff),
+    signOffZh: stringOr(raw.signOffZh, base.signOffZh ?? ""),
     disclaimer: stringOr(raw.disclaimer, base.disclaimer),
+    disclaimerZh: stringOr(raw.disclaimerZh, base.disclaimerZh ?? ""),
     quoteLabel: stringOr(raw.quoteLabel, base.quoteLabel),
+    quoteLabelZh: stringOr(raw.quoteLabelZh, base.quoteLabelZh ?? ""),
     metaTitle: stringOr(raw.metaTitle, base.metaTitle),
+    metaTitleZh: stringOr(raw.metaTitleZh, base.metaTitleZh ?? ""),
     metaDescription: stringOr(raw.metaDescription, base.metaDescription),
+    metaDescriptionZh: stringOr(raw.metaDescriptionZh, base.metaDescriptionZh ?? ""),
     deals: normalizeDeals(raw.deals, base.deals),
+    dealsZh: normalizeDeals(raw.dealsZh, base.dealsZh ?? []),
   };
 }
 
@@ -158,5 +172,6 @@ function clonePage(page: ServicePageFields): ServicePageFields {
   return {
     ...page,
     deals: page.deals.map((deal) => ({ ...deal })),
+    dealsZh: page.dealsZh?.map((deal) => ({ ...deal })),
   };
 }

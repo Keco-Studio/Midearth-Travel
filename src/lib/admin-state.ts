@@ -1,7 +1,14 @@
 import { homeModuleSeeds } from "../data/cms-seed.ts";
 import type { HomeModuleId, HomeModuleRecord } from "../types/cms.ts";
 
-export type Workspace = "home" | "tours" | "bookings" | "payments" | "settings";
+export type Workspace =
+  | "home"
+  | "bookingPage"
+  | "contactPage"
+  | "tours"
+  | "bookings"
+  | "payments"
+  | "settings";
 
 export type AdminState = {
   workspace: Workspace;
@@ -15,6 +22,8 @@ export type AdminState = {
 
 const workspaceTitles: Record<Workspace, string> = {
   home: "Homepage Content",
+  bookingPage: "Booking Page",
+  contactPage: "Contact Us",
   tours: "Tour Library",
   bookings: "Bookings",
   payments: "Payments",
@@ -22,6 +31,15 @@ const workspaceTitles: Record<Workspace, string> = {
 };
 
 const expandableWorkspaces = new Set<Workspace>(["home"]);
+
+const workspaceModuleIds: Partial<Record<Workspace, HomeModuleId>> = {
+  bookingPage: "bookingPage",
+  contactPage: "contactPage",
+};
+
+export function isContentEditorWorkspace(workspace: Workspace): boolean {
+  return workspace === "home" || workspace === "bookingPage" || workspace === "contactPage";
+}
 
 export function createInitialAdminState(): AdminState {
   return {
@@ -53,6 +71,7 @@ export function selectWorkspace(state: AdminState, workspace: Workspace): AdminS
   return {
     ...state,
     workspace,
+    selectedHomeModuleId: workspaceModuleIds[workspace] ?? state.selectedHomeModuleId,
     expandedWorkspace: expandableWorkspaces.has(workspace) ? workspace : null,
     focusBookingId: workspace === "bookings" ? state.focusBookingId : null,
     focusPaymentId: workspace === "payments" ? state.focusPaymentId : null,

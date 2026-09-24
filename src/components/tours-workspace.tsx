@@ -290,7 +290,6 @@ export function ToursWorkspace({
     return (
       <TourEditor
         tour={editingTour}
-        tourTypeOptions={tourTypeOptions}
         destinationCategories={destinationCategories}
         onCancel={() => setEditingSlug(null)}
         onUpdate={handleTourUpdate}

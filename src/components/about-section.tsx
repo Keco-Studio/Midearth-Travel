@@ -60,8 +60,8 @@ export function AboutSection({
                   />
                 </div>
                 <div className={styles.svcCardBody}>
-                  <div className={styles.svcCardTitle}>{svc.title}</div>
-                  <div className={styles.svcCardSum}>{svc.summary}</div>
+                  <div className={styles.svcCardTitle}>{lang === "zh" && svc.titleZh?.trim() ? svc.titleZh : svc.title}</div>
+                  <div className={styles.svcCardSum}>{lang === "zh" && svc.summaryZh?.trim() ? svc.summaryZh : svc.summary}</div>
                   <div className={styles.svcCardArrow}>→</div>
                 </div>
               </Link>

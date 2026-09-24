@@ -146,6 +146,7 @@ export function mapExcelRowToTourRecord(
     duration: readString(lookup, "duration"),
     localizedDuration: "",
     tourType: resolveTourType(lookup),
+    localizedTourType: readString(lookup, "ChineseTourType", "chinese tour type"),
     departureCity: readString(lookup, "departureCity", "departure city"),
     localizedDepartureCity: "",
     departures: readString(lookup, "departures"),

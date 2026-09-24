@@ -270,7 +270,6 @@ test("documents bilingual admin operations and public fallback behavior", () => 
     "ADMIN_TRUST_PROXY_HEADERS",
     "`/admin`",
     "English fallback",
-    "published-tour-content-audit.csv",
     "/routes/north-america",
     "/routes/asia",
     "/routes/europe",
@@ -280,6 +279,9 @@ test("documents bilingual admin operations and public fallback behavior", () => 
   ]) {
     assert.match(readme, new RegExp(requiredText.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&")));
   }
+
+  assert.doesNotMatch(readme, /Published Tour Content Audit/);
+  assert.doesNotMatch(readme, /published-tour-content-audit\.csv/);
 
   assert.match(
     readme,

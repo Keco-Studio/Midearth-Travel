@@ -34,6 +34,16 @@ test("updates workspace title when switching sections", () => {
   assert.equal(getWorkspaceTitle(state), "Tour Library");
 });
 
+test("selects the standalone Booking Page and Contact Us CMS workspaces", () => {
+  const bookingPage = selectWorkspace(createInitialAdminState(), "bookingPage");
+  const contactPage = selectWorkspace(bookingPage, "contactPage");
+
+  assert.equal(bookingPage.expandedWorkspace, null);
+  assert.equal(getWorkspaceTitle(bookingPage), "Booking Page");
+  assert.equal(contactPage.expandedWorkspace, null);
+  assert.equal(getWorkspaceTitle(contactPage), "Contact Us");
+});
+
 test("clicking an expanded workspace again collapses its child items", () => {
   const state = createInitialAdminState();
   const nextState = toggleWorkspaceExpansion(state, "home");
@@ -59,7 +69,7 @@ test("selects fixed homepage modules without changing registry order", () => {
   assert.equal(state.selectedHomeModuleId, "footer");
   assert.equal(getActiveModule(state).id, "footer");
   assert.deepEqual(
-    state.homeModules.map((module) => module.id),
+    state.homeModules.slice(0, 10).map((module) => module.id),
     [
       "navbar",
       "hero",

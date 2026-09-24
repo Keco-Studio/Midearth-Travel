@@ -58,6 +58,7 @@ export function resolveExploreByMonthEntries(
   entries: MonthEntry[],
   tours: readonly ExploreTourLookup[],
   contactHref = "",
+  options: { requireTourMatch?: boolean } = {},
 ): MonthEntry[] {
   const bySlug = new Map(tours.map((tour) => [tour.slug, tour]));
 
@@ -66,6 +67,7 @@ export function resolveExploreByMonthEntries(
     destinations: month.destinations.flatMap((dest) => {
       const slug = dest.tourSlug?.trim();
       if (!slug) {
+        if (options.requireTourMatch) return [];
         return dest.name?.trim() ? [dest] : [];
       }
 

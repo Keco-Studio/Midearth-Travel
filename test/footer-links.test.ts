@@ -12,6 +12,7 @@ import {
 import { destinationCategorySeeds } from "../src/lib/destination-categories.ts";
 import { homeModuleSeeds } from "../src/data/cms-seed.ts";
 import { canonicalizeHomeModule } from "../src/lib/home-content.ts";
+import { getServicePageSlugs } from "../src/data/service-pages.ts";
 
 test("footer links retain only the editable service column", () => {
   assert.deepEqual(getFooterLinkEditorData({}), {
@@ -58,7 +59,7 @@ test("footer services omit empty and unsupported CMS destinations", () => {
   });
 });
 
-test("uses configured Chinese labels for Footer service links", () => {
+test("uses configured Chinese labels while restoring standard Footer service links", () => {
   const content = {
     [FOOTER_SERVICE_LINKS_KEY]: serializeFooterLinks([
       {
@@ -70,9 +71,62 @@ test("uses configured Chinese labels for Footer service links", () => {
     ]),
   };
 
-  assert.deepEqual(getPublishedFooterLinks(content, "zh").serviceLinks, [
-    { id: "flights", label: "机票", labelZh: "机票", href: "/services/flights" },
+  const links = getPublishedFooterLinks(content, "zh").serviceLinks;
+  assert.deepEqual(links.map((link) => link.id), [
+    "flights",
+    "hotels",
+    "charters",
+    "travel-insurance",
+    "visa-application",
   ]);
+  assert.deepEqual(links[0], {
+    id: "flights",
+    label: "机票",
+    labelZh: "机票",
+    href: "/services/flights",
+  });
+});
+
+test("routes seeded services to their service detail pages even when legacy hrefs point home", () => {
+  const content = {
+    [FOOTER_SERVICE_LINKS_KEY]: serializeFooterLinks([
+      { id: "flights", label: "Flights", href: "/#about" },
+      { id: "hotels", label: "Hotels", href: "/" },
+    ]),
+  };
+
+  assert.deepEqual(
+    getPublishedFooterLinks(content).serviceLinks.map(({ id, href }) => ({ id, href })),
+    [
+      { id: "flights", href: "/services/flights" },
+      { id: "hotels", href: "/services/hotels" },
+      { id: "charters", href: "/services/charters" },
+      { id: "travel-insurance", href: "/services/travel-insurance" },
+      { id: "visa-application", href: "/services/visa-application" },
+    ],
+  );
+});
+
+test("restores Charters when a legacy footer only stores the other four standard services", () => {
+  const content = {
+    [FOOTER_SERVICE_LINKS_KEY]: serializeFooterLinks([
+      { id: "flights", label: "Flights", href: "/#about" },
+      { id: "hotels", label: "Hotels", href: "/#about" },
+      { id: "travel-insurance", label: "Travel Insurance", href: "/#about" },
+      { id: "visa-application", label: "VISA Application", href: "/#about" },
+    ]),
+  };
+
+  assert.deepEqual(
+    getPublishedFooterLinks(content).serviceLinks.map((link) => link.id),
+    ["flights", "hotels", "charters", "travel-insurance", "visa-application"],
+  );
+});
+
+test("keeps all five footer services mapped to existing service pages", () => {
+  const hrefs = getPublishedFooterLinks({}).serviceLinks.map((link) => link.href);
+  assert.deepEqual(hrefs, getServicePageSlugs().map((slug) => `/services/${slug}`));
+  assert.equal(hrefs.length, 5);
 });
 
 test("adds seeded Chinese labels to legacy Footer service links", () => {

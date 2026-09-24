@@ -46,13 +46,15 @@ export function getFooterLinkEditorData(content: ContentData): {
   serviceLinks: FooterLink[];
 } {
   return {
-    serviceLinks: parseFooterLinks(
-      getStringContent(
-        content,
-        FOOTER_SERVICE_LINKS_KEY,
-        serializeFooterLinks(footerServiceLinkSeeds),
+    serviceLinks: restoreStandardServiceLinks(
+      parseFooterLinks(
+        getStringContent(
+          content,
+          FOOTER_SERVICE_LINKS_KEY,
+          serializeFooterLinks(footerServiceLinkSeeds),
+        ),
+        footerServiceLinkSeeds,
       ),
-      footerServiceLinkSeeds,
     ),
   };
 }
@@ -61,14 +63,18 @@ export function getPublishedFooterLinks(content: ContentData, lang: "en" | "zh" 
   serviceLinks: FooterLink[];
 } {
   const links = getFooterLinkEditorData(content);
+  const seededHrefById = new Map(
+    footerServiceLinkSeeds.map((link) => [link.id, link.href]),
+  );
 
   return {
     serviceLinks: links.serviceLinks
-      .filter(isPublishableLink)
       .map((link) => ({
         ...link,
+        href: seededHrefById.get(link.id) ?? link.href,
         label: lang === "zh" && link.labelZh?.trim() ? link.labelZh : link.label,
-      })),
+      }))
+      .filter(isPublishableLink),
   };
 }
 
@@ -122,6 +128,7 @@ export function isSupportedPublicHref(href: string): boolean {
     value === "/" ||
     /^\/#\S+$/.test(value) ||
     value === "/tours" ||
+    value === "/contact" ||
     /^\/(?:tours\/category|tours|routes|services)\/[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value) ||
     /^mailto:\S+@\S+\.\S+$/i.test(value) ||
     /^tel:\+?[0-9][0-9(). -]*$/.test(value) ||
@@ -168,6 +175,24 @@ function isFooterLink(value: unknown): value is FooterLink {
 
 function isPublishableLink(link: FooterLink): boolean {
   return Boolean(link.label.trim() && isSupportedPublicHref(link.href));
+}
+
+function restoreStandardServiceLinks(links: FooterLink[]): FooterLink[] {
+  const seedsById = new Map(footerServiceLinkSeeds.map((link) => [link.id, link]));
+  if (!links.length || !links.every((link) => seedsById.has(link.id))) {
+    return links;
+  }
+
+  const linksById = new Map(links.map((link) => [link.id, link]));
+  return footerServiceLinkSeeds.map((seed) => {
+    const stored = linksById.get(seed.id);
+    return {
+      ...seed,
+      ...stored,
+      href: seed.href,
+      labelZh: stored?.labelZh?.trim() || seed.labelZh,
+    };
+  });
 }
 
 function cloneLinks(links: FooterLink[]): FooterLink[] {

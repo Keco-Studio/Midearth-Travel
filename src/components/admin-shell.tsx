@@ -1,8 +1,7 @@
 "use client";
 
 import { PageContainer, ProLayout } from "@ant-design/pro-components";
-import { DownloadOutlined } from "@ant-design/icons";
-import { App, Breadcrumb, Button, Card, Empty, Space, Table, Tag, Tooltip, type TableColumnsType } from "antd";
+import { App, Breadcrumb, Button, Space, Tag, Tooltip } from "antd";
 import Link from "next/link";
 import {
   useCallback,
@@ -19,7 +18,6 @@ import { HomeModuleMenuItem, MenuBrandHeader, menuBrandMarkStyle } from "@/compo
 import { StatusTag } from "@/components/status-tag";
 import { ToursWorkspace } from "@/components/tours-workspace";
 import { bookingSeeds } from "@/data/cms-seed";
-import type { Tour } from "@/data/tours";
 import type { Service } from "@/data/services";
 import type { Testimonial } from "@/data/testimonials";
 import {
@@ -28,6 +26,7 @@ import {
   createInitialAdminState,
   getActiveModule,
   getWorkspaceTitle,
+  isContentEditorWorkspace,
   openBooking,
   openPayment,
   mergeLoadedHomeModules,
@@ -42,12 +41,6 @@ import {
   parseLayoutPath,
 } from "@/lib/layout-routes";
 import type { DestinationCategory } from "@/lib/destination-categories";
-import {
-  auditTourContent,
-  getConfiguredContactHref,
-  type TourContentIssue,
-} from "@/lib/tour-content-audit";
-import { mapPublishedTourRecords } from "@/lib/tour-content";
 import { proLayoutToken } from "@/theme/mid-earth-theme";
 import type { BookingRecord, HomeModuleId, HomeModuleRecord, PaymentRecord, SiteSettings, TourRecord } from "@/types/cms";
 
@@ -98,7 +91,6 @@ export function AdminShell({
     initialBookings.length > 0 ? initialBookings : bookingSeeds,
   );
   const [tours, setTours] = useState(initialTours);
-  const publishedTours = useMemo(() => mapPublishedTourRecords(tours), [tours]);
   const [supplementalDirtyModuleIds, setSupplementalDirtyModuleIds] = useState<
     HomeModuleId[]
   >([]);
@@ -106,10 +98,13 @@ export function AdminShell({
   const hasSupplementalUnsavedChanges =
     supplementalDirtyModuleIds.includes(activeModule.id);
   const pathname = getPathFromAdminState(state.workspace, state.selectedHomeModuleId);
-  const pageTitle =
-    state.workspace === "home" ? activeModule.name : getWorkspaceTitle(state);
-  const pageSubTitle =
-    state.workspace === "home" ? "Fixed homepage module" : undefined;
+  const isContentEditor = isContentEditorWorkspace(state.workspace);
+  const pageTitle = isContentEditor ? activeModule.name : getWorkspaceTitle(state);
+  const pageSubTitle = isContentEditor
+    ? state.workspace === "home"
+      ? "Fixed homepage module"
+      : "Fixed page content"
+    : undefined;
   const workspaceBreadcrumbItems =
     state.workspace === "home"
       ? [{ title: getWorkspaceTitle(state) }, { title: pageTitle }]
@@ -229,12 +224,14 @@ export function AdminShell({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           categories: destinationCategories.map(
-            ({ id, titleEn, titleZh, summary, image }) => ({
+            ({ id, titleEn, titleZh, summary, summaryZh, image, busContent }) => ({
               id,
               titleEn,
               titleZh,
               summary,
+              summaryZh,
               image,
+              busContent,
             }),
           ),
         }),
@@ -430,7 +427,6 @@ export function AdminShell({
           payments: initialPayments,
           bookings,
           tours,
-          publishedTours,
           onDestinationCategoriesChange: setDestinationCategories,
           onServicesChange: setServices,
           onTestimonialsChange: setTestimonials,
@@ -513,7 +509,7 @@ function renderPageTags(
   activeModule: ReturnType<typeof getActiveModule>,
   hasSupplementalUnsavedChanges: boolean,
 ) {
-  if (state.workspace !== "home") {
+  if (!isContentEditorWorkspace(state.workspace)) {
     return undefined;
   }
 
@@ -554,7 +550,7 @@ function renderPageActions(
     pendingAction: "save" | "publish" | null;
   },
 ) {
-  if (state.workspace === "home") {
+  if (isContentEditorWorkspace(state.workspace)) {
     const publishDisabledReason = getPublishDisabledReason(
       state,
       activeModule,
@@ -631,7 +627,6 @@ function renderWorkspace(
     payments: PaymentRecord[];
     bookings: BookingRecord[];
     tours: TourRecord[];
-    publishedTours: Tour[];
     onDestinationCategoriesChange: (categories: DestinationCategory[]) => void;
     onServicesChange: (services: Service[]) => void;
     onTestimonialsChange: (testimonials: Testimonial[]) => void;
@@ -649,7 +644,7 @@ function renderWorkspace(
     onFocusHandled: () => void;
   },
 ) {
-  if (state.workspace === "home") {
+  if (isContentEditorWorkspace(state.workspace)) {
     return (
       <HomeModuleEditor
         module={activeModule}
@@ -671,20 +666,11 @@ function renderWorkspace(
 
   if (state.workspace === "tours") {
     return (
-      <div className="cms-tour-library-stack">
-        <TourContentAuditReport
-          tours={handlers.publishedTours}
-          contactHref={getConfiguredContactHref(
-            handlers.settings.emailHref,
-            handlers.settings.primaryPhoneHref,
-          )}
-        />
-        <ToursWorkspace
-          tours={handlers.tours}
-          destinationCategories={handlers.destinationCategories}
-          onToursChange={handlers.onToursChange}
-        />
-      </div>
+      <ToursWorkspace
+        tours={handlers.tours}
+        destinationCategories={handlers.destinationCategories}
+        onToursChange={handlers.onToursChange}
+      />
     );
   }
 
@@ -723,107 +709,6 @@ function renderWorkspace(
   }
 
   return null;
-}
-
-function TourContentAuditReport({
-  tours,
-  contactHref,
-}: {
-  tours: Tour[];
-  contactHref: string;
-}) {
-  const issues = useMemo(
-    () => auditTourContent(tours, contactHref),
-    [contactHref, tours],
-  );
-  const columns: TableColumnsType<TourContentIssue> = [
-    {
-      title: "Tour",
-      key: "tour",
-      render: (_, issue) => (
-        <Space direction="vertical" size={0}>
-          <strong>{issue.title || "Untitled tour"}</strong>
-          <code>{issue.slug}</code>
-        </Space>
-      ),
-    },
-    {
-      title: "Image",
-      dataIndex: "image",
-      key: "image",
-      render: (image: string) => <code>{image}</code>,
-    },
-    {
-      title: "Missing customer-ready content",
-      dataIndex: "missing",
-      key: "missing",
-      render: (missing: TourContentIssue["missing"]) => (
-        <Space size={[6, 6]} wrap>
-          {missing.map((field) => (
-            <Tag key={field}>{formatTourContentField(field)}</Tag>
-          ))}
-        </Space>
-      ),
-    },
-  ];
-
-  function downloadReport() {
-    const csv = [
-      ["Tour title", "Slug", "Image", "Missing customer-ready content"],
-      ...issues.map((issue) => [
-        issue.title,
-        issue.slug,
-        issue.image,
-        issue.missing.map(formatTourContentField).join("; "),
-      ]),
-    ]
-      .map((row) => row.map(toCsvCell).join(","))
-      .join("\n");
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "published-tour-content-audit.csv";
-    link.click();
-    URL.revokeObjectURL(url);
-  }
-
-  return (
-    <Card
-      title="Published Tour Content Audit"
-      extra={
-        <Button icon={<DownloadOutlined />} onClick={downloadReport}>
-          Download CSV
-        </Button>
-      }
-    >
-      {issues.length > 0 ? (
-        <Table<TourContentIssue>
-          columns={columns}
-          dataSource={issues}
-          pagination={false}
-          rowKey="slug"
-          size="small"
-        />
-      ) : (
-        <Empty description="No image-backed published tours need customer-ready content." />
-      )}
-    </Card>
-  );
-}
-
-function formatTourContentField(field: TourContentIssue["missing"][number]): string {
-  const labels = {
-    title: "Title",
-    duration: "Duration",
-    descriptionOrItinerary: "Description or itinerary",
-    image: "Image",
-    contact: "Configured contact path",
-  };
-  return labels[field];
-}
-
-function toCsvCell(value: string): string {
-  return `"${value.replaceAll('"', '""')}"`;
 }
 
 async function readApiResponse<T>(response: Response): Promise<T> {

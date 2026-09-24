@@ -13,6 +13,12 @@ export const EXPECTED_HOME_MODULE_IDS = [
   "footer",
 ] as const satisfies readonly HomeModuleId[];
 
+export const EXPECTED_CONTENT_MODULE_IDS = [
+  ...EXPECTED_HOME_MODULE_IDS,
+  "bookingPage",
+  "contactPage",
+] as const satisfies readonly HomeModuleId[];
+
 export const HOME_MODULES: readonly HomeModuleDefinition[] = [
   { id: "navbar", name: "Navigation" },
   { id: "hero", name: "Hero" },
@@ -24,6 +30,16 @@ export const HOME_MODULES: readonly HomeModuleDefinition[] = [
   { id: "finalCta", name: "Final CTA" },
   { id: "newsletter", name: "Quote Request" },
   { id: "footer", name: "Footer" },
+];
+
+export const PAGE_CONTENT_MODULES: readonly HomeModuleDefinition[] = [
+  { id: "bookingPage", name: "Booking Page" },
+  { id: "contactPage", name: "Contact Us" },
+];
+
+export const FIXED_CONTENT_MODULES: readonly HomeModuleDefinition[] = [
+  ...HOME_MODULES,
+  ...PAGE_CONTENT_MODULES,
 ];
 
 export const FORBIDDEN_FIELD_KEYS = [

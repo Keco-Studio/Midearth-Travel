@@ -1,5 +1,5 @@
 import { assertAdminRequest } from "@/lib/admin-auth";
-import { EXPECTED_HOME_MODULE_IDS } from "@/lib/content-rules";
+import { EXPECTED_CONTENT_MODULE_IDS } from "@/lib/content-rules";
 import { canonicalizeHomeModule } from "@/lib/home-content";
 import {
   syncContactFieldsToFinalCta,
@@ -96,7 +96,7 @@ async function syncLinkedModules(module: HomeModuleRecord): Promise<{
 }
 
 function isHomeModuleId(value: string): value is HomeModuleId {
-  return EXPECTED_HOME_MODULE_IDS.includes(value as HomeModuleId);
+  return EXPECTED_CONTENT_MODULE_IDS.includes(value as HomeModuleId);
 }
 
 function isHomeModuleRecord(value: unknown): value is HomeModuleRecord {

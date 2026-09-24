@@ -2,6 +2,7 @@ import { browseCategories, categoryMeta, type BrowseCategory } from "../data/cat
 import { filterToursForCategory } from "../data/tour-filters.ts";
 import { regions } from "../data/regions.ts";
 import type { Tour } from "../data/tours.ts";
+import { createDefaultBusToursContent, getBusToursContent, type BusToursContent } from "./bus-tours-content.ts";
 
 export type DestinationCategory = BrowseCategory & {
   id: string;
@@ -9,6 +10,7 @@ export type DestinationCategory = BrowseCategory & {
   titleZh: string;
   summary?: string;
   summaryZh?: string;
+  busContent?: BusToursContent;
 };
 
 export type DestinationCategoryRow = {
@@ -18,6 +20,7 @@ export type DestinationCategoryRow = {
   summary?: string | null;
   summary_zh?: string | null;
   image?: string | null;
+  bus_content?: unknown;
   sort_order: number;
   updated_at: string;
 };
@@ -31,6 +34,10 @@ const chineseTitles: Record<string, string> = {
   "vacation-packages": "度假套餐",
 };
 
+const chineseSummaries: Record<string, string> = {
+  "bus-tours": "从渥太华出发的多日巴士旅行，座椅舒适、导游专业，沿途安排便利。",
+};
+
 function seedSummary(slug: string): string {
   return categoryMeta[slug]?.summary ?? regions.find((r) => r.slug === slug)?.summary ?? "";
 }
@@ -42,6 +49,8 @@ export const destinationCategorySeeds: DestinationCategory[] = browseCategories.
     titleEn: category.title,
     titleZh: chineseTitles[category.slug] ?? category.title,
     summary: seedSummary(category.slug),
+    summaryZh: chineseSummaries[category.slug],
+    busContent: category.slug === "bus-tours" ? createDefaultBusToursContent() : undefined,
   }),
 );
 
@@ -56,6 +65,7 @@ export function toDestinationCategoryRow(
     summary: category.summary?.trim() || null,
     summary_zh: category.summaryZh?.trim() || null,
     image: category.image?.trim() || null,
+    bus_content: category.id === "bus-tours" ? getBusToursContent(category.busContent) : null,
     sort_order: index + 1,
     updated_at: new Date().toISOString(),
   };
@@ -73,6 +83,9 @@ export function mergeDestinationCategoryRows(
     const summary = row?.summary?.trim() || seed.summary;
     const summaryZh = row?.summary_zh?.trim() || seed.summaryZh;
     const image = row?.image?.trim() || seed.image;
+    const busContent = seed.id === "bus-tours"
+      ? getBusToursContent(row?.bus_content ?? seed.busContent)
+      : undefined;
 
     return {
       ...seed,
@@ -82,6 +95,7 @@ export function mergeDestinationCategoryRows(
       summary,
       summaryZh,
       image,
+      busContent,
     };
   });
 }

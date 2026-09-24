@@ -102,6 +102,7 @@ test("maps editable tour fields to public tours while retaining rich static deta
   const record = {
     ...seed,
     title: "Updated public title",
+    localizedTourType: "巴士旅行团",
     image: "https://example.supabase.co/storage/tour.jpg",
     departures: "Aug 1, Sep 2",
     highlights: "Coast, Mountains",
@@ -124,6 +125,7 @@ test("maps editable tour fields to public tours while retaining rich static deta
   const mapped = mapTourRecordToPublicTour(record);
 
   assert.equal(mapped.title, "Updated public title");
+  assert.equal(mapped.localizedTourType, "巴士旅行团");
   assert.equal(mapped.image, record.image);
   assert.deepEqual(mapped.departures, ["Aug 1", "Sep 2"]);
   assert.deepEqual(mapped.highlights, ["Coast", "Mountains"]);
@@ -177,15 +179,58 @@ test("hides the Included card when its editable list is empty", () => {
   assert.ok(detailSource.includes("{included.length > 0 && ("));
 });
 
-test("uses short tagline instead of itinerary text stored in CMS description", () => {
-  const base = tours.find((tour) => tour.slug === seed.slug)!;
+test("routes the tour contact CTA to the contact page with the selected tour", () => {
+  const detailSource = readFileSync(
+    new URL("../src/components/tour/tour-detail.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.ok(detailSource.includes('href={getContactQuoteHref(displayTitle)}'));
+});
+
+test("wraps standalone tour introductions in a content card", () => {
+  const detailSource = readFileSync(
+    new URL("../src/components/tour/tour-detail.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(detailSource, /className=\{styles\.descriptionCard\}/);
+});
+
+test("does not invent an introduction when CMS description is a day-by-day itinerary", () => {
   const mapped = mapTourRecordToPublicTour({
     ...seed,
     description: "Day 4: Halifax – Peggy's Cove\nDrive to Peggy's Cove...",
   });
 
-  assert.equal(mapped.description, base.description);
-  assert.doesNotMatch(mapped.description, /Day 4:/);
+  assert.equal(mapped.description, "");
+  assert.equal(mapped.descriptionHtml, undefined);
+});
+
+test("maps Chinese CMS day-by-day content to a localized itinerary", () => {
+  const mapped = mapTourRecordToPublicTour({
+    ...seed,
+    localizedDescription:
+      "<p><strong>第 1 天：渥太华 - 里维耶尔迪卢普</strong> 清晨从渥太华出发。</p><p><strong>第 2 天：坎贝尔顿 - 佩尔塞</strong> 早餐后继续沿海旅行。</p>",
+  });
+
+  assert.deepEqual(mapped.localizedItinerary, [
+    { day: 1, title: "渥太华 - 里维耶尔迪卢普", description: "清晨从渥太华出发。" },
+    { day: 2, title: "坎贝尔顿 - 佩尔塞", description: "早餐后继续沿海旅行。" },
+  ]);
+});
+
+test("preserves sanitized description markup for the tour detail view", () => {
+  const mapped = mapTourRecordToPublicTour({
+    ...seed,
+    description: "<h2>Highlights</h2><p>Visit <strong>Kyoto</strong>.</p>",
+  });
+
+  assert.equal(mapped.description, "Highlights\nVisit Kyoto.");
+  assert.equal(
+    mapped.descriptionHtml,
+    "<h2>Highlights</h2><p>Visit <strong>Kyoto</strong>.</p>",
+  );
 });
 
 test("excludes non-published records from the public mapping", () => {

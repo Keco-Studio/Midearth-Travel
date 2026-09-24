@@ -5,6 +5,7 @@ import { testimonials } from "../src/data/testimonials.ts";
 import {
   mergeServiceRows,
   mergeTestimonialRows,
+  serviceToRow,
   type ServiceRow,
   type TestimonialRow,
 } from "../src/lib/home-collections.ts";
@@ -64,6 +65,25 @@ test("falls back to seeded services when no rows exist", () => {
   assert.equal(result.length, services.length);
   assert.equal(result[0].id, "flights");
   assert.ok(result[0].page.intro.length > 0);
+});
+
+test("serializes empty localized service fields as database-safe empty strings", () => {
+  const row = serviceToRow(
+    {
+      id: "flights",
+      slug: "flights",
+      title: "Flights",
+      titleZh: "",
+      summary: "Competitive global fares.",
+      summaryZh: "",
+      image: "/flights.jpg",
+      page: services[0]!.page,
+    },
+    0,
+  );
+
+  assert.equal(row.title_zh, "");
+  assert.equal(row.summary_zh, "");
 });
 
 test("keeps custom reviews beyond seed slots", () => {

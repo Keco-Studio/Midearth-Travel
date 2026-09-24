@@ -128,11 +128,78 @@
   min-width: 0;
 }
 
+.overviewMain {
+  gap: 1.5rem;
+}
+
 .introDescription {
-  margin: 0 0 1.5rem;
+  margin: 0;
   color: #4f4a42;
   font-size: 1.0625rem;
   line-height: 1.8;
+}
+
+.introDescription :global(p),
+.introDescription :global(ul),
+.introDescription :global(ol),
+.introDescription :global(h2),
+.introDescription :global(h3) {
+  margin: 0;
+}
+
+.introDescription :global(p + p),
+.introDescription :global(p + h2),
+.introDescription :global(p + h3),
+.introDescription :global(h2 + p),
+.introDescription :global(h3 + p),
+.introDescription :global(ul + p),
+.introDescription :global(ol + p) {
+  margin-top: 1rem;
+}
+
+.introDescription :global(h2),
+.introDescription :global(h3) {
+  color: #163530;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.introDescription :global(h2) {
+  font-size: 1.5rem;
+}
+
+.introDescription :global(h3) {
+  font-size: 1.25rem;
+}
+
+.introDescription :global(ul),
+.introDescription :global(ol) {
+  padding-left: 1.5rem;
+}
+
+.introDescription :global(a) {
+  color: #1d4f91;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.descriptionCard {
+  padding: 1.25rem 0.75rem;
+  border: 1px solid #e8e2d4;
+  border-radius: 20px;
+  background: #fdfaf4;
+}
+
+@media (min-width: 640px) {
+  .descriptionCard {
+    padding: 2rem 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .descriptionCard {
+    padding: 3rem;
+  }
 }
 
 .overviewAside {

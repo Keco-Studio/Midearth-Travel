@@ -285,6 +285,14 @@ export function ServiceCardsEditor({
                         }
                       />
                     </LabeledField>
+                    <LabeledField label="Card title (Chinese)">
+                      <Input
+                        value={record.titleZh ?? ""}
+                        onChange={(event) =>
+                          updateCard(record.id, { titleZh: event.target.value })
+                        }
+                      />
+                    </LabeledField>
                     <LabeledField label="Card summary">
                       <Input
                         value={record.summary}
@@ -292,6 +300,14 @@ export function ServiceCardsEditor({
                           updateCard(record.id, {
                             summary: event.target.value,
                           })
+                        }
+                      />
+                    </LabeledField>
+                    <LabeledField label="Card summary (Chinese)">
+                      <Input
+                        value={record.summaryZh ?? ""}
+                        onChange={(event) =>
+                          updateCard(record.id, { summaryZh: event.target.value })
                         }
                       />
                     </LabeledField>
@@ -386,12 +402,24 @@ function ServicePageEditor({
             onChange={(event) => onUpdatePage({ title: event.target.value })}
           />
         </LabeledField>
+        <LabeledField label="Page title (Chinese)">
+          <Input
+            value={record.page.titleZh ?? ""}
+            onChange={(event) => onUpdatePage({ titleZh: event.target.value })}
+          />
+        </LabeledField>
         <LabeledField label="Quote form label">
           <Input
             value={record.page.quoteLabel}
             onChange={(event) =>
               onUpdatePage({ quoteLabel: event.target.value })
             }
+          />
+        </LabeledField>
+        <LabeledField label="Quote form label (Chinese)">
+          <Input
+            value={record.page.quoteLabelZh ?? ""}
+            onChange={(event) => onUpdatePage({ quoteLabelZh: event.target.value })}
           />
         </LabeledField>
       </div>
@@ -402,6 +430,13 @@ function ServicePageEditor({
           onChange={(event) => onUpdatePage({ intro: event.target.value })}
         />
       </LabeledField>
+      <LabeledField label="Intro (Chinese)">
+        <Input.TextArea
+          rows={5}
+          value={record.page.introZh ?? ""}
+          onChange={(event) => onUpdatePage({ introZh: event.target.value })}
+        />
+      </LabeledField>
       <LabeledField label="Disclaimer (optional)">
         <Input.TextArea
           rows={2}
@@ -409,6 +444,19 @@ function ServicePageEditor({
           onChange={(event) =>
             onUpdatePage({ disclaimer: event.target.value })
           }
+        />
+      </LabeledField>
+      <LabeledField label="Disclaimer (Chinese, optional)">
+        <Input.TextArea
+          rows={2}
+          value={record.page.disclaimerZh ?? ""}
+          onChange={(event) => onUpdatePage({ disclaimerZh: event.target.value })}
+        />
+      </LabeledField>
+      <LabeledField label="Sign-off (Chinese)">
+        <Input
+          value={record.page.signOffZh ?? ""}
+          onChange={(event) => onUpdatePage({ signOffZh: event.target.value })}
         />
       </LabeledField>
       <div
@@ -432,6 +480,18 @@ function ServicePageEditor({
             onChange={(event) =>
               onUpdatePage({ metaDescription: event.target.value })
             }
+          />
+        </LabeledField>
+        <LabeledField label="Meta title (Chinese)">
+          <Input
+            value={record.page.metaTitleZh ?? ""}
+            onChange={(event) => onUpdatePage({ metaTitleZh: event.target.value })}
+          />
+        </LabeledField>
+        <LabeledField label="Meta description (Chinese)">
+          <Input
+            value={record.page.metaDescriptionZh ?? ""}
+            onChange={(event) => onUpdatePage({ metaDescriptionZh: event.target.value })}
           />
         </LabeledField>
       </div>

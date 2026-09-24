@@ -20,7 +20,9 @@ export type HomeModuleId =
   | "testimonials"
   | "finalCta"
   | "newsletter"
-  | "footer";
+  | "footer"
+  | "bookingPage"
+  | "contactPage";
 
 export type ContentValue = string | number | boolean;
 
@@ -82,6 +84,7 @@ export type TourRecord = {
   duration: string;
   localizedDuration: string;
   tourType: string;
+  localizedTourType: string;
   departureCity: string;
   localizedDepartureCity: string;
   departures: string;

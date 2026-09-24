@@ -162,6 +162,125 @@ test("includes paired localized fields for the service page sign-off", () => {
   assert.equal(about?.data.servicePageSignOffZh, "");
 });
 
+test("includes editable localized contact-line copy for the quote request module", () => {
+  const newsletter = homeModuleSeeds.find((module) => module.id === "newsletter");
+
+  assert.ok(newsletter?.fields.some((field) => field.key === "contactLineEn"));
+  assert.ok(newsletter?.fields.some((field) => field.key === "contactLineZh"));
+  assert.match(String(newsletter?.data.contactLineEn), /\{\{primaryPhone\}\}/);
+  assert.equal(newsletter?.data.contactLineZh, "");
+});
+
+test("uses the CMS Chinese Footer defaults when stored legacy fields are blank", () => {
+  const footer = homeModuleSeeds.find((module) => module.id === "footer")!;
+  const result = mergeHomeModuleRows(
+    [
+      {
+        id: "footer",
+        module_index: footer.index,
+        name: footer.name,
+        description: footer.description,
+        status: "published",
+        published_version: 1,
+        draft_version: null,
+        fields: footer.fields,
+        published_data: {
+          ...footer.data,
+          brandTitleZh: "",
+          brandDescriptionZh: "",
+          copyrightTextZh: "",
+        },
+        draft_data: null,
+        updated_at: "2026-09-24T00:00:00.000Z",
+      },
+    ],
+    "published",
+  ).find((module) => module.id === "footer");
+
+  assert.equal(result?.data.brandTitleZh, "中环旅游");
+  assert.equal(result?.data.brandDescriptionZh, "一站式旅行服务。TICO 认证成员，以专业服务和具竞争力的价格服务社区。");
+  assert.equal(result?.data.copyrightTextZh, "© 2026 中环旅游。版权所有。");
+});
+
+test("uses the CMS Chinese Final CTA button default when legacy content is blank", () => {
+  const finalCta = homeModuleSeeds.find((module) => module.id === "finalCta")!;
+  const result = mergeHomeModuleRows(
+    [
+      {
+        id: "finalCta",
+        module_index: finalCta.index,
+        name: finalCta.name,
+        description: finalCta.description,
+        status: "published",
+        published_version: 1,
+        draft_version: null,
+        fields: finalCta.fields,
+        published_data: { ...finalCta.data, primaryButtonTextZh: "" },
+        draft_data: null,
+        updated_at: "2026-09-24T00:00:00.000Z",
+      },
+    ],
+    "published",
+  ).find((module) => module.id === "finalCta");
+
+  assert.equal(result?.data.primaryButtonTextZh, "联系我们");
+});
+
+test("registers localized booking and contact page modules with independently editable backgrounds", () => {
+  const bookingPage = homeModuleSeeds.find((module) => module.id === "bookingPage");
+  const contactPage = homeModuleSeeds.find((module) => module.id === "contactPage");
+
+  assert.equal(bookingPage?.fields.find((field) => field.key === "backgroundImage")?.type, "image");
+  assert.equal(contactPage?.fields.find((field) => field.key === "backgroundImage")?.type, "image");
+  assert.ok(bookingPage?.fields.some((field) => field.key === "bookEn"));
+  assert.ok(bookingPage?.fields.some((field) => field.key === "bookZh"));
+  assert.ok(contactPage?.fields.some((field) => field.key === "formTitleEn"));
+  assert.ok(contactPage?.fields.some((field) => field.key === "formTitleZh"));
+  assert.equal(bookingPage?.data.bookZh, "立即预订");
+  assert.equal(contactPage?.data.formTitleZh, "申请报价");
+});
+
+test("restores the previous Chinese page copy when persisted booking and contact fields are blank", () => {
+  const bookingPage = homeModuleSeeds.find((module) => module.id === "bookingPage")!;
+  const contactPage = homeModuleSeeds.find((module) => module.id === "contactPage")!;
+  const modules = mergeHomeModuleRows(
+    [
+      {
+        id: "bookingPage",
+        module_index: bookingPage.index,
+        name: bookingPage.name,
+        description: bookingPage.description,
+        status: "published",
+        published_version: 1,
+        draft_version: null,
+        fields: bookingPage.fields,
+        published_data: { ...bookingPage.data, bookZh: "", noPriceZh: "" },
+        draft_data: null,
+        updated_at: "2026-09-24T00:00:00.000Z",
+      },
+      {
+        id: "contactPage",
+        module_index: contactPage.index,
+        name: contactPage.name,
+        description: contactPage.description,
+        status: "published",
+        published_version: 1,
+        draft_version: null,
+        fields: contactPage.fields,
+        published_data: { ...contactPage.data, formTitleZh: "", hoursTextZh: "" },
+        draft_data: null,
+        updated_at: "2026-09-24T00:00:00.000Z",
+      },
+    ],
+    "published",
+  );
+
+  assert.equal(modules.find((module) => module.id === "bookingPage")?.data.bookZh, "立即预订");
+  assert.equal(modules.find((module) => module.id === "bookingPage")?.data.noPriceZh, "此行程暂不支持在线支付，请联系我们获取报价。");
+  assert.equal(modules.find((module) => module.id === "contactPage")?.data.formTitleZh, "申请报价");
+  assert.equal(modules.find((module) => module.id === "contactPage")?.data.hoursTextZh, "周一至周五 10:00-17:00\n周六、周日需预约");
+});
+
 test("rejects invalid required, typed, and image values before persistence", () => {
   assert.throws(
     () =>

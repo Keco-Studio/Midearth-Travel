@@ -22,7 +22,7 @@ export async function PUT(request: Request) {
       categories?: Array<
         Pick<
           DestinationCategory,
-          "id" | "titleEn" | "titleZh" | "summary" | "summaryZh" | "image"
+          "id" | "titleEn" | "titleZh" | "summary" | "summaryZh" | "image" | "busContent"
         >
       >;
     };

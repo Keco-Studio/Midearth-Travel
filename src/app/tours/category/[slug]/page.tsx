@@ -6,6 +6,7 @@ import { filterToursForCategory } from "@/data/tour-filters";
 import { getDestinationCategoryTitle } from "@/lib/destination-category-title";
 import { loadDestinationCategories } from "@/lib/supabase-destination-categories";
 import { loadPublishedTours } from "@/lib/supabase-tours";
+import { getBusToursContent, getBusToursMonthEntries } from "@/lib/bus-tours-content";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +50,8 @@ export default async function TourCategoryPage({ params }: Props) {
         image={category?.image?.trim() || meta.image}
         initialTours={filterToursForCategory(tours, slug)}
         publishedTours={tours}
+        browseMonths={getBusToursMonthEntries(category?.busContent)}
+        browseContent={getBusToursContent(category?.busContent)}
         showBrowseSections={slug === "bus-tours"}
         destinationCategories={categories}
       />

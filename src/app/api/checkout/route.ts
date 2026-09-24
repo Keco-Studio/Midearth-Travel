@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { getTourBySlug } from "@/data/tours";
 import {
   getFareAmountInCents,
   normalizeCurrency,
@@ -10,13 +9,14 @@ import {
   attachStripeSession,
   createPaymentOrder,
 } from "@/lib/supabase-payments";
+import { loadPublishedTours } from "@/lib/supabase-tours";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
     const input = validateCheckoutInput(await request.json());
-    const tour = getTourBySlug(input.tourSlug);
+    const tour = (await loadPublishedTours()).find((entry) => entry.slug === input.tourSlug);
     if (!tour) return Response.json({ error: "Tour not found" }, { status: 400 });
     const fare = tour.fares?.find(
       (candidate) => candidate.label.toLowerCase() === input.fareLabel.toLowerCase(),

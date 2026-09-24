@@ -10,11 +10,11 @@ import {
   Ticket,
   Users,
 } from "lucide-react";
+import Link from "next/link";
 import { Navbar } from "@/components/navbar";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
-  getBookingMailto,
   getTourDisplayTitle,
   getTourNotIncluded,
   defaultTourIncluded,
@@ -23,11 +23,13 @@ import {
 } from "@/data/tours";
 import { TourDetailHeader } from "@/components/tour/tour-detail-header";
 import { TourPdfDownload } from "@/components/tour/tour-pdf-download";
-import { TourCheckoutButton } from "@/components/tour/tour-checkout-button";
 import { useLang } from "@/context/lang-context";
 import { useSiteSettings } from "@/context/site-settings-context";
+import { getContactQuoteHref } from "@/lib/contact-prefill";
 import {
   getConfiguredContactHref,
+  getTourDisplayItinerary,
+  getTourIntroDescriptionHtml,
   getTourIntroDescription,
 } from "@/lib/tour-content-audit";
 import { getLocalizedStaticText, getLocalizedTourList, getLocalizedTourValue } from "@/lib/localized-content";
@@ -100,20 +102,10 @@ export function TourDetail({ tour }: { tour: Tour }) {
     ? configuredContactHref
     : "tel:+16132365226";
   const phoneLabel = settings.primaryPhoneLabel.trim() || "613-236-5226";
-  const bookingRecipient = getConfiguredContactHref(
-    settings.emailHref,
-    settings.primaryPhoneHref,
-  );
-  const bookingMailto = getBookingMailto(tour, bookingRecipient) || phoneHref;
   const introDescription = getTourIntroDescription(tour, lang);
+  const introDescriptionHtml = getTourIntroDescriptionHtml(tour, lang);
+  const itinerary = getTourDisplayItinerary(tour, lang);
 
-  function handleBookingClick(event: React.MouseEvent<HTMLAnchorElement>) {
-    const href = getBookingMailto(tour, bookingRecipient, window.location.href);
-    if (!href) return;
-
-    event.preventDefault();
-    window.location.assign(href);
-  }
   const bookingTourCode = tour.code
     ? lang === "zh"
       ? `（行程编号 ${tour.code}）`
@@ -189,9 +181,18 @@ export function TourDetail({ tour }: { tour: Tour }) {
 
             <div className={styles.overviewMain}>
               {introDescription ? (
-                <p className={styles.introDescription}>{introDescription}</p>
+                <section className={styles.descriptionCard} aria-label={getLocalizedStaticText(lang, "tourDescription")}>
+                  {introDescriptionHtml ? (
+                    <div
+                      className={styles.introDescription}
+                      dangerouslySetInnerHTML={{ __html: introDescriptionHtml }}
+                    />
+                  ) : (
+                    <p className={styles.introDescription}>{introDescription}</p>
+                  )}
+                </section>
               ) : null}
-              {tour.itinerary && tour.itinerary.length > 0 ? (
+              {itinerary && itinerary.length > 0 ? (
                 <section className={styles.dayByDaySection}>
                   <h2 className="text-3xl font-light tracking-tight md:text-4xl">
                     {getLocalizedStaticText(lang, "dayByDay")}
@@ -201,13 +202,13 @@ export function TourDetail({ tour }: { tour: Tour }) {
                   </p>
 
                   <ol className={styles.dayList}>
-                    {tour.itinerary.map((day, index) => (
+                    {itinerary.map((day, index) => (
                       <li key={day.day} className={styles.dayItem}>
                         <div className={styles.dayRail}>
                           <span className={styles.dayNumber} aria-hidden>
                             {day.day}
                           </span>
-                          {index < tour.itinerary!.length - 1 && (
+                          {index < itinerary.length - 1 && (
                             <div className={styles.dayConnector} aria-hidden />
                           )}
                         </div>
@@ -393,22 +394,15 @@ export function TourDetail({ tour }: { tour: Tour }) {
                 )}
 
                 <div className="border-t border-border px-6 py-4">
-                  {tour.fares && tour.fares.length > 0 ? (
-                    <TourCheckoutButton
-                      tourSlug={tour.slug}
-                      fares={tour.fares}
-                    />
-                  ) : null}
-                  <a
-                    href={bookingMailto}
-                    onClick={handleBookingClick}
+                  <Link
+                    href={`/tours/${tour.slug}/book`}
                     className={cn(
                       buttonVariants({ variant: "default" }),
                       "w-full",
                     )}
                   >
                     {getLocalizedStaticText(lang, "bookThisTour")}
-                  </a>
+                  </Link>
                   <a
                     href={phoneHref}
                     className={cn(
@@ -442,8 +436,8 @@ export function TourDetail({ tour }: { tour: Tour }) {
             })}
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <a
-              href={bookingMailto}
+            <Link
+              href={`/tours/${tour.slug}/book`}
               className={cn(
                 buttonVariants({ size: "lg" }),
                 "group h-14 px-10 text-base",
@@ -451,16 +445,16 @@ export function TourDetail({ tour }: { tour: Tour }) {
             >
               {getLocalizedStaticText(lang, "bookNow")}
               <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-            </a>
-            <a
-              href={phoneHref}
+            </Link>
+            <Link
+              href={getContactQuoteHref(displayTitle)}
               className={cn(
                 buttonVariants({ variant: "outline", size: "lg" }),
                 "h-14 border-2 bg-background px-10 text-base shadow-xs",
               )}
             >
               {getLocalizedStaticText(lang, "contactUs")}
-            </a>
+            </Link>
           </div>
         </div>
       </section>

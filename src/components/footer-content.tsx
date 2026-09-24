@@ -1,6 +1,5 @@
 "use client";
 
-import { Mail } from "lucide-react";
 import { useFooterContent } from "@/context/footer-content-context";
 import { useSiteSettings } from "@/context/site-settings-context";
 import {
@@ -39,7 +38,6 @@ export function FooterContent({
   );
   const tourLinks = getCategoryFooterLinks(categories, lang);
   const serviceLinks = getPublishedFooterLinks(resolved, lang).serviceLinks;
-  const emailHref = settings.emailHref.trim();
 
   return (
     <footer id="contact" className="border-t border-white/10 bg-[#1A1A17] text-[#f5efe3]">
@@ -48,13 +46,6 @@ export function FooterContent({
           <div className="space-y-4">
             <h3 className="text-2xl font-semibold text-[#f5efe3]">{brandTitle}</h3>
             <p className="text-sm leading-relaxed text-[#f5efe3]/65">{brandDescription}</p>
-            {emailHref ? (
-              <div className="flex gap-4">
-                <a href={emailHref} aria-label="Email" className="text-[#f5efe3]/50 transition-colors hover:text-[#f5efe3]">
-                  <Mail className="h-5 w-5" />
-                </a>
-              </div>
-            ) : null}
           </div>
 
           <FooterColumn heading={getLocalizedStaticText(lang, "tours")} links={tourLinks} />
@@ -63,9 +54,9 @@ export function FooterContent({
           <div>
             <h4 className="mb-4 font-semibold text-[#f5efe3]">{getLocalizedStaticText(lang, "contactUs")}</h4>
             <ul className="space-y-3 text-sm text-[#f5efe3]/65">
-              <li><a href={settings.primaryPhoneHref} className="transition-colors hover:text-[#f5efe3]">{settings.primaryPhoneLabel}</a></li>
-              {settings.secondaryPhoneLabel ? <li><a href={settings.secondaryPhoneHref} className="transition-colors hover:text-[#f5efe3]">{settings.secondaryPhoneLabel}</a></li> : null}
-              <li><a href={settings.emailHref} className="transition-colors hover:text-[#f5efe3]">{settings.emailLabel}</a></li>
+              <li><span>{settings.primaryPhoneLabel}</span></li>
+              {settings.secondaryPhoneLabel ? <li><span>{settings.secondaryPhoneLabel}</span></li> : null}
+              <li><span>{settings.emailLabel}</span></li>
               <li><span>{lang === "zh" && settings.officeAddressZh.trim() ? settings.officeAddressZh : settings.officeAddress}</span></li>
             </ul>
           </div>
