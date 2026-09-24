@@ -65,8 +65,8 @@ export async function POST(request: Request) {
         fareLabel: fare.label,
         paymentType: input.paymentType,
       },
-      success_url: `${siteUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${siteUrl}/payment/cancel?payment_id=${encodeURIComponent(paymentId)}`,
+      success_url: `${siteUrl}/tours/${encodeURIComponent(tour.slug)}?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${siteUrl}/tours/${encodeURIComponent(tour.slug)}?payment=cancelled&payment_id=${encodeURIComponent(paymentId)}`,
     });
     if (!session.url) throw new Error("Stripe did not return a Checkout URL");
     await attachStripeSession(paymentId, session.id);
