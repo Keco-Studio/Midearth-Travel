@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   getBookingStatusCounts,
+  getInquiryBookings,
+  mergeBookingUpdates,
   getMediaUsageState,
   getPaymentStatusCounts,
   getPaymentsForBooking,
@@ -99,6 +101,72 @@ test("counts booking records by status", () => {
     cancelled: 0,
     completed: 0,
   });
+});
+
+test("keeps the inquiry inbox limited to Contact Us quote requests", () => {
+  const bookings: BookingRecord[] = [
+    {
+      id: "quote_001",
+      reference: "QR-2026-001",
+      status: "new",
+      source: "quote_request",
+      customerName: "Quote visitor",
+      notes: "Please send an itinerary.",
+      createdAt: "2026-09-29T02:00:00Z",
+      updatedAt: "2026-09-29T02:00:00Z",
+    },
+    {
+      id: "tour_001",
+      reference: "TB-2026-001",
+      status: "new",
+      source: "tour_email",
+      customerName: "Tour visitor",
+      createdAt: "2026-09-29T02:01:00Z",
+      updatedAt: "2026-09-29T02:01:00Z",
+    },
+    {
+      id: "phone_001",
+      reference: "BK-2026-001",
+      status: "contacted",
+      source: "phone",
+      customerName: "Phone visitor",
+      createdAt: "2026-09-29T02:02:00Z",
+      updatedAt: "2026-09-29T02:02:00Z",
+    },
+  ];
+
+  assert.deepEqual(
+    getInquiryBookings(bookings).map((booking) => booking.id),
+    ["quote_001"],
+  );
+});
+
+test("merges an updated inquiry without dropping other booking records", () => {
+  const quote: BookingRecord = {
+    id: "quote_001",
+    reference: "QR-2026-001",
+    status: "new",
+    source: "quote_request",
+    customerName: "Quote visitor",
+    createdAt: "2026-09-29T02:00:00Z",
+    updatedAt: "2026-09-29T02:00:00Z",
+  };
+  const tour: BookingRecord = {
+    id: "tour_001",
+    reference: "TB-2026-001",
+    status: "new",
+    source: "tour_email",
+    customerName: "Tour visitor",
+    createdAt: "2026-09-29T02:01:00Z",
+    updatedAt: "2026-09-29T02:01:00Z",
+  };
+
+  const merged = mergeBookingUpdates([quote, tour], [{ ...quote, status: "contacted" }]);
+
+  assert.deepEqual(merged.map((booking) => [booking.id, booking.status]), [
+    ["quote_001", "contacted"],
+    ["tour_001", "new"],
+  ]);
 });
 
 test("counts payment records by status", () => {

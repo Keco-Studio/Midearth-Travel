@@ -35,6 +35,7 @@ import {
   updateHomeModuleField,
   type AdminState,
 } from "@/lib/admin-state";
+import { getInquiryBookings, mergeBookingUpdates } from "@/lib/workspace-view-models";
 import {
   getPathFromAdminState,
   layoutRouteConfig,
@@ -683,6 +684,20 @@ function renderWorkspace(
         onFocusHandled={handlers.onFocusHandled}
         onViewPayment={handlers.onViewPayment}
         onBookingsChange={handlers.onBookingsChange}
+      />
+    );
+  }
+
+  if (state.workspace === "inquiries") {
+    return (
+      <BookingsWorkspace
+        bookings={getInquiryBookings(handlers.bookings)}
+        focusBookingId={state.focusBookingId}
+        onFocusHandled={handlers.onFocusHandled}
+        onBookingsChange={(updatedInquiries) =>
+          handlers.onBookingsChange(mergeBookingUpdates(handlers.bookings, updatedInquiries))
+        }
+        variant="inquiries"
       />
     );
   }

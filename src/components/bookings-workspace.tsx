@@ -14,6 +14,7 @@ type BookingsWorkspaceProps = {
   onFocusHandled?: () => void;
   onViewPayment?: (paymentId: string) => void;
   onBookingsChange?: (bookings: BookingRecord[]) => void;
+  variant?: "bookings" | "inquiries";
 };
 
 const sourceLabels: Record<BookingSource, string> = {
@@ -46,6 +47,7 @@ export function BookingsWorkspace({
   onFocusHandled,
   onViewPayment,
   onBookingsChange,
+  variant = "bookings",
 }: BookingsWorkspaceProps) {
   const { message } = App.useApp();
   const [localSelectedId, setLocalSelectedId] = useState<string | null>(null);
@@ -68,6 +70,7 @@ export function BookingsWorkspace({
   );
 
   const markContactedDisabledReason = getMarkContactedDisabledReason(selectedBooking);
+  const isInquiryInbox = variant === "inquiries";
 
   const handleSelectBooking = useCallback(
     (bookingId: string) => {
@@ -121,18 +124,39 @@ export function BookingsWorkspace({
         title: "Customer",
         dataIndex: "customerName",
       },
-      {
-        title: "Tour",
-        dataIndex: "tourTitle",
-        render: (_, record) => record.tourTitle ?? "General inquiry",
-      },
-      {
-        title: "Source",
-        dataIndex: "source",
-        render: (_, record) => (
-          <Tag className="cms-booking-source-tag">{sourceLabels[record.source]}</Tag>
-        ),
-      },
+      ...(isInquiryInbox
+        ? [
+            {
+              title: "Email",
+              dataIndex: "customerEmail",
+              render: (_: unknown, record: BookingRecord) => record.customerEmail ?? "-",
+            },
+            {
+              title: "Phone",
+              dataIndex: "customerPhone",
+              render: (_: unknown, record: BookingRecord) => record.customerPhone ?? "-",
+            },
+            {
+              title: "Message",
+              dataIndex: "notes",
+              ellipsis: true,
+              render: (_: unknown, record: BookingRecord) => record.notes ?? "-",
+            },
+          ]
+        : [
+            {
+              title: "Tour",
+              dataIndex: "tourTitle",
+              render: (_: unknown, record: BookingRecord) => record.tourTitle ?? "General inquiry",
+            },
+            {
+              title: "Source",
+              dataIndex: "source",
+              render: (_: unknown, record: BookingRecord) => (
+                <Tag className="cms-booking-source-tag">{sourceLabels[record.source]}</Tag>
+              ),
+            },
+          ]),
       {
         title: "Status",
         dataIndex: "status",
@@ -148,7 +172,7 @@ export function BookingsWorkspace({
         render: (_, record) => formatDate(record.createdAt),
       },
     ],
-    [],
+    [isInquiryInbox],
   );
 
   return (
@@ -223,7 +247,9 @@ export function BookingsWorkspace({
               emptyText: (
                 <Empty description="No booking requests yet">
                   <Typography.Text type="secondary">
-                    Requests from tour emails, phone calls, and quote forms will appear here.
+                    {isInquiryInbox
+                      ? "Requests sent through the Contact Us form will appear here."
+                      : "Requests from tour emails, phone calls, and quote forms will appear here."}
                   </Typography.Text>
                 </Empty>
               ),
@@ -236,6 +262,7 @@ export function BookingsWorkspace({
             booking={selectedBooking}
             relatedPayments={relatedPayments}
             onViewPayment={onViewPayment}
+            variant={variant}
           />
         </Col>
       </Row>
@@ -247,10 +274,12 @@ function BookingDetailsPanel({
   booking,
   relatedPayments,
   onViewPayment,
+  variant,
 }: {
   booking: BookingRecord | null;
   relatedPayments: PaymentRecord[];
   onViewPayment?: (paymentId: string) => void;
+  variant: "bookings" | "inquiries";
 }) {
   if (!booking) {
     return (
@@ -261,7 +290,7 @@ function BookingDetailsPanel({
   }
 
   return (
-    <Card title="Booking details">
+    <Card title={variant === "inquiries" ? "Inquiry details" : "Booking details"}>
       <Descriptions key={booking.id} column={1} styles={{ content: { minWidth: 0 } }}>
         <Descriptions.Item label="Reference">{booking.reference}</Descriptions.Item>
         <Descriptions.Item label="Status">
@@ -269,52 +298,46 @@ function BookingDetailsPanel({
             {statusLabels[booking.status]}
           </Tag>
         </Descriptions.Item>
-        <Descriptions.Item label="Source">{sourceLabels[booking.source]}</Descriptions.Item>
+        {variant === "bookings" ? <Descriptions.Item label="Source">{sourceLabels[booking.source]}</Descriptions.Item> : null}
         <Descriptions.Item label="Customer">{booking.customerName}</Descriptions.Item>
         <Descriptions.Item label="Email">{booking.customerEmail ?? "—"}</Descriptions.Item>
         <Descriptions.Item label="Phone">{booking.customerPhone ?? "—"}</Descriptions.Item>
-        <Descriptions.Item label="Tour">{booking.tourTitle ?? "General inquiry"}</Descriptions.Item>
-        <Descriptions.Item label="Tour code">{booking.tourCode ?? "—"}</Descriptions.Item>
-        <Descriptions.Item label="Departure">
-          {booking.departureDate ? formatDateOnly(booking.departureDate) : "—"}
-        </Descriptions.Item>
-        <Descriptions.Item label="Party size">{booking.partySize ?? "—"}</Descriptions.Item>
-        <Descriptions.Item label="Notes">{booking.notes ?? "—"}</Descriptions.Item>
+        {variant === "bookings" ? <Descriptions.Item label="Tour">{booking.tourTitle ?? "General inquiry"}</Descriptions.Item> : null}
+        {variant === "bookings" ? <Descriptions.Item label="Tour code">{booking.tourCode ?? "—"}</Descriptions.Item> : null}
+        {variant === "bookings" ? <Descriptions.Item label="Departure">{booking.departureDate ? formatDateOnly(booking.departureDate) : "—"}</Descriptions.Item> : null}
+        {variant === "bookings" ? <Descriptions.Item label="Party size">{booking.partySize ?? "—"}</Descriptions.Item> : null}
+        <Descriptions.Item label={variant === "inquiries" ? "Message" : "Notes"}>{booking.notes ?? "—"}</Descriptions.Item>
         <Descriptions.Item label="Created">{formatDate(booking.createdAt)}</Descriptions.Item>
         <Descriptions.Item label="Updated">{formatDate(booking.updatedAt)}</Descriptions.Item>
       </Descriptions>
 
+      {variant === "bookings" ? <PaymentRecords relatedPayments={relatedPayments} onViewPayment={onViewPayment} /> : null}
+    </Card>
+  );
+}
+
+function PaymentRecords({ relatedPayments, onViewPayment }: { relatedPayments: PaymentRecord[]; onViewPayment?: (paymentId: string) => void }) {
+  return (
+    <>
       <Divider style={{ margin: "16px 0" }} />
-
-      <Typography.Title level={5} style={{ marginTop: 0 }}>
-        Payment records
-      </Typography.Title>
-
-      {relatedPayments.length === 0 ? (
-        <Typography.Text type="secondary">No payments recorded for this booking.</Typography.Text>
-      ) : (
+      <Typography.Title level={5} style={{ marginTop: 0 }}>Payment records</Typography.Title>
+      {relatedPayments.length === 0 ? <Typography.Text type="secondary">No payments recorded for this booking.</Typography.Text> : (
         <Space direction="vertical" size={12} style={{ width: "100%" }}>
           {relatedPayments.map((payment) => (
             <Card key={payment.id} size="small" className="cms-related-payment-card">
               <Space direction="vertical" size={4} style={{ width: "100%" }}>
                 <Space align="center" style={{ justifyContent: "space-between", width: "100%" }}>
-                  <Typography.Link onClick={() => onViewPayment?.(payment.id)}>
-                    {payment.reference}
-                  </Typography.Link>
-                  <Typography.Text strong>
-                    {formatPaymentAmount(payment.amount, payment.currency, payment.type === "refund")}
-                  </Typography.Text>
+                  <Typography.Link onClick={() => onViewPayment?.(payment.id)}>{payment.reference}</Typography.Link>
+                  <Typography.Text strong>{formatPaymentAmount(payment.amount, payment.currency, payment.type === "refund")}</Typography.Text>
                 </Space>
                 <Typography.Text type="secondary">{payment.description}</Typography.Text>
-                <Typography.Text type="secondary">
-                  {payment.paidAt ? formatDate(payment.paidAt) : "Not paid yet"} · {payment.status}
-                </Typography.Text>
+                <Typography.Text type="secondary">{payment.paidAt ? formatDate(payment.paidAt) : "Not paid yet"} · {payment.status}</Typography.Text>
               </Space>
             </Card>
           ))}
         </Space>
       )}
-    </Card>
+    </>
   );
 }
 
