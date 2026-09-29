@@ -47,6 +47,18 @@ export function getBookingStatusCounts(bookings: BookingRecord[]): BookingStatus
   );
 }
 
+export function getInquiryBookings(bookings: BookingRecord[]): BookingRecord[] {
+  return bookings.filter((booking) => booking.source === "quote_request");
+}
+
+export function mergeBookingUpdates(
+  bookings: BookingRecord[],
+  updates: BookingRecord[],
+): BookingRecord[] {
+  const updatesById = new Map(updates.map((booking) => [booking.id, booking]));
+  return bookings.map((booking) => updatesById.get(booking.id) ?? booking);
+}
+
 export function getPaymentStatusCounts(payments: PaymentRecord[]): PaymentStatusCounts {
   return payments.reduce<PaymentStatusCounts>(
     (counts, payment) => {

@@ -34,6 +34,15 @@ test("updates workspace title when switching sections", () => {
   assert.equal(getWorkspaceTitle(state), "Tour Library");
 });
 
+test("selects the inquiry inbox without renaming the Contact Us editor", () => {
+  const state = selectWorkspace(createInitialAdminState(), "inquiries");
+
+  assert.equal(state.workspace, "inquiries");
+  assert.equal(state.expandedWorkspace, null);
+  assert.equal(getWorkspaceTitle(state), "Inquiry Inbox");
+  assert.equal(getWorkspaceTitle(selectWorkspace(state, "contactPage")), "Contact Us");
+});
+
 test("selects the standalone Booking Page and Contact Us CMS workspaces", () => {
   const bookingPage = selectWorkspace(createInitialAdminState(), "bookingPage");
   const contactPage = selectWorkspace(bookingPage, "contactPage");

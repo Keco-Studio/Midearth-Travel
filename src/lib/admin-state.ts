@@ -7,6 +7,7 @@ export type Workspace =
   | "contactPage"
   | "tours"
   | "bookings"
+  | "inquiries"
   | "payments"
   | "settings";
 
@@ -26,6 +27,7 @@ const workspaceTitles: Record<Workspace, string> = {
   contactPage: "Contact Us",
   tours: "Tour Library",
   bookings: "Bookings",
+  inquiries: "Inquiry Inbox",
   payments: "Payments",
   settings: "Global Settings",
 };

@@ -33,6 +33,17 @@ test("routes standalone booking and contact page editors before Tour Library", (
   assert.deepEqual(parseLayoutPath("/contact-page"), { workspace: "contactPage" });
 });
 
+test("routes Contact Us form submissions to the dedicated inquiry inbox", () => {
+  const contentRoutes = layoutRouteConfig.routes[0]?.routes ?? [];
+
+  assert.ok(contentRoutes.some((route) => (
+    route.path === "/inquiries" &&
+    route.name === "Inquiry Inbox" &&
+    route.workspace === "inquiries"
+  )));
+  assert.deepEqual(parseLayoutPath("/inquiries"), { workspace: "inquiries" });
+});
+
 function flattenRoutes(routes: LayoutRoute[]): LayoutRoute[] {
   return routes.flatMap((route) => [route, ...flattenRoutes(route.routes ?? [])]);
 }
