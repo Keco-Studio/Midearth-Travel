@@ -50,6 +50,11 @@ export const layoutRouteConfig: { routes: LayoutRoute[] } = {
           workspace: "bookings",
         },
         {
+          path: "/inquiries",
+          name: "Inquiry Inbox",
+          workspace: "inquiries",
+        },
+        {
           path: "/payments",
           name: "Payments",
           workspace: "payments",
@@ -104,6 +109,7 @@ export function parseLayoutPath(pathname: string): {
   if (
     workspace === "tours" ||
     workspace === "bookings" ||
+    workspace === "inquiries" ||
     workspace === "payments" ||
     workspace === "settings"
   ) {

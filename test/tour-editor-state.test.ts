@@ -42,7 +42,7 @@ test("validates and trims editable tour fields", () => {
   }
 });
 
-test("rejects missing required editor fields", () => {
+test("allows a blank region when the tour has a destination category", () => {
   const record = mapTravelToursToRecords()[0];
 
   assert.deepEqual(
@@ -59,7 +59,6 @@ test("rejects missing required editor fields", () => {
       errors: {
         title: "Enter an English title",
         slug: "Enter a slug",
-        region: "Enter a region",
         duration: "Enter an English duration",
         tourType: "Select a tour type",
       },

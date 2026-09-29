@@ -55,6 +55,12 @@ export function getSidebarNavigation(expandedWorkspace: Workspace | null): Sideb
           children: [],
         },
         {
+          id: "inquiries",
+          label: "Inquiry Inbox",
+          eyebrow: "Contact Us forms",
+          children: [],
+        },
+        {
           id: "payments",
           label: "Payments",
           eyebrow: "Transaction records",

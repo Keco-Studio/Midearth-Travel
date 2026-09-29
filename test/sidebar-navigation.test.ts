@@ -12,7 +12,7 @@ test("places homepage modules under Homepage Content instead of beside primary i
   assert.ok(contentGroup);
   assert.deepEqual(
     contentGroup.items.map((item) => item.label),
-    ["Homepage Content", "Booking Page", "Contact Us", "Tour Library", "Bookings", "Payments"],
+    ["Homepage Content", "Booking Page", "Contact Us", "Tour Library", "Bookings", "Inquiry Inbox", "Payments"],
   );
 
   const homepageItem = contentGroup.items[0];
@@ -22,6 +22,7 @@ test("places homepage modules under Homepage Content instead of beside primary i
   assert.equal(contentGroup.items[3].children.length, 0);
   assert.equal(contentGroup.items[4].children.length, 0);
   assert.equal(contentGroup.items[5].children.length, 0);
+  assert.equal(contentGroup.items[6].children.length, 0);
 });
 
 test("only shows homepage module children while home workspace is selected", () => {
