@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import {
+  createCheckoutReturnUrls,
   getFareAmountInCents,
   normalizeCurrency,
   validateCheckoutInput,
@@ -40,7 +41,11 @@ export async function POST(request: Request) {
       currency,
     });
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || new URL(request.url).origin;
+    const returnUrls = createCheckoutReturnUrls({
+      requestUrl: request.url,
+      tourSlug: tour.slug,
+      paymentId,
+    });
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
@@ -65,8 +70,8 @@ export async function POST(request: Request) {
         fareLabel: fare.label,
         paymentType: input.paymentType,
       },
-      success_url: `${siteUrl}/tours/${encodeURIComponent(tour.slug)}?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${siteUrl}/tours/${encodeURIComponent(tour.slug)}?payment=cancelled&payment_id=${encodeURIComponent(paymentId)}`,
+      success_url: returnUrls.successUrl,
+      cancel_url: returnUrls.cancelUrl,
     });
     if (!session.url) throw new Error("Stripe did not return a Checkout URL");
     await attachStripeSession(paymentId, session.id);
