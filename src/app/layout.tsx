@@ -10,6 +10,8 @@ import { loadPublishedHomeModules } from "@/lib/supabase-home-content";
 import { loadGlobalSettings } from "@/lib/supabase-global-settings";
 import "./globals.css";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await loadGlobalSettings().catch(() => null);
   const siteName = settings?.siteName?.trim() || "Midearth Travel";

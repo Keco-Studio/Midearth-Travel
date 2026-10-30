@@ -80,18 +80,13 @@ test("loads published CMS copy and the resolved page background for tour booking
   assert.match(component, /backgroundImage/);
 });
 
-test("returns Stripe checkout to the booked tour detail page", () => {
+test("routes Stripe checkout through the payment result flow", () => {
   const route = readFileSync(
     new URL("../src/app/api/checkout/route.ts", import.meta.url),
     "utf8",
   );
 
-  assert.match(
-    route,
-    /success_url:\s*`\$\{siteUrl\}\/tours\/\$\{encodeURIComponent\(tour\.slug\)\}\?payment=success&session_id=\{CHECKOUT_SESSION_ID\}`/,
-  );
-  assert.match(
-    route,
-    /cancel_url:\s*`\$\{siteUrl\}\/tours\/\$\{encodeURIComponent\(tour\.slug\)\}\?payment=cancelled&payment_id=/,
-  );
+  assert.match(route, /createCheckoutReturnUrls\(\{/);
+  assert.match(route, /success_url:\s*returnUrls\.successUrl/);
+  assert.match(route, /cancel_url:\s*returnUrls\.cancelUrl/);
 });

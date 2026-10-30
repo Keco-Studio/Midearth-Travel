@@ -21,6 +21,31 @@ export type TourBookingInput = {
   notes: string;
 };
 
+export function resolveCheckoutSiteUrl(requestUrl: string): string {
+  return new URL(requestUrl).origin;
+}
+
+export function createCheckoutReturnUrls(input: {
+  requestUrl: string;
+  tourSlug: string;
+  paymentId: string;
+}): { successUrl: string; cancelUrl: string } {
+  const siteUrl = resolveCheckoutSiteUrl(input.requestUrl);
+  const tourSlug = encodeURIComponent(input.tourSlug);
+
+  return {
+    successUrl: `${siteUrl}/payment/success?tour=${tourSlug}&session_id={CHECKOUT_SESSION_ID}`,
+    cancelUrl: `${siteUrl}/tours/${tourSlug}?payment=cancelled&payment_id=${encodeURIComponent(input.paymentId)}`,
+  };
+}
+
+export function getPaymentReturnHref(
+  tourSlug: string | string[] | undefined,
+): string {
+  if (typeof tourSlug !== "string" || !tourSlug.trim()) return "/tours";
+  return `/tours/${encodeURIComponent(tourSlug.trim())}`;
+}
+
 export function validateTourBookingInput(value: unknown): TourBookingInput {
   if (!value || typeof value !== "object") throw new Error("Request body is required");
 
