@@ -203,7 +203,7 @@ test("guards every pre-existing admin API method before parsing or data access",
     (file) => !relative(adminApiDirectory, file).split("/").includes("auth"),
   );
 
-  assert.equal(routeFiles.length, 12, "expected all 12 pre-existing admin route files");
+  assert.equal(routeFiles.length, 13, "expected all 13 admin route files");
 
   for (const file of routeFiles) {
     const source = readFileSync(file, "utf8");

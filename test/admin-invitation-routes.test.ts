@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
@@ -22,4 +22,11 @@ test("registration hashes the token before persistent lookup", () => {
       source.indexOf("findAdminInvitationByTokenHash(tokenHash)"),
   );
   assert.doesNotMatch(source, /token_hash\s*:\s*registration\.token/);
+});
+
+test("authorizes confirmation email retries before reading request input", () => {
+  const path = "src/app/api/admin/payments/confirmation/route.ts";
+  assert.equal(existsSync(join(projectDirectory, path)), true, "missing retry route");
+  const source = readProjectFile(path);
+  assert.ok(source.indexOf("await assertAdminRequest()") < source.indexOf("await request.json()"));
 });

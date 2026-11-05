@@ -135,6 +135,15 @@ export async function updatePaymentOrderFromStripe(input: {
   return rows[0] ? rowToPaymentDelivery(rows[0]) : null;
 }
 
+export async function loadPaymentOrderForConfirmation(
+  paymentId: string,
+): Promise<PaymentOrderDeliveryRecord | null> {
+  const rows = await request<PaymentOrderRow[]>(
+    `/rest/v1/payment_orders?id=eq.${encodeURIComponent(paymentId)}&select=*&limit=1`,
+  );
+  return rows[0] ? rowToPaymentDelivery(rows[0]) : null;
+}
+
 export async function markConfirmationEmailSent(
   paymentId: string,
   emailId: string,
