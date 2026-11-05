@@ -73,3 +73,13 @@ export function bookingToRow(booking: BookingRecord): BookingRow {
   }
   return row;
 }
+
+export async function loadBookingByIdWithRequest(
+  id: string,
+  request: <T>(path: string, init?: RequestInit) => Promise<T>,
+): Promise<BookingRecord | null> {
+  const rows = await request<BookingRow[]>(
+    `/rest/v1/bookings?id=eq.${encodeURIComponent(id)}&select=*&limit=1`,
+  );
+  return rows[0] ? rowToBooking(rows[0]) : null;
+}

@@ -13,6 +13,20 @@ export type PaymentOrderInput = {
   currency: "cad";
 };
 
+export type PaymentOrderDeliveryRecord = {
+  id: string;
+  reference: string;
+  bookingId: string | null;
+  tourSlug: string;
+  customerEmail: string;
+  amountCents: number;
+  currency: string;
+  status: InternalPaymentStatus;
+  confirmationEmailSentAt: string | null;
+  confirmationEmailId: string | null;
+  confirmationEmailError: string | null;
+};
+
 function getSupabaseConfig() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim().replace(/\/$/, "");
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
@@ -103,16 +117,55 @@ export async function updatePaymentOrderFromStripe(input: {
   sessionId: string;
   status: InternalPaymentStatus;
   paymentIntentId?: string | null;
-}) {
-  await request<unknown[]>(
+}): Promise<PaymentOrderDeliveryRecord | null> {
+  const updatedAt = new Date().toISOString();
+  const rows = await request<PaymentOrderRow[]>(
     `/rest/v1/payment_orders?stripe_checkout_session_id=eq.${encodeURIComponent(input.sessionId)}`,
+    {
+      method: "PATCH",
+      headers: { Prefer: "return=representation" },
+      body: JSON.stringify({
+        status: input.status,
+        stripe_payment_intent_id: input.paymentIntentId ?? null,
+        ...(input.status === "paid" ? { paid_at: updatedAt } : {}),
+        updated_at: updatedAt,
+      }),
+    },
+  );
+  return rows[0] ? rowToPaymentDelivery(rows[0]) : null;
+}
+
+export async function markConfirmationEmailSent(
+  paymentId: string,
+  emailId: string,
+): Promise<void> {
+  const updatedAt = new Date().toISOString();
+  await request<unknown[]>(
+    `/rest/v1/payment_orders?id=eq.${encodeURIComponent(paymentId)}`,
     {
       method: "PATCH",
       headers: { Prefer: "return=minimal" },
       body: JSON.stringify({
-        status: input.status,
-        stripe_payment_intent_id: input.paymentIntentId ?? null,
-        paid_at: input.status === "paid" ? new Date().toISOString() : null,
+        confirmation_email_sent_at: updatedAt,
+        confirmation_email_id: emailId,
+        confirmation_email_error: null,
+        updated_at: updatedAt,
+      }),
+    },
+  );
+}
+
+export async function recordConfirmationEmailError(
+  paymentId: string,
+  message: string,
+): Promise<void> {
+  await request<unknown[]>(
+    `/rest/v1/payment_orders?id=eq.${encodeURIComponent(paymentId)}`,
+    {
+      method: "PATCH",
+      headers: { Prefer: "return=minimal" },
+      body: JSON.stringify({
+        confirmation_email_error: message.slice(0, 500),
         updated_at: new Date().toISOString(),
       }),
     },
@@ -139,9 +192,28 @@ type PaymentOrderRow = {
   stripe_checkout_session_id: string | null;
   stripe_payment_intent_id: string | null;
   paid_at: string | null;
+  confirmation_email_sent_at: string | null;
+  confirmation_email_id: string | null;
+  confirmation_email_error: string | null;
   created_at: string;
   updated_at: string;
 };
+
+function rowToPaymentDelivery(row: PaymentOrderRow): PaymentOrderDeliveryRecord {
+  return {
+    id: row.id,
+    reference: row.reference,
+    bookingId: row.booking_id,
+    tourSlug: row.tour_slug,
+    customerEmail: row.customer_email,
+    amountCents: row.amount_cents,
+    currency: row.currency,
+    status: row.status,
+    confirmationEmailSentAt: row.confirmation_email_sent_at,
+    confirmationEmailId: row.confirmation_email_id,
+    confirmationEmailError: row.confirmation_email_error,
+  };
+}
 
 export async function loadPaymentOrders(): Promise<PaymentRecord[]> {
   const rows = await request<PaymentOrderRow[]>(

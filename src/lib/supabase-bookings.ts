@@ -1,7 +1,12 @@
 import "server-only";
 
 import { bookingSeeds } from "@/data/cms-seed";
-import { bookingToRow, rowToBooking, type BookingRow } from "@/lib/booking-records";
+import {
+  bookingToRow,
+  loadBookingByIdWithRequest,
+  rowToBooking,
+  type BookingRow,
+} from "@/lib/booking-records";
 import type { BookingLocale } from "@/lib/payment-domain";
 import type { BookingRecord, BookingStatus } from "@/types/cms";
 
@@ -34,6 +39,10 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const text = await response.text();
   if (!text) return [] as T;
   return JSON.parse(text) as T;
+}
+
+export function loadBookingById(id: string): Promise<BookingRecord | null> {
+  return loadBookingByIdWithRequest(id, request);
 }
 
 export async function loadBookings(): Promise<BookingRecord[]> {
