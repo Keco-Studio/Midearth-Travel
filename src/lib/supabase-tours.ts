@@ -3,8 +3,9 @@ import "server-only";
 import { tourSeeds } from "@/data/cms-seed";
 import { tours, type Tour } from "@/data/tours";
 import { createStorageObjectPath } from "@/lib/inline-image-upload";
+import type { BookingConfirmationTour } from "@/lib/booking-confirmation-delivery";
 import { loadPublishedToursStrictWithRequest } from "@/lib/published-content-loaders";
-import { mergeTourRows, toTourRow, type TourRow } from "@/lib/tour-content";
+import { mapTourRecordToPublicTour, mergeTourRows, toTourRow, type TourRow } from "@/lib/tour-content";
 import { validateTourEditorRecord } from "@/lib/tour-editor-state";
 import type { TourRecord } from "@/types/cms";
 
@@ -18,14 +19,17 @@ export async function loadAdminTours(): Promise<TourRecord[]> {
 
 export async function loadPublishedTours(): Promise<Tour[]> {
   try {
-    return await loadPublishedToursStrict();
+    const rows = await listTourRows();
+    return mergeTourRows(rows)
+      .filter((record) => record.status === "published")
+      .map(mapTourRecordToPublicTour);
   } catch (error) {
     console.error("Unable to load published tours from Supabase", error);
     return tours;
   }
 }
 
-export function loadPublishedToursStrict(): Promise<Tour[]> {
+export function loadPublishedToursStrict(): Promise<BookingConfirmationTour[]> {
   return loadPublishedToursStrictWithRequest(supabaseJson);
 }
 

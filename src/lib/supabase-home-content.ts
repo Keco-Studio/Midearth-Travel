@@ -28,7 +28,8 @@ export async function loadAdminHomeModules(): Promise<HomeModuleRecord[]> {
 
 export async function loadPublishedHomeModules(): Promise<HomeModuleRecord[]> {
   try {
-    return await loadPublishedHomeModulesStrict();
+    const rows = await listHomeModuleRows();
+    return mergeHomeModuleRows(rows, "published");
   } catch (error) {
     console.error("Unable to load published homepage content from Supabase", error);
     return mergeHomeModuleRows([], "published");

@@ -102,10 +102,49 @@ test("strict published home content rejects missing or blank confirmation copy",
 test("strict published home content returns only the stored Booking Page", async () => {
   const bookingPage = homeModuleSeeds.find((module) => module.id === "bookingPage");
   assert.ok(bookingPage);
+  const storedEmailData = {
+    confirmationEmailSubjectEn: "Stored English subject",
+    confirmationEmailHeadingEn: "Stored English heading",
+    confirmationEmailBodyEn: "Stored English body",
+    confirmationEmailClosingEn: "Stored English closing",
+    confirmationEmailSubjectZh: "Stored Chinese subject",
+    confirmationEmailHeadingZh: "Stored Chinese heading",
+    confirmationEmailBodyZh: "Stored Chinese body",
+    confirmationEmailClosingZh: "Stored Chinese closing",
+  };
+  const storedFields = [{
+    key: "confirmationEmailSubjectEn",
+    label: "Stored subject field",
+    type: "text" as const,
+  }];
+  const storedRow = {
+    ...toHomeModuleRow(bookingPage),
+    module_index: 77,
+    name: "Stored Booking Page",
+    description: "Stored metadata only",
+    status: "draft" as const,
+    published_version: 9,
+    draft_version: 10,
+    fields: storedFields,
+    published_data: storedEmailData,
+    updated_at: "2026-11-05T20:00:00.000Z",
+  };
   const modules = await loadPublishedHomeModulesStrictWithRequest(
-    returning([toHomeModuleRow(bookingPage)]),
+    returning([storedRow]),
   );
-  assert.deepEqual(modules.map((module) => module.id), ["bookingPage"]);
+  assert.deepEqual(modules, [{
+    id: "bookingPage",
+    index: 77,
+    name: "Stored Booking Page",
+    description: "Stored metadata only",
+    status: "draft",
+    publishedVersion: 9,
+    draftVersion: 10,
+    updatedAt: "2026-11-05T20:00:00.000Z",
+    fields: storedFields,
+    data: storedEmailData,
+  }]);
+  assert.equal("book" in modules[0].data, false);
 });
 
 test("strict published tours reject empty and partial successful responses", async (t) => {
@@ -146,6 +185,39 @@ test("strict published tours reject empty and partial successful responses", asy
 test("strict published tours return only rows actually stored in Supabase", async () => {
   const seed = tourSeeds[0];
   assert.ok(seed);
-  const tours = await loadPublishedToursStrictWithRequest(returning([toTourRow(seed)]));
-  assert.deepEqual(tours.map((tour) => tour.slug), [seed.slug]);
+  const storedRecord = {
+    ...seed,
+    code: "DB99",
+    title: "Stored title, not static",
+    localizedTitle: "Stored localized title",
+    duration: "Stored duration",
+    localizedDuration: "Stored localized duration",
+    departureCity: "Stored departure city",
+    localizedDepartureCity: "Stored localized departure city",
+    essentials: {
+      ...seed.essentials,
+      meetingPlace: "Stored meeting place",
+      localizedMeetingPlace: "Stored localized meeting place",
+    },
+    galleryImages: "/stored-only-gallery.jpg",
+  };
+  const tours = await loadPublishedToursStrictWithRequest(
+    returning([toTourRow(storedRecord)]),
+  );
+  assert.deepEqual(tours, [{
+    slug: seed.slug,
+    code: "DB99",
+    title: "Stored title, not static",
+    localizedTitle: "Stored localized title",
+    duration: "Stored duration",
+    localizedDuration: "Stored localized duration",
+    departureCity: "Stored departure city",
+    localizedDepartureCity: "Stored localized departure city",
+    essentials: {
+      meetingPlace: "Stored meeting place",
+      localizedMeetingPlace: "Stored localized meeting place",
+    },
+  }]);
+  assert.equal("gallery" in tours[0], false);
+  assert.equal("itinerary" in tours[0], false);
 });

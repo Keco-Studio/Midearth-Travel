@@ -1,11 +1,5 @@
-import {
-  canonicalizeHomeModule,
-} from "./home-content.ts";
-import {
-  mapTourRecordToPublicTour,
-} from "./tour-content.ts";
 import { parseTourEditorRecord } from "./tour-editor-state.ts";
-import type { Tour } from "../data/tours.ts";
+import type { BookingConfirmationTour } from "./booking-confirmation-delivery.ts";
 import type { HomeModuleRecord } from "../types/cms.ts";
 
 export type PublishedContentRequest = <T>(
@@ -50,30 +44,34 @@ export async function loadPublishedHomeModulesStrictWithRequest(
     throw new Error(HOME_CONTENT_ERROR);
   }
 
-  try {
-    return [canonicalizeHomeModule({
-      id: "bookingPage",
-      index: requireNumber(row.module_index, HOME_CONTENT_ERROR),
-      name: requireString(row.name, HOME_CONTENT_ERROR),
-      description: requireString(row.description, HOME_CONTENT_ERROR),
-      status: requireContentStatus(row.status, HOME_CONTENT_ERROR),
-      publishedVersion: requireNumber(row.published_version, HOME_CONTENT_ERROR),
-      draftVersion: row.draft_version === null
-        ? null
-        : requireNumber(row.draft_version, HOME_CONTENT_ERROR),
-      updatedAt: requireString(row.updated_at, HOME_CONTENT_ERROR),
-      fields: Array.isArray(row.fields) ? row.fields as HomeModuleRecord["fields"] : [],
-      data: row.published_data as HomeModuleRecord["data"],
-    })];
-  } catch (error) {
-    if (error instanceof Error && error.message === HOME_CONTENT_ERROR) throw error;
-    throw new Error(HOME_CONTENT_ERROR, { cause: error });
+  if (
+    !Array.isArray(row.fields) ||
+    !Object.values(row.published_data).every((entry) =>
+      typeof entry === "string" || typeof entry === "number" || typeof entry === "boolean"
+    )
+  ) {
+    throw new Error(HOME_CONTENT_ERROR);
   }
+
+  return [{
+    id: "bookingPage",
+    index: requireNumber(row.module_index, HOME_CONTENT_ERROR),
+    name: requireString(row.name, HOME_CONTENT_ERROR),
+    description: requireString(row.description, HOME_CONTENT_ERROR),
+    status: requireContentStatus(row.status, HOME_CONTENT_ERROR),
+    publishedVersion: requireNumber(row.published_version, HOME_CONTENT_ERROR),
+    draftVersion: row.draft_version === null
+      ? null
+      : requireNumber(row.draft_version, HOME_CONTENT_ERROR),
+    updatedAt: requireString(row.updated_at, HOME_CONTENT_ERROR),
+    fields: row.fields as HomeModuleRecord["fields"],
+    data: row.published_data as HomeModuleRecord["data"],
+  }];
 }
 
 export async function loadPublishedToursStrictWithRequest(
   request: PublishedContentRequest,
-): Promise<Tour[]> {
+): Promise<BookingConfirmationTour[]> {
   let value: unknown;
   try {
     value = await request<unknown>("/rest/v1/tours?select=*");
@@ -102,7 +100,20 @@ export async function loadPublishedToursStrictWithRequest(
   });
   const published = records.filter((record) => record.status === "published");
   if (published.length === 0) throw new Error(TOURS_ERROR);
-  return published.map(mapTourRecordToPublicTour);
+  return published.map((record) => ({
+    slug: record.slug,
+    code: record.code,
+    title: record.title,
+    localizedTitle: record.localizedTitle,
+    duration: record.duration,
+    localizedDuration: record.localizedDuration,
+    departureCity: record.departureCity,
+    localizedDepartureCity: record.localizedDepartureCity,
+    essentials: {
+      meetingPlace: record.essentials.meetingPlace,
+      localizedMeetingPlace: record.essentials.localizedMeetingPlace,
+    },
+  }));
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

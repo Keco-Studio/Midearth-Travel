@@ -4,7 +4,7 @@ import {
   deliverPaidBookingConfirmation,
   type BookingConfirmationDependencies,
 } from "../src/lib/booking-confirmation-delivery.ts";
-import type { Tour } from "../src/data/tours.ts";
+import type { BookingConfirmationTour } from "../src/lib/booking-confirmation-delivery.ts";
 import type { PaymentOrderDeliveryRecord } from "../src/lib/supabase-payments.ts";
 import type { BookingRecord, HomeModuleRecord } from "../src/types/cms.ts";
 
@@ -38,18 +38,13 @@ const booking: BookingRecord = {
   updatedAt: "2026-11-05T09:00:00.000Z",
 };
 
-const tour: Tour = {
+const tour: BookingConfirmationTour = {
   slug: "maple-leaves",
   code: "CA08",
   title: "Maple Leaves",
   localizedTitle: "枫叶之旅",
-  region: "Canada",
   duration: "8 days / 7 nights",
   localizedDuration: "8天7晚",
-  description: "Autumn tour",
-  image: "/maple.jpg",
-  tags: [],
-  tourType: "Bus Tour",
   departureCity: "Ottawa",
   localizedDepartureCity: "渥太华",
   essentials: {

@@ -1,4 +1,3 @@
-import type { Tour } from "../data/tours.ts";
 import type { SendBookingEmailInput } from "./resend-booking-email-core.ts";
 import type { PaymentOrderDeliveryRecord } from "./supabase-payments.ts";
 import type { BookingRecord, HomeModuleRecord } from "../types/cms.ts";
@@ -6,9 +5,24 @@ import { renderBookingConfirmationEmail } from "./booking-confirmation-template.
 import { getLocalizedTourValue } from "./localized-content.ts";
 import type { BookingLocale } from "./payment-domain.ts";
 
+export type BookingConfirmationTour = {
+  slug: string;
+  code: string;
+  title: string;
+  localizedTitle: string;
+  duration: string;
+  localizedDuration: string;
+  departureCity: string;
+  localizedDepartureCity: string;
+  essentials: {
+    meetingPlace: string;
+    localizedMeetingPlace: string;
+  };
+};
+
 export type BookingConfirmationDependencies = {
   loadBookingById: (id: string) => Promise<BookingRecord | null>;
-  loadPublishedTours: () => Promise<Tour[]>;
+  loadPublishedTours: () => Promise<BookingConfirmationTour[]>;
   loadPublishedHomeModules: () => Promise<HomeModuleRecord[]>;
   sendBookingEmail: (input: SendBookingEmailInput) => Promise<{ id: string }>;
   markConfirmationEmailSent: (paymentId: string, emailId: string) => Promise<void>;
