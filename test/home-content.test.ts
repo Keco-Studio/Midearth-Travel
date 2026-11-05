@@ -240,6 +240,22 @@ test("registers localized booking and contact page modules with independently ed
   assert.equal(contactPage?.data.formTitleZh, "申请报价");
 });
 
+test("provides editable bilingual payment confirmation email copy", () => {
+  const bookingPage = homeModuleSeeds.find((module) => module.id === "bookingPage")!;
+  const keys = bookingPage.fields.map((field) => field.key);
+
+  assert.ok(keys.includes("confirmationEmailSubjectEn"));
+  assert.ok(keys.includes("confirmationEmailSubjectZh"));
+  assert.ok(keys.includes("confirmationEmailHeadingEn"));
+  assert.ok(keys.includes("confirmationEmailHeadingZh"));
+  assert.ok(keys.includes("confirmationEmailBodyEn"));
+  assert.ok(keys.includes("confirmationEmailBodyZh"));
+  assert.ok(keys.includes("confirmationEmailClosingEn"));
+  assert.ok(keys.includes("confirmationEmailClosingZh"));
+  assert.match(String(bookingPage.data.confirmationEmailSubjectEn), /payment/i);
+  assert.match(String(bookingPage.data.confirmationEmailSubjectZh), /付款/);
+});
+
 test("restores the previous Chinese page copy when persisted booking and contact fields are blank", () => {
   const bookingPage = homeModuleSeeds.find((module) => module.id === "bookingPage")!;
   const contactPage = homeModuleSeeds.find((module) => module.id === "contactPage")!;
