@@ -135,8 +135,11 @@ export function getFareAmountInCents(price: string): number {
 
 export function getPaymentStatusForCheckoutEvent(
   eventType: Stripe.Event.Type | string,
+  paymentStatus?: Stripe.Checkout.Session.PaymentStatus,
 ): InternalPaymentStatus | null {
-  if (eventType === "checkout.session.completed") return "paid";
+  if (eventType === "checkout.session.completed") {
+    return paymentStatus === "paid" ? "paid" : null;
+  }
   if (
     eventType === "checkout.session.async_payment_failed" ||
     eventType === "checkout.session.expired"
