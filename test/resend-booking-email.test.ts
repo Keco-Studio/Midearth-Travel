@@ -41,6 +41,34 @@ test("rejects obvious configuration placeholders", () => {
   );
 });
 
+test("rejects an explicitly empty or placeholder reply-to value", () => {
+  for (const replyTo of ["", "   ", "replace_me@example.com"]) {
+    assert.throws(
+      () => getResendBookingEmailConfig({ ...environment, BOOKING_EMAIL_REPLY_TO: replyTo }),
+      /BOOKING_EMAIL_REPLY_TO/,
+    );
+  }
+});
+
+test("rejects malformed or placeholder sender addresses", () => {
+  assert.throws(
+    () =>
+      getResendBookingEmailConfig({
+        RESEND_API_KEY: "re_test_key",
+        BOOKING_EMAIL_FROM: "MidEarth Travel <bookings@midearth.ca",
+      }),
+    /BOOKING_EMAIL_FROM/,
+  );
+  assert.throws(
+    () =>
+      getResendBookingEmailConfig({
+        RESEND_API_KEY: "re_test_key",
+        BOOKING_EMAIL_FROM: "bookings@replace_me.example",
+      }),
+    /BOOKING_EMAIL_FROM/,
+  );
+});
+
 test("sends both formats with a stable payment idempotency key", async () => {
   let request: Request | undefined;
   const fetchImplementation = async (input: string | URL | Request, init?: RequestInit) => {
@@ -52,6 +80,8 @@ test("sends both formats with a stable payment idempotency key", async () => {
 
   assert.equal(result.id, "email_123");
   assert.equal(request?.url, "https://api.resend.com/emails");
+  assert.equal(request?.method, "POST");
+  assert.equal(request?.headers.get("Content-Type"), "application/json");
   assert.equal(request?.headers.get("Idempotency-Key"), "booking-confirmation-pay_123");
   assert.equal(request?.headers.get("Authorization"), "Bearer re_test_key");
   assert.deepEqual(await request?.json(), {

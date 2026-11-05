@@ -47,8 +47,10 @@ export function getResendBookingEmailConfig(
 ): ResendBookingEmailConfig {
   const apiKey = requiredValue(environment, "RESEND_API_KEY");
   const from = validateAddress(requiredValue(environment, "BOOKING_EMAIL_FROM"), "BOOKING_EMAIL_FROM");
-  const configuredReplyTo = environment.BOOKING_EMAIL_REPLY_TO?.trim();
-  const replyTo = configuredReplyTo ? validateAddress(configuredReplyTo, "BOOKING_EMAIL_REPLY_TO") : undefined;
+  const hasReplyTo = Object.prototype.hasOwnProperty.call(environment, "BOOKING_EMAIL_REPLY_TO");
+  const replyTo = hasReplyTo
+    ? validateAddress(requiredValue(environment, "BOOKING_EMAIL_REPLY_TO"), "BOOKING_EMAIL_REPLY_TO")
+    : undefined;
 
   return { apiKey, from, ...(replyTo ? { replyTo } : {}) };
 }
