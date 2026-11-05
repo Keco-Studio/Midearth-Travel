@@ -13,17 +13,13 @@ import {
   getLocalizedTourList,
   getLocalizedTourValue,
 } from "@/lib/localized-content";
+import {
+  buildTourBookingRequest,
+  type TourBookingFormValues,
+} from "@/lib/tour-booking-request";
 import styles from "./tour-booking-page.module.css";
 
-type BookingForm = {
-  departureDate: string;
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
-  adults: string;
-  children: string;
-  notes: string;
-};
+type BookingForm = TourBookingFormValues;
 
 const emptyForm: BookingForm = {
   departureDate: "",
@@ -101,7 +97,7 @@ export function TourBookingPage({
       const response = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, tourSlug: tour.slug }),
+        body: JSON.stringify(buildTourBookingRequest(form, tour.slug, lang)),
       });
       const result = (await response.json()) as { bookingId?: string; error?: string };
       if (!response.ok || !result.bookingId) throw new Error(result.error || text.unavailable);

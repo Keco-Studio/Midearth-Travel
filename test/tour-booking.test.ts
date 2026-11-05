@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import * as paymentDomain from "../src/lib/payment-domain.ts";
+import { buildTourBookingRequest } from "../src/lib/tour-booking-request.ts";
 
 type TourBookingValidator = (value: unknown) => {
   tourSlug: string;
@@ -12,6 +13,7 @@ type TourBookingValidator = (value: unknown) => {
   adults: number;
   children: number;
   notes: string;
+  locale: "en" | "zh";
 };
 
 test("validates the details collected before an online tour payment", () => {
@@ -34,6 +36,7 @@ test("validates the details collected before an online tour payment", () => {
       adults: "2",
       children: "1",
       notes: " Window seats, please. ",
+      locale: "zh",
     }),
     {
       tourSlug: "maple-leaves",
@@ -44,7 +47,36 @@ test("validates the details collected before an online tour payment", () => {
       adults: 2,
       children: 1,
       notes: "Window seats, please.",
+      locale: "zh",
     },
+  );
+
+  assert.equal(
+    validateTourBookingInput({
+      tourSlug: "maple-leaves",
+      customerName: "Ada",
+      customerEmail: "ada@example.com",
+      customerPhone: "613-555-0123",
+      departureDate: "July 11",
+      adults: 1,
+      children: 0,
+    }).locale,
+    "en",
+  );
+
+  assert.throws(
+    () =>
+      validateTourBookingInput({
+        tourSlug: "maple-leaves",
+        customerName: "Ada",
+        customerEmail: "ada@example.com",
+        customerPhone: "613-555-0123",
+        departureDate: "July 11",
+        adults: 1,
+        children: 0,
+        locale: "fr",
+      }),
+    /language/i,
   );
 
   assert.throws(
@@ -59,6 +91,35 @@ test("validates the details collected before an online tour payment", () => {
         children: "-1",
       }),
     /at least one adult/i,
+  );
+});
+
+test("builds a booking request with the active language", () => {
+  assert.deepEqual(
+    buildTourBookingRequest(
+      {
+        departureDate: "2026-10-12",
+        customerName: "Ada Lovelace",
+        customerEmail: "ada@example.com",
+        customerPhone: "613-555-0123",
+        adults: "2",
+        children: "1",
+        notes: "Window seats, please.",
+      },
+      "maple-leaves",
+      "zh",
+    ),
+    {
+      tourSlug: "maple-leaves",
+      departureDate: "2026-10-12",
+      customerName: "Ada Lovelace",
+      customerEmail: "ada@example.com",
+      customerPhone: "613-555-0123",
+      adults: "2",
+      children: "1",
+      notes: "Window seats, please.",
+      locale: "zh",
+    },
   );
 });
 

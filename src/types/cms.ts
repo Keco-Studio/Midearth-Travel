@@ -1,3 +1,5 @@
+import type { BookingLocale } from "@/lib/payment-domain";
+
 export type ContentStatus = "published" | "draft" | "unpublished";
 
 export type FieldType =
@@ -161,6 +163,10 @@ export type BookingRecord = {
   customerPhone?: string;
   departureDate?: string;
   partySize?: number;
+  locale?: BookingLocale;
+  adults?: number;
+  children?: number;
+  departureSelection?: string;
   notes?: string;
   createdAt: string;
   updatedAt: string;

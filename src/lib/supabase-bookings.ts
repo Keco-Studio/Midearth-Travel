@@ -1,25 +1,9 @@
 import "server-only";
 
 import { bookingSeeds } from "@/data/cms-seed";
-import type { BookingRecord, BookingSource, BookingStatus } from "@/types/cms";
-
-type BookingRow = {
-  id: string;
-  reference: string;
-  status: BookingStatus;
-  source: BookingSource;
-  tour_slug: string | null;
-  tour_title: string | null;
-  tour_code: string | null;
-  customer_name: string;
-  customer_email: string | null;
-  customer_phone: string | null;
-  departure_date: string | null;
-  party_size: number | null;
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-};
+import { bookingToRow, rowToBooking, type BookingRow } from "@/lib/booking-records";
+import type { BookingLocale } from "@/lib/payment-domain";
+import type { BookingRecord, BookingStatus } from "@/types/cms";
 
 function getSupabaseConfig() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim().replace(/\/$/, "");
@@ -50,46 +34,6 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const text = await response.text();
   if (!text) return [] as T;
   return JSON.parse(text) as T;
-}
-
-function rowToBooking(row: BookingRow): BookingRecord {
-  return {
-    id: row.id,
-    reference: row.reference,
-    status: row.status,
-    source: row.source,
-    tourSlug: row.tour_slug ?? undefined,
-    tourTitle: row.tour_title ?? undefined,
-    tourCode: row.tour_code ?? undefined,
-    customerName: row.customer_name,
-    customerEmail: row.customer_email ?? undefined,
-    customerPhone: row.customer_phone ?? undefined,
-    departureDate: row.departure_date ?? undefined,
-    partySize: row.party_size ?? undefined,
-    notes: row.notes ?? undefined,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
-
-function bookingToRow(booking: BookingRecord): BookingRow {
-  return {
-    id: booking.id,
-    reference: booking.reference,
-    status: booking.status,
-    source: booking.source,
-    tour_slug: booking.tourSlug ?? null,
-    tour_title: booking.tourTitle ?? null,
-    tour_code: booking.tourCode ?? null,
-    customer_name: booking.customerName,
-    customer_email: booking.customerEmail ?? null,
-    customer_phone: booking.customerPhone ?? null,
-    departure_date: booking.departureDate ?? null,
-    party_size: booking.partySize ?? null,
-    notes: booking.notes ?? null,
-    created_at: booking.createdAt,
-    updated_at: booking.updatedAt,
-  };
 }
 
 export async function loadBookings(): Promise<BookingRecord[]> {
@@ -160,6 +104,7 @@ export async function createTourBooking(input: {
   adults: number;
   children: number;
   notes: string;
+  locale: BookingLocale;
 }): Promise<BookingRecord> {
   const now = new Date().toISOString();
   const id = `tour-${crypto.randomUUID()}`;
@@ -182,6 +127,10 @@ export async function createTourBooking(input: {
     customerPhone: input.customerPhone,
     departureDate: selectedDepartureIsIsoDate ? input.departureDate : undefined,
     partySize: input.adults + input.children,
+    locale: input.locale,
+    adults: input.adults,
+    children: input.children,
+    departureSelection: input.departureDate,
     notes: details.join("\n"),
     createdAt: now,
     updatedAt: now,
