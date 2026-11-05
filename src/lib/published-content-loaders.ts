@@ -72,10 +72,14 @@ export async function loadPublishedHomeModulesStrictWithRequest(
 
 export async function loadPublishedToursStrictWithRequest(
   request: PublishedContentRequest,
+  tourSlug?: string,
 ): Promise<BookingConfirmationTour[]> {
   let value: unknown;
   try {
-    value = await request<unknown>("/rest/v1/tours?select=*");
+    const tourFilter = tourSlug
+      ? `&slug=eq.${encodeURIComponent(tourSlug)}`
+      : "";
+    value = await request<unknown>(`/rest/v1/tours?select=*${tourFilter}`);
   } catch (error) {
     throw new Error(TOURS_ERROR, { cause: error });
   }

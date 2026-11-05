@@ -165,6 +165,22 @@ test("uses published Booking Page data while a newer draft exists", async () => 
   assert.equal(sends, 1);
 });
 
+test("loads only the tour selected by the paid booking", async () => {
+  let requestedSlug: string | undefined;
+  await deliverPaidBookingConfirmation(
+    payment,
+    "https://midearth.ca",
+    createDependencies({
+      loadPublishedTours: async (tourSlug) => {
+        requestedSlug = tourSlug;
+        return [tour];
+      },
+    }),
+  );
+
+  assert.equal(requestedSlug, "maple-leaves");
+});
+
 test("returns before loading data or recording an error when confirmation was sent", async () => {
   const unexpected = async (): Promise<never> => {
     throw new Error("dependency should not run");

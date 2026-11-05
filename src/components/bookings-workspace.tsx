@@ -207,6 +207,7 @@ export function BookingsWorkspace({
             dataSource={bookings}
             loading={updatingId !== null}
             rowKey="id"
+            expandable={{ childrenColumnName: "__tableChildren" }}
             search={false}
             options={{ density: true, setting: true, reload: false }}
             pagination={{ pageSize: 10, showSizeChanger: false }}
