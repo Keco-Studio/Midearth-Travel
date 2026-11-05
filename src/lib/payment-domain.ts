@@ -2,6 +2,8 @@ import type Stripe from "stripe";
 
 export type InternalPaymentStatus = "pending" | "paid" | "failed";
 
+export type BookingLocale = "en" | "zh";
+
 export type CheckoutInput = {
   tourSlug: string;
   fareLabel: string;
@@ -19,7 +21,14 @@ export type TourBookingInput = {
   adults: number;
   children: number;
   notes: string;
+  locale: BookingLocale;
 };
+
+function parseBookingLocale(value: unknown): BookingLocale {
+  if (value === undefined) return "en";
+  if (value === "en" || value === "zh") return value;
+  throw new Error("A valid booking language is required");
+}
 
 export function resolveCheckoutSiteUrl(requestUrl: string): string {
   return new URL(requestUrl).origin;
@@ -78,6 +87,7 @@ export function validateTourBookingInput(value: unknown): TourBookingInput {
     adults,
     children,
     notes,
+    locale: parseBookingLocale(input.locale),
   };
 }
 
@@ -125,8 +135,11 @@ export function getFareAmountInCents(price: string): number {
 
 export function getPaymentStatusForCheckoutEvent(
   eventType: Stripe.Event.Type | string,
+  paymentStatus?: Stripe.Checkout.Session.PaymentStatus,
 ): InternalPaymentStatus | null {
-  if (eventType === "checkout.session.completed") return "paid";
+  if (eventType === "checkout.session.completed") {
+    return paymentStatus === "paid" ? "paid" : null;
+  }
   if (
     eventType === "checkout.session.async_payment_failed" ||
     eventType === "checkout.session.expired"

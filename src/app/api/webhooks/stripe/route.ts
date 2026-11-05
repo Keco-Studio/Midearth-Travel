@@ -1,11 +1,18 @@
 import type Stripe from "stripe";
-import { getPaymentStatusForCheckoutEvent } from "@/lib/payment-domain";
+import { deliverPaidBookingConfirmation } from "@/lib/booking-confirmation-delivery";
+import { sendBookingEmail } from "@/lib/resend-booking-email";
 import { getStripe, getStripeWebhookSecret } from "@/lib/stripe";
+import { processVerifiedStripeEvent } from "@/lib/stripe-webhook-processing";
+import { loadBookingById } from "@/lib/supabase-bookings";
+import { loadPublishedHomeModulesStrict } from "@/lib/supabase-home-content";
 import {
   hasWebhookEvent,
+  markConfirmationEmailSent,
+  recordConfirmationEmailError,
   recordWebhookEvent,
   updatePaymentOrderFromStripe,
 } from "@/lib/supabase-payments";
+import { loadPublishedToursStrict } from "@/lib/supabase-tours";
 
 export const runtime = "nodejs";
 
@@ -19,30 +26,28 @@ export async function POST(request: Request) {
       signature,
       getStripeWebhookSecret(),
     );
-  } catch (error) {
-    console.error("Stripe webhook signature verification failed", error);
+  } catch {
+    console.error("Stripe webhook signature verification failed");
     return Response.json({ error: "Invalid webhook" }, { status: 400 });
   }
   try {
-    if (await hasWebhookEvent(event.id)) return Response.json({ received: true });
-    const status = getPaymentStatusForCheckoutEvent(event.type);
-    if (status) {
-      const session = event.data.object as Stripe.Checkout.Session;
-      await updatePaymentOrderFromStripe({
-        sessionId: session.id,
-        status,
-        paymentIntentId:
-          typeof session.payment_intent === "string" ? session.payment_intent : null,
-      });
-    }
-    await recordWebhookEvent(
-      event.id,
-      event.type,
-      { objectId: (event.data.object as unknown as { id?: string }).id ?? null },
-    );
+    await processVerifiedStripeEvent(event, new URL(request.url).origin, {
+      hasWebhookEvent,
+      updatePaymentOrderFromStripe,
+      deliverPaidBookingConfirmation: (payment, siteOrigin) =>
+        deliverPaidBookingConfirmation(payment, siteOrigin, {
+          loadBookingById,
+          loadPublishedTours: loadPublishedToursStrict,
+          loadPublishedHomeModules: loadPublishedHomeModulesStrict,
+          sendBookingEmail,
+          markConfirmationEmailSent,
+          recordConfirmationEmailError,
+        }),
+      recordWebhookEvent,
+    });
     return Response.json({ received: true });
-  } catch (error) {
-    console.error("Stripe webhook processing failed", error);
+  } catch {
+    console.error("Stripe webhook processing failed");
     return Response.json({ error: "Webhook processing failed" }, { status: 500 });
   }
 }

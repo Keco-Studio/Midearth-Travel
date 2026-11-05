@@ -21,7 +21,11 @@ import { FORBIDDEN_FIELD_KEYS } from "@/lib/content-rules";
 import { EXPLORE_MONTHS_DATA_KEY } from "@/lib/explore-by-month";
 import { FOOTER_SERVICE_LINKS_KEY } from "@/lib/footer-links";
 import { validateInlineImageFile } from "@/lib/inline-image-upload";
-import { getHomeModuleEditorKey, getModuleFieldViewModels } from "@/lib/module-editor";
+import {
+  getFieldSectionHeader,
+  getHomeModuleEditorKey,
+  getModuleFieldViewModels,
+} from "@/lib/module-editor";
 import type { DestinationCategory } from "@/lib/destination-categories";
 import type { Service } from "@/data/services";
 import type { Testimonial } from "@/data/testimonials";
@@ -187,22 +191,6 @@ type FieldControlProps = {
   onUploadError: (error: string) => void;
   onImageUpload: (fieldKey: string, file: File) => Promise<string>;
 };
-
-function getFieldSectionHeader(
-  moduleId: HomeModuleRecord["id"],
-  fieldKey: string,
-): string | null {
-  if (moduleId === "bookingPage" || moduleId === "contactPage") {
-    return fieldKey === "backgroundImage" ? "Page media & copy" : null;
-  }
-  if (moduleId !== "hero") return null;
-  const cardMatch = /^card(\d)IconImage$/.exec(fieldKey);
-  if (cardMatch) return `Feature card ${cardMatch[1]}`;
-  if (fieldKey === "stat1Value") return "Stats";
-  if (fieldKey === "primaryButtonText") return "Buttons";
-  if (fieldKey === "backgroundImage") return "Hero media & headline";
-  return null;
-}
 
 function getFieldColProps(definition: FieldDefinition): { xs: number; lg: number } {
   if (definition.type === "textarea") {

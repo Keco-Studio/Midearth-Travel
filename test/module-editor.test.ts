@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  getFieldSectionHeader,
   getFieldValue,
   getHomeModuleEditorKey,
   getModuleFieldViewModels,
@@ -84,5 +85,16 @@ test("changes the editor key when persisted module data is refreshed", () => {
   assert.equal(
     getHomeModuleEditorKey(refreshedModule),
     "hero:2026-07-23T12:00:00Z:9",
+  );
+});
+
+test("groups booking confirmation email fields by language", () => {
+  assert.equal(
+    getFieldSectionHeader("bookingPage", "confirmationEmailSubjectEn"),
+    "Payment success email — English",
+  );
+  assert.equal(
+    getFieldSectionHeader("bookingPage", "confirmationEmailSubjectZh"),
+    "Payment success email — Chinese",
   );
 });

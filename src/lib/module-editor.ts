@@ -13,6 +13,30 @@ export function getHomeModuleEditorKey(module: HomeModuleRecord): string {
   return `${module.id}:${module.updatedAt}:${module.draftVersion ?? "published"}`;
 }
 
+export function getFieldSectionHeader(
+  moduleId: HomeModuleRecord["id"],
+  fieldKey: string,
+): string | null {
+  if (moduleId === "bookingPage") {
+    if (fieldKey === "confirmationEmailSubjectEn") {
+      return "Payment success email — English";
+    }
+    if (fieldKey === "confirmationEmailSubjectZh") {
+      return "Payment success email — Chinese";
+    }
+  }
+  if (moduleId === "bookingPage" || moduleId === "contactPage") {
+    return fieldKey === "backgroundImage" ? "Page media & copy" : null;
+  }
+  if (moduleId !== "hero") return null;
+  const cardMatch = /^card(\d)IconImage$/.exec(fieldKey);
+  if (cardMatch) return `Feature card ${cardMatch[1]}`;
+  if (fieldKey === "stat1Value") return "Stats";
+  if (fieldKey === "primaryButtonText") return "Buttons";
+  if (fieldKey === "backgroundImage") return "Hero media & headline";
+  return null;
+}
+
 export function getFieldValue(module: HomeModuleRecord, key: string): ContentValue | "" {
   return module.data[key] ?? "";
 }

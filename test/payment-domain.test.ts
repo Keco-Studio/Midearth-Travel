@@ -19,7 +19,9 @@ test("rejects malformed or non-positive fare values", () => {
 });
 
 test("maps Stripe Checkout outcomes to internal payment states", () => {
-  assert.equal(getPaymentStatusForCheckoutEvent("checkout.session.completed"), "paid");
+  assert.equal(getPaymentStatusForCheckoutEvent("checkout.session.completed", "paid"), "paid");
+  assert.equal(getPaymentStatusForCheckoutEvent("checkout.session.completed", "unpaid"), null);
+  assert.equal(getPaymentStatusForCheckoutEvent("checkout.session.completed", "no_payment_required"), null);
   assert.equal(getPaymentStatusForCheckoutEvent("checkout.session.async_payment_failed"), "failed");
   assert.equal(getPaymentStatusForCheckoutEvent("checkout.session.expired"), "failed");
   assert.equal(getPaymentStatusForCheckoutEvent("customer.created"), null);

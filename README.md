@@ -56,6 +56,16 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 
 将 CLI 输出的 `whsec_...` 写入 `.env.local` 后重启开发服务器。支付成功回跳只表示 Stripe Checkout 已完成，订单最终状态以签名 Webhook 写入 Supabase 为准。
 
+## Booking confirmation email
+
+1. Apply `supabase/migrations/202611050001_booking_confirmation_emails.sql`.
+2. Verify the MidEarth sending domain in Resend.
+3. Configure `RESEND_API_KEY`, `BOOKING_EMAIL_FROM`, and optional `BOOKING_EMAIL_REPLY_TO` as server-side deployment variables.
+4. In Admin → Booking Page, review and publish both English and Chinese payment-success email copy.
+5. Complete one English and one Chinese Stripe test payment. Confirm one email per payment and verify the booking reference, departure, party, tour information, and paid amount.
+
+Stripe retries a failed email delivery without changing the successful payment status. Replaying an already completed event must not create another message.
+
 ## Bilingual Site and Admin Operations
 
 Copy `.env.example` to `.env.local` for local development, and configure the same server-only values in the deployment environment. The initial administrator account requires all of the following values; do not commit real credentials or expose any of them with a `NEXT_PUBLIC_` prefix:

@@ -77,6 +77,12 @@ export function validateTourEditorRecord(record: TourRecord): TourEditorValidati
   return Object.keys(errors).length > 0 ? { ok: false, errors } : { ok: true, value };
 }
 
+export function parseTourEditorRecord(value: unknown): TourRecord | null {
+  if (!isTourRecord(value)) return null;
+  const validation = validateTourEditorRecord(value);
+  return validation.ok ? validation.value : null;
+}
+
 export function parseTourEditorStorage(raw: string | null): TourEditorStorage {
   if (!raw) {
     return emptyStorage();
@@ -238,7 +244,9 @@ function isTourRecord(value: unknown): value is TourRecord {
       value.status === "draft" ||
       value.status === "unpublished") &&
     isFareFields(value.fares) &&
-    isEssentialFields(value.essentials)
+    isEssentialFields(value.essentials) &&
+    Array.isArray(value.destinationCategoryIds) &&
+    value.destinationCategoryIds.every((entry) => typeof entry === "string")
   );
 }
 
