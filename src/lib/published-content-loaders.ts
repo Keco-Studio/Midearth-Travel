@@ -38,15 +38,16 @@ export async function loadPublishedHomeModulesStrictWithRequest(
     (entry): entry is Record<string, unknown> => isRecord(entry) && entry.id === "bookingPage",
   );
   if (!row || !isRecord(row.published_data)) throw new Error(HOME_CONTENT_ERROR);
+  const publishedData = row.published_data;
   if (!confirmationEmailKeys.every((key) =>
-    typeof row.published_data[key] === "string" && row.published_data[key].trim()
+    typeof publishedData[key] === "string" && publishedData[key].trim()
   )) {
     throw new Error(HOME_CONTENT_ERROR);
   }
 
   if (
     !Array.isArray(row.fields) ||
-    !Object.values(row.published_data).every((entry) =>
+    !Object.values(publishedData).every((entry) =>
       typeof entry === "string" || typeof entry === "number" || typeof entry === "boolean"
     )
   ) {
@@ -65,7 +66,7 @@ export async function loadPublishedHomeModulesStrictWithRequest(
       : requireNumber(row.draft_version, HOME_CONTENT_ERROR),
     updatedAt: requireString(row.updated_at, HOME_CONTENT_ERROR),
     fields: row.fields as HomeModuleRecord["fields"],
-    data: row.published_data as HomeModuleRecord["data"],
+    data: publishedData as HomeModuleRecord["data"],
   }];
 }
 
