@@ -29,8 +29,8 @@ export async function loadPublishedTours(): Promise<Tour[]> {
   }
 }
 
-export function loadPublishedToursStrict(): Promise<BookingConfirmationTour[]> {
-  return loadPublishedToursStrictWithRequest(supabaseJson);
+export function loadPublishedToursStrict(tourSlug: string): Promise<BookingConfirmationTour[]> {
+  return loadPublishedToursStrictWithRequest(supabaseJson, tourSlug);
 }
 
 export async function saveTour(record: TourRecord): Promise<TourRecord> {

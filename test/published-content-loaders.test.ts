@@ -240,3 +240,20 @@ test("strict published tours return only rows actually stored in Supabase", asyn
   assert.equal("gallery" in tours[0], false);
   assert.equal("itinerary" in tours[0], false);
 });
+
+test("strict published tour loading requests only the selected tour", async () => {
+  const seed = tourSeeds[0];
+  assert.ok(seed);
+  let requestedPath = "";
+
+  const tours = await loadPublishedToursStrictWithRequest(
+    async <T>(path: string) => {
+      requestedPath = path;
+      return [toTourRow(seed)] as T;
+    },
+    seed.slug,
+  );
+
+  assert.match(requestedPath, new RegExp(`slug=eq\\.${encodeURIComponent(seed.slug)}`));
+  assert.equal(tours[0]?.slug, seed.slug);
+});

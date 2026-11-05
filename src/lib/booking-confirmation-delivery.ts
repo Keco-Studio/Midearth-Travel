@@ -22,7 +22,7 @@ export type BookingConfirmationTour = {
 
 export type BookingConfirmationDependencies = {
   loadBookingById: (id: string) => Promise<BookingRecord | null>;
-  loadPublishedTours: () => Promise<BookingConfirmationTour[]>;
+  loadPublishedTours: (tourSlug: string) => Promise<BookingConfirmationTour[]>;
   loadPublishedHomeModules: () => Promise<HomeModuleRecord[]>;
   sendBookingEmail: (input: SendBookingEmailInput) => Promise<{ id: string }>;
   markConfirmationEmailSent: (paymentId: string, emailId: string) => Promise<void>;
@@ -79,7 +79,7 @@ export async function deliverPaidBookingConfirmation(
 
     const [booking, tours, modules] = await Promise.all([
       dependencies.loadBookingById(payment.bookingId),
-      dependencies.loadPublishedTours(),
+      dependencies.loadPublishedTours(payment.tourSlug),
       dependencies.loadPublishedHomeModules(),
     ]);
     if (!booking) throw new Error(`Booking not found: ${payment.bookingId}`);
