@@ -158,18 +158,19 @@ export async function markConfirmationEmailSent(
 export async function recordConfirmationEmailError(
   paymentId: string,
   message: string,
-): Promise<void> {
-  await request<unknown[]>(
-    `/rest/v1/payment_orders?id=eq.${encodeURIComponent(paymentId)}`,
+): Promise<boolean> {
+  const rows = await request<Array<{ id: string }>>(
+    `/rest/v1/payment_orders?id=eq.${encodeURIComponent(paymentId)}&confirmation_email_sent_at=is.null`,
     {
       method: "PATCH",
-      headers: { Prefer: "return=minimal" },
+      headers: { Prefer: "return=representation" },
       body: JSON.stringify({
         confirmation_email_error: message.slice(0, 500),
         updated_at: new Date().toISOString(),
       }),
     },
   );
+  return rows.length > 0;
 }
 
 function getErrorStatus(error: unknown): number | undefined {

@@ -5,7 +5,10 @@ import {
   processVerifiedStripeEvent,
   type StripeWebhookProcessingDependencies,
 } from "../src/lib/stripe-webhook-processing.ts";
+import { deliverPaidBookingConfirmation } from "../src/lib/booking-confirmation-delivery.ts";
+import { loadPublishedToursStrictWithRequest } from "../src/lib/published-content-loaders.ts";
 import type { PaymentOrderDeliveryRecord } from "../src/lib/supabase-payments.ts";
+import type { BookingRecord } from "../src/types/cms.ts";
 
 const payment: PaymentOrderDeliveryRecord = {
   id: "pay_123",
@@ -19,6 +22,22 @@ const payment: PaymentOrderDeliveryRecord = {
   confirmationEmailSentAt: null,
   confirmationEmailId: null,
   confirmationEmailError: null,
+};
+
+const booking: BookingRecord = {
+  id: "booking_123",
+  reference: "TB-2026-ABC12345",
+  status: "new",
+  source: "tour_email",
+  tourSlug: "maple-leaves",
+  customerName: "Ada Lovelace",
+  customerEmail: "booking@example.com",
+  locale: "en",
+  adults: 2,
+  children: 0,
+  departureSelection: "October 12",
+  createdAt: "2026-11-05T09:00:00.000Z",
+  updatedAt: "2026-11-05T09:00:00.000Z",
 };
 
 function checkoutEvent(
@@ -192,4 +211,45 @@ test("leaves the event unrecorded when delivery fails so Stripe can retry", asyn
   ));
   assert.equal(caught, failure);
   assert.equal(recorded, false);
+});
+
+test("propagated content load failure records a safe error without sending or recording the event", async () => {
+  const failure = new Error(`raw database response\n${"x".repeat(600)}`);
+  let sent = false;
+  let eventRecorded = false;
+  let deliveryError = "";
+
+  const caught = await captureRejection(() => processVerifiedStripeEvent(
+    checkoutEvent("checkout.session.completed"),
+    "https://midearth.ca",
+    createDependencies({
+      deliverPaidBookingConfirmation: (received, siteOrigin) =>
+        deliverPaidBookingConfirmation(received, siteOrigin, {
+          loadBookingById: async () => booking,
+          loadPublishedTours: () => loadPublishedToursStrictWithRequest(async () => {
+            throw failure;
+          }),
+          loadPublishedHomeModules: async () => [],
+          sendBookingEmail: async () => {
+            sent = true;
+            return { id: "unexpected" };
+          },
+          markConfirmationEmailSent: async () => undefined,
+          recordConfirmationEmailError: async (_paymentId, message) => {
+            deliveryError = message;
+          },
+        }),
+      recordWebhookEvent: async () => {
+        eventRecorded = true;
+        return true;
+      },
+    }),
+  ));
+
+  assert.equal((caught as Error).cause, failure);
+  assert.equal(sent, false);
+  assert.equal(eventRecorded, false);
+  assert.equal(deliveryError, "Unable to load published tours");
+  assert.doesNotMatch(deliveryError, /[\r\n\t]/);
+  assert.doesNotMatch(deliveryError, /raw database response/);
 });

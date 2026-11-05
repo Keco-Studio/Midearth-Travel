@@ -10,6 +10,7 @@ import {
   type HomeModuleRow,
 } from "@/lib/home-content";
 import { createStorageObjectPath } from "@/lib/inline-image-upload";
+import { loadPublishedHomeModulesStrictWithRequest } from "@/lib/published-content-loaders";
 import type { HomeModuleId, HomeModuleRecord } from "@/types/cms";
 
 const HOME_MODULES_TABLE = "home_modules";
@@ -27,12 +28,15 @@ export async function loadAdminHomeModules(): Promise<HomeModuleRecord[]> {
 
 export async function loadPublishedHomeModules(): Promise<HomeModuleRecord[]> {
   try {
-    const rows = await listHomeModuleRows();
-    return mergeHomeModuleRows(rows, "published");
+    return await loadPublishedHomeModulesStrict();
   } catch (error) {
     console.error("Unable to load published homepage content from Supabase", error);
     return mergeHomeModuleRows([], "published");
   }
+}
+
+export function loadPublishedHomeModulesStrict(): Promise<HomeModuleRecord[]> {
+  return loadPublishedHomeModulesStrictWithRequest(supabaseJson);
 }
 
 export async function saveHomeModuleDraft(

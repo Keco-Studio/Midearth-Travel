@@ -4,7 +4,7 @@ import { sendBookingEmail } from "@/lib/resend-booking-email";
 import { getStripe, getStripeWebhookSecret } from "@/lib/stripe";
 import { processVerifiedStripeEvent } from "@/lib/stripe-webhook-processing";
 import { loadBookingById } from "@/lib/supabase-bookings";
-import { loadPublishedHomeModules } from "@/lib/supabase-home-content";
+import { loadPublishedHomeModulesStrict } from "@/lib/supabase-home-content";
 import {
   hasWebhookEvent,
   markConfirmationEmailSent,
@@ -12,7 +12,7 @@ import {
   recordWebhookEvent,
   updatePaymentOrderFromStripe,
 } from "@/lib/supabase-payments";
-import { loadPublishedTours } from "@/lib/supabase-tours";
+import { loadPublishedToursStrict } from "@/lib/supabase-tours";
 
 export const runtime = "nodejs";
 
@@ -37,8 +37,8 @@ export async function POST(request: Request) {
       deliverPaidBookingConfirmation: (payment, siteOrigin) =>
         deliverPaidBookingConfirmation(payment, siteOrigin, {
           loadBookingById,
-          loadPublishedTours,
-          loadPublishedHomeModules,
+          loadPublishedTours: loadPublishedToursStrict,
+          loadPublishedHomeModules: loadPublishedHomeModulesStrict,
           sendBookingEmail,
           markConfirmationEmailSent,
           recordConfirmationEmailError,

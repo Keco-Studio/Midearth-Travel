@@ -12,7 +12,10 @@ export type BookingConfirmationDependencies = {
   loadPublishedHomeModules: () => Promise<HomeModuleRecord[]>;
   sendBookingEmail: (input: SendBookingEmailInput) => Promise<{ id: string }>;
   markConfirmationEmailSent: (paymentId: string, emailId: string) => Promise<void>;
-  recordConfirmationEmailError: (paymentId: string, message: string) => Promise<void>;
+  recordConfirmationEmailError: (
+    paymentId: string,
+    message: string,
+  ) => Promise<boolean | void>;
 };
 
 function getBookingLocale(value: BookingRecord["locale"]): BookingLocale {

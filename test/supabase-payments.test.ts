@@ -159,20 +159,23 @@ test("records only a bounded confirmation delivery error", async () => {
   globalThis.fetch = async (url, init) => {
     requestedUrl = String(url);
     requestedInit = init;
-    return new Response(null, { status: 204 });
+    return Response.json([{ id: "pay_123" }]);
   };
   try {
-    await recordConfirmationEmailError("pay_123", "x".repeat(600));
+    assert.equal(
+      await recordConfirmationEmailError("pay_123", "x".repeat(600)),
+      true,
+    );
     assert.equal(
       requestedUrl,
-      "https://example.supabase.co/rest/v1/payment_orders?id=eq.pay_123",
+      "https://example.supabase.co/rest/v1/payment_orders?id=eq.pay_123&confirmation_email_sent_at=is.null",
     );
     assert.equal(requestedInit?.method, "PATCH");
     assert.deepEqual(requestedInit?.headers, {
       apikey: "test-service-key",
       Authorization: "Bearer test-service-key",
       "Content-Type": "application/json",
-      Prefer: "return=minimal",
+      Prefer: "return=representation",
     });
     const body = JSON.parse(String(requestedInit?.body));
     assert.deepEqual(Object.keys(body).sort(), [
@@ -181,6 +184,41 @@ test("records only a bounded confirmation delivery error", async () => {
     ]);
     assert.equal(body.confirmation_email_error, "x".repeat(500));
     assert.match(body.updated_at, /^\d{4}-\d{2}-\d{2}T/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("does not overwrite cleared error metadata after a concurrent send succeeds", async () => {
+  const originalFetch = globalThis.fetch;
+  setSupabaseConfig();
+  const requests: Array<{ url: string; init?: RequestInit }> = [];
+  globalThis.fetch = async (url, init) => {
+    requests.push({ url: String(url), init });
+    if (requests.length === 1) return new Response(null, { status: 204 });
+    return Response.json([]);
+  };
+  try {
+    await markConfirmationEmailSent("pay_123", "email_123");
+    assert.equal(
+      await recordConfirmationEmailError("pay_123", "late concurrent failure"),
+      false,
+    );
+    assert.equal(requests.length, 2);
+    assert.equal(
+      requests[1].url,
+      "https://example.supabase.co/rest/v1/payment_orders?id=eq.pay_123&confirmation_email_sent_at=is.null",
+    );
+    assert.deepEqual(requests[1].init?.headers, {
+      apikey: "test-service-key",
+      Authorization: "Bearer test-service-key",
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    });
+    assert.deepEqual(
+      Object.keys(JSON.parse(String(requests[1].init?.body))).sort(),
+      ["confirmation_email_error", "updated_at"],
+    );
   } finally {
     globalThis.fetch = originalFetch;
   }
