@@ -19,7 +19,9 @@ const RESEND_EMAILS_URL = "https://api.resend.com/emails";
 function requiredValue(environment: ResendBookingEmailEnvironment, name: string): string {
   const value = environment[name]?.trim();
   if (!value) throw new Error(`${name} is required`);
-  if (/replace/i.test(value)) throw new Error(`${name} contains a placeholder`);
+  if (/replace_(?:me|with_[a-z0-9_-]+)/i.test(value)) {
+    throw new Error(`${name} contains a placeholder`);
+  }
   return value;
 }
 

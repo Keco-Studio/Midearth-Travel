@@ -81,9 +81,10 @@ export async function loadPublishedToursStrictWithRequest(
   }
 
   if (!Array.isArray(value)) throw new Error(TOURS_ERROR);
-  const records = value.map((row) => {
+  const records = value.filter(
+    (row): row is Record<string, unknown> => isRecord(row) && row.status === "published",
+  ).map((row) => {
     if (
-      !isRecord(row) ||
       typeof row.slug !== "string" ||
       typeof row.updated_at !== "string" ||
       !isRecord(row.data)

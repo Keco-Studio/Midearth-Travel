@@ -182,6 +182,25 @@ test("strict published tours reject empty and partial successful responses", asy
   });
 });
 
+test("strict published tours ignore malformed unpublished rows", async () => {
+  const seed = tourSeeds[0];
+  assert.ok(seed);
+  const tours = await loadPublishedToursStrictWithRequest(
+    returning([
+      toTourRow(seed),
+      {
+        slug: "legacy-draft",
+        status: "draft",
+        data: {},
+        updated_at: "2026-11-05T20:00:00.000Z",
+      },
+    ]),
+  );
+
+  assert.equal(tours.length, 1);
+  assert.equal(tours[0]?.slug, seed.slug);
+});
+
 test("strict published tours return only rows actually stored in Supabase", async () => {
   const seed = tourSeeds[0];
   assert.ok(seed);

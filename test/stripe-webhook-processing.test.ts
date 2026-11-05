@@ -8,7 +8,8 @@ import {
 import { deliverPaidBookingConfirmation } from "../src/lib/booking-confirmation-delivery.ts";
 import { loadPublishedToursStrictWithRequest } from "../src/lib/published-content-loaders.ts";
 import type { PaymentOrderDeliveryRecord } from "../src/lib/supabase-payments.ts";
-import type { BookingRecord } from "../src/types/cms.ts";
+import type { BookingConfirmationTour } from "../src/lib/booking-confirmation-delivery.ts";
+import type { BookingRecord, HomeModuleRecord } from "../src/types/cms.ts";
 
 const payment: PaymentOrderDeliveryRecord = {
   id: "pay_123",
@@ -38,6 +39,40 @@ const booking: BookingRecord = {
   departureSelection: "October 12",
   createdAt: "2026-11-05T09:00:00.000Z",
   updatedAt: "2026-11-05T09:00:00.000Z",
+};
+
+const tour: BookingConfirmationTour = {
+  slug: "maple-leaves",
+  code: "CA08",
+  title: "Maple Leaves",
+  localizedTitle: "Maple Leaves",
+  duration: "8 days",
+  localizedDuration: "8 days",
+  departureCity: "Ottawa",
+  localizedDepartureCity: "Ottawa",
+  essentials: { meetingPlace: "MidEarth office", localizedMeetingPlace: "MidEarth office" },
+};
+
+const bookingPage: HomeModuleRecord = {
+  id: "bookingPage",
+  index: 10,
+  name: "Booking Page",
+  description: "Booking copy",
+  status: "published",
+  publishedVersion: 1,
+  draftVersion: null,
+  updatedAt: "2026-11-05T09:00:00.000Z",
+  fields: [],
+  data: {
+    confirmationEmailSubjectEn: "Payment confirmed",
+    confirmationEmailHeadingEn: "Your trip is confirmed",
+    confirmationEmailBodyEn: "Thanks for booking.",
+    confirmationEmailClosingEn: "See you soon.",
+    confirmationEmailSubjectZh: "Payment confirmed",
+    confirmationEmailHeadingZh: "Your trip is confirmed",
+    confirmationEmailBodyZh: "Thanks for booking.",
+    confirmationEmailClosingZh: "See you soon.",
+  },
 };
 
 function checkoutEvent(
@@ -211,6 +246,88 @@ test("leaves the event unrecorded when delivery fails so Stripe can retry", asyn
   ));
   assert.equal(caught, failure);
   assert.equal(recorded, false);
+});
+
+test("does not resend after delivery succeeds but event recording fails", async () => {
+  let storedPayment = payment;
+  let sends = 0;
+  let recordAttempts = 0;
+  let eventRecorded = false;
+  const recordFailure = new Error("event store unavailable");
+  const dependencies = createDependencies({
+    hasWebhookEvent: async () => eventRecorded,
+    updatePaymentOrderFromStripe: async () => storedPayment,
+    deliverPaidBookingConfirmation: (received, siteOrigin) =>
+      deliverPaidBookingConfirmation(received, siteOrigin, {
+        loadBookingById: async () => booking,
+        loadPublishedTours: async () => [tour],
+        loadPublishedHomeModules: async () => [bookingPage],
+        sendBookingEmail: async () => {
+          sends += 1;
+          return { id: "email_123" };
+        },
+        markConfirmationEmailSent: async (_paymentId, emailId) => {
+          storedPayment = {
+            ...storedPayment,
+            confirmationEmailSentAt: "2026-11-05T12:00:00.000Z",
+            confirmationEmailId: emailId,
+          };
+        },
+        recordConfirmationEmailError: async () => undefined,
+      }),
+    recordWebhookEvent: async () => {
+      recordAttempts += 1;
+      if (recordAttempts === 1) throw recordFailure;
+      eventRecorded = true;
+      return true;
+    },
+  });
+
+  const firstFailure = await captureRejection(() => processVerifiedStripeEvent(
+    checkoutEvent("checkout.session.completed"),
+    "https://midearth.ca",
+    dependencies,
+  ));
+  assert.equal(firstFailure, recordFailure);
+  assert.equal(sends, 1);
+
+  await processVerifiedStripeEvent(
+    checkoutEvent("checkout.session.completed"),
+    "https://midearth.ca",
+    dependencies,
+  );
+
+  assert.equal(sends, 1);
+  assert.equal(recordAttempts, 2);
+  assert.equal(eventRecorded, true);
+});
+
+test("records unrelated Stripe events without updating payment or delivering", async () => {
+  const calls: string[] = [];
+  const event = {
+    id: "evt_customer",
+    type: "customer.created",
+    data: { object: { id: "cus_123", object: "customer" } },
+  } as Stripe.Event;
+
+  await processVerifiedStripeEvent(
+    event,
+    "https://midearth.ca",
+    createDependencies({
+      updatePaymentOrderFromStripe: async () => {
+        assert.fail("unrelated event must not update payment");
+      },
+      deliverPaidBookingConfirmation: async () => {
+        assert.fail("unrelated event must not deliver email");
+      },
+      recordWebhookEvent: async (eventId, eventType, payload) => {
+        calls.push(`${eventId}:${eventType}:${payload.objectId}`);
+        return true;
+      },
+    }),
+  );
+
+  assert.deepEqual(calls, ["evt_customer:customer.created:cus_123"]);
 });
 
 test("propagated content load failure records a safe error without sending or recording the event", async () => {

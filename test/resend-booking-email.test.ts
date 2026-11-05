@@ -41,6 +41,19 @@ test("rejects obvious configuration placeholders", () => {
   );
 });
 
+test("accepts legitimate configuration containing the word replace", () => {
+  assert.deepEqual(
+    getResendBookingEmailConfig({
+      RESEND_API_KEY: "re_live_replacement_key",
+      BOOKING_EMAIL_FROM: "MidEarth Travel <bookings@replacement-travel.com>",
+    }),
+    {
+      apiKey: "re_live_replacement_key",
+      from: "MidEarth Travel <bookings@replacement-travel.com>",
+    },
+  );
+});
+
 test("rejects an explicitly empty or placeholder reply-to value", () => {
   for (const replyTo of ["", "   ", "replace_me@example.com"]) {
     assert.throws(
