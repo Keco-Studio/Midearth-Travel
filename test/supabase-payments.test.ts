@@ -7,6 +7,7 @@ import {
   recordConfirmationEmailError,
   updatePaymentOrderFromStripe,
 } from "../src/lib/supabase-payments.ts";
+import * as paymentPersistence from "../src/lib/supabase-payments.ts";
 
 const paymentOrderRow = {
   id: "pay_123",
@@ -89,6 +90,33 @@ test("returns the updated delivery record from a paid Stripe event", async () =>
     assert.equal(body.stripe_payment_intent_id, "pi_123");
     assert.match(body.paid_at, /^\d{4}-\d{2}-\d{2}T/);
     assert.match(body.updated_at, /^\d{4}-\d{2}-\d{2}T/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("loads one payment delivery record for an administrator retry", async () => {
+  const loadPaymentOrderForConfirmation = Reflect.get(
+    paymentPersistence,
+    "loadPaymentOrderForConfirmation",
+  );
+  assert.equal(typeof loadPaymentOrderForConfirmation, "function");
+
+  const originalFetch = globalThis.fetch;
+  setSupabaseConfig();
+  let requestedUrl = "";
+  globalThis.fetch = async (url) => {
+    requestedUrl = String(url);
+    return Response.json([paymentOrderRow]);
+  };
+  try {
+    const payment = await loadPaymentOrderForConfirmation("pay_123");
+    assert.equal(payment?.id, "pay_123");
+    assert.equal(payment?.status, "paid");
+    assert.equal(
+      requestedUrl,
+      "https://example.supabase.co/rest/v1/payment_orders?id=eq.pay_123&select=*&limit=1",
+    );
   } finally {
     globalThis.fetch = originalFetch;
   }
