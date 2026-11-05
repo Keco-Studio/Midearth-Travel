@@ -181,3 +181,55 @@ test("keeps the same booking facts in HTML and plain text", () => {
   assert.match(result.html, /href="https:\/\/midearth\.ca\/tours\/northern-lights"/);
   assert.match(result.text, /https:\/\/midearth\.ca\/tours\/northern-lights/);
 });
+
+test("renders stable MidEarth Travel identity with restrained inline HTML branding", () => {
+  const result = renderBookingConfirmationEmail({
+    locale: "en",
+    content,
+    customerName: "Casey",
+    bookingReference: "TB-42",
+    tourTitle: "Northern Lights",
+    departureSelection: "November 8",
+    adults: 1,
+    children: 0,
+    duration: "8 days",
+    amountCents: 12345,
+    currency: "cad",
+    tourUrl: "https://midearth.ca/tours/northern-lights",
+  });
+
+  assert.match(result.html, /MidEarth Travel/);
+  assert.match(result.html, /<table[^>]*style="[^"]*background-color:/);
+  assert.match(result.html, /font-family:/);
+  assert.match(result.html, /border-collapse:/);
+  assert.match(result.html, /role="presentation"/);
+  assert.match(result.html, /<footer[^>]*>.*MidEarth Travel.*<\/footer>/s);
+});
+
+test("omits unsafe or malformed tour URLs from both formats", () => {
+  for (const tourUrl of [
+    "javascript:alert(1)",
+    "data:text/html,<script>alert(1)</script>",
+    "not a URL",
+  ]) {
+    const result = renderBookingConfirmationEmail({
+      locale: "en",
+      content,
+      customerName: "Casey",
+      bookingReference: "TB-42",
+      tourTitle: "Northern Lights",
+      departureSelection: "November 8",
+      adults: 1,
+      children: 0,
+      duration: "8 days",
+      amountCents: 12345,
+      currency: "cad",
+      tourUrl,
+    });
+
+    assert.doesNotMatch(result.html, /View tour/);
+    assert.doesNotMatch(result.text, /View tour/);
+    assert.doesNotMatch(result.html, new RegExp(escapeRegExp(tourUrl)));
+    assert.doesNotMatch(result.text, new RegExp(escapeRegExp(tourUrl)));
+  }
+});

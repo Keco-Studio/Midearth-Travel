@@ -197,6 +197,7 @@ export function renderBookingConfirmationEmail(
     : "";
   const textLink = safeTourUrl ? `${localizedLabels.viewTour}: ${safeTourUrl}` : "";
   const textSections = [
+    "MidEarth Travel",
     localizedLabels.greeting(input.customerName),
     heading,
     body,
@@ -208,12 +209,20 @@ export function renderBookingConfirmationEmail(
   return {
     subject,
     html: [
-      `<p>${escapeHtml(localizedLabels.greeting(input.customerName))}</p>`,
-      `<h1>${escapeHtml(heading)}</h1>`,
-      `<p>${escapeHtmlWithBreaks(body)}</p>`,
-      `<table><tbody>${renderHtmlFacts(facts)}</tbody></table>`,
+      `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background-color:#f3f4f6;border-collapse:collapse;font-family:Arial,sans-serif;color:#1f2933;">`,
+      `<tbody><tr><td align="center" style="padding:24px 12px;">`,
+      `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:640px;background-color:#ffffff;border-collapse:collapse;font-family:Arial,sans-serif;color:#1f2933;">`,
+      `<tbody><tr><td style="padding:22px 28px;background-color:#0f4c5c;color:#ffffff;font-family:Arial,sans-serif;font-size:20px;font-weight:bold;">MidEarth Travel</td></tr>`,
+      `<tr><td style="padding:28px;font-family:Arial,sans-serif;color:#1f2933;">`,
+      `<p style="margin:0 0 18px;font-family:Arial,sans-serif;color:#1f2933;">${escapeHtml(localizedLabels.greeting(input.customerName))}</p>`,
+      `<h1 style="margin:0 0 16px;font-family:Arial,sans-serif;font-size:26px;line-height:1.25;color:#0f4c5c;">${escapeHtml(heading)}</h1>`,
+      `<p style="margin:0 0 24px;font-family:Arial,sans-serif;color:#1f2933;line-height:1.6;">${escapeHtmlWithBreaks(body)}</p>`,
+      `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;font-family:Arial,sans-serif;color:#1f2933;">`,
+      `<tbody>${renderHtmlFacts(facts)}</tbody></table>`,
       htmlLink,
-      `<p>${escapeHtmlWithBreaks(closing)}</p>`,
+      `<p style="margin:24px 0 0;font-family:Arial,sans-serif;color:#1f2933;line-height:1.6;">${escapeHtmlWithBreaks(closing)}</p>`,
+      `</td></tr><tr><td style="padding:16px 28px;background-color:#f8fafc;font-family:Arial,sans-serif;color:#667085;font-size:12px;line-height:1.5;"><footer>MidEarth Travel</footer></td></tr>`,
+      `</tbody></table></td></tr></tbody></table>`,
     ].join(""),
     text: textSections.join("\n\n"),
   };
