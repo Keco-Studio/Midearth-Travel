@@ -10,11 +10,18 @@ export const EXPLORE_MONTHS_DATA_KEY = "monthsData";
 
 export type ExploreTourLookup = Tour;
 
+type ParseMonthEntriesOptions = {
+  completeMonths?: boolean;
+};
+
 export function serializeMonthEntries(entries: MonthEntry[]): string {
   return JSON.stringify(entries);
 }
 
-export function parseMonthEntries(value: unknown): MonthEntry[] {
+export function parseMonthEntries(
+  value: unknown,
+  options: ParseMonthEntriesOptions = {},
+): MonthEntry[] {
   if (typeof value !== "string" || !value.trim()) {
     return cloneMonths(destinationsByMonth);
   }
@@ -29,10 +36,24 @@ export function parseMonthEntries(value: unknown): MonthEntry[] {
       .map(normalizeMonthEntry)
       .filter((entry): entry is MonthEntry => Boolean(entry));
 
-    return months.length > 0 ? months : cloneMonths(destinationsByMonth);
+    if (months.length === 0) return cloneMonths(destinationsByMonth);
+
+    return options.completeMonths ? fillMissingMonths(months) : months;
   } catch {
     return cloneMonths(destinationsByMonth);
   }
+}
+
+function fillMissingMonths(entries: MonthEntry[]): MonthEntry[] {
+  const byMonth = new Map(entries.map((entry) => [entry.month, entry]));
+
+  return destinationsByMonth.map((fallback) =>
+    byMonth.get(fallback.month) ?? {
+      month: fallback.month,
+      label: fallback.label,
+      destinations: [],
+    },
+  );
 }
 
 export function getExploreByMonthEntries(content: Record<string, unknown>): MonthEntry[] {

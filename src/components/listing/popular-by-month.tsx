@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   destinationsByMonth,
   type MonthEntry,
@@ -11,6 +11,7 @@ import type { Tour } from "@/data/tours";
 import { useSiteSettings } from "@/context/site-settings-context";
 import { useLang } from "@/context/lang-context";
 import { getConfiguredContactHref } from "@/lib/tour-content-audit";
+import { getLocalizedStaticText } from "@/lib/localized-content";
 import { resolveExploreByMonthEntries } from "@/lib/explore-by-month";
 import styles from "./browse-sections.module.css";
 
@@ -46,15 +47,11 @@ export function PopularByMonth({
     getConfiguredContactHref(settings.emailHref, settings.primaryPhoneHref),
     { requireTourMatch },
   );
-  const source = requireTourMatch
-    ? resolvedSource.filter((month) => month.destinations.length > 0)
-    : resolvedSource;
-  const [active, setActive] = useState(source[0]?.month ?? "");
-  useEffect(() => {
-    if (!source.some((month) => month.month === active)) {
-      setActive(source[0]?.month ?? "");
-    }
-  }, [active, source]);
+  const source = resolvedSource;
+  const [selectedMonth, setSelectedMonth] = useState(source[0]?.month ?? "");
+  const active = source.some((month) => month.month === selectedMonth)
+    ? selectedMonth
+    : source[0]?.month ?? "";
   const activeMonth = source.find((m) => m.month === active) ?? source[0];
   const panel = activeMonth ?? { month: "", label: "", destinations: [] };
 
@@ -74,7 +71,7 @@ export function PopularByMonth({
             role="tab"
             aria-selected={active === item.month}
             className={`${styles.monthTab} ${active === item.month ? styles.monthTabActive : ""}`}
-            onClick={() => setActive(item.month)}
+            onClick={() => setSelectedMonth(item.month)}
           >
             {item.month}
           </button>
@@ -83,6 +80,11 @@ export function PopularByMonth({
 
       <div role="tabpanel" aria-label={panel.label}>
         <div className={styles.destGrid}>
+          {panel.destinations.length === 0 ? (
+            <p className={styles.monthEmpty} role="status">
+              {getLocalizedStaticText(lang, "noToursThisMonth")}
+            </p>
+          ) : null}
           {panel.destinations.map((dest) => (
             <Link
               key={`${panel.month}-${dest.id ?? dest.tourSlug ?? dest.name}`}
