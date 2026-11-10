@@ -20,7 +20,7 @@
 - Only currently published tours produce public slide links.
 - Autoplay interval is exactly 6,000 ms and stops for hover, focus, hidden documents, and reduced motion.
 - One enabled image renders without carousel controls or an autoplay timer.
-- Mobile and desktop images use `cover` cropping with per-slide left, center, or right focal points.
+- Mobile and desktop images use centered `cover` cropping.
 - Preserve unrelated dirty-worktree changes and stage only files belonging to each task.
 
 ---
@@ -32,7 +32,7 @@
 - Create: `test/hero-slides.test.ts`
 
 **Interfaces:**
-- Produces: `HeroSlide`, `HeroSlideFocalPoint`, `HERO_SLIDES_DATA_KEY`, `parseHeroSlides(content)`, `serializeHeroSlides(slides)`, `createEmptyHeroSlide(id?)`, `moveHeroSlide(slides, id, direction)`, `getEnabledHeroSlides(content)`, and `withHeroSlides(content, slides)`.
+- Produces: `HeroSlide`, `HERO_SLIDES_DATA_KEY`, `parseHeroSlides(content)`, `serializeHeroSlides(slides)`, `createEmptyHeroSlide(id?)`, `moveHeroSlide(slides, id, direction)`, `getEnabledHeroSlides(content)`, and `withHeroSlides(content, slides)`.
 - Consumes: `ContentData` from `src/lib/content-values.ts` and `isPreviewableImageUrl` from `src/lib/inline-image-upload.ts`.
 
 - [ ] **Step 1: Write failing parser and mutation tests**
@@ -46,7 +46,6 @@ function slide(id: string): HeroSlide {
     image: `/${id}.jpg`,
     tourSlug: "",
     enabled: true,
-    focalPoint: "center",
   };
 }
 
@@ -57,7 +56,6 @@ test("migrates the legacy background into one enabled slide", () => {
       image: "/hero/legacy.jpg",
       tourSlug: "",
       enabled: true,
-      focalPoint: "center",
     },
   ]);
 });
@@ -98,18 +96,15 @@ Use this public shape and constants:
 export const HERO_SLIDES_DATA_KEY = "slidesData";
 export const LEGACY_HERO_SLIDE_ID = "legacy-hero-slide";
 
-export type HeroSlideFocalPoint = "left" | "center" | "right";
-
 export type HeroSlide = {
   id: string;
   image: string;
   tourSlug: string;
   enabled: boolean;
-  focalPoint: HeroSlideFocalPoint;
 };
 ```
 
-`parseHeroSlides` must distinguish a valid serialized empty array from a missing or malformed field. Normalize strings with `trim()`, default unknown focal points to `center`, default `enabled` to `false`, and drop non-object entries or entries without stable string ids. `getEnabledHeroSlides` filters to `enabled && isPreviewableImageUrl(image)`. `withHeroSlides` always updates `slidesData` and only replaces `backgroundImage` when a complete enabled slide exists.
+`parseHeroSlides` must distinguish a valid serialized empty array from a missing or malformed field. Normalize strings with `trim()`, default `enabled` to `false`, and drop non-object entries or entries without stable string ids. `getEnabledHeroSlides` filters to `enabled && isPreviewableImageUrl(image)`. `withHeroSlides` always updates `slidesData` and only replaces `backgroundImage` when a complete enabled slide exists.
 
 - [ ] **Step 4: Run the focused test and confirm GREEN**
 
@@ -189,7 +184,7 @@ Keep `backgroundImage` for compatibility and add `slidesData` as an editor-manag
 }
 ```
 
-Set its data to `serializeHeroSlides([{ id: "hero-slide-1", image: "/hero/hero-coast.jpg", tourSlug: "", enabled: true, focalPoint: "center" }])`.
+Set its data to `serializeHeroSlides([{ id: "hero-slide-1", image: "/hero/hero-coast.jpg", tourSlug: "", enabled: true }])`.
 
 - [ ] **Step 4: Normalize legacy Hero data before seed defaults are applied**
 
@@ -260,7 +255,7 @@ Expected: FAIL because the dedicated editor does not exist.
 
 - [ ] **Step 3: Implement `HeroSlidesEditor`**
 
-Use Ant Design `Upload`, `Switch`, `Select`, `Segmented`, and icon buttons with `Tooltip`. Filter tour options with `tour.status === "published"`. Add slides with `createEmptyHeroSlide()`; new slides are disabled and blank. For every mutation call one commit function:
+Use Ant Design `Upload`, `Switch`, `Select`, and icon buttons with `Tooltip`. Filter tour options with `tour.status === "published"`. Add slides with `createEmptyHeroSlide()`; new slides are disabled and blank. For every mutation call one commit function:
 
 ```ts
 function commit(next: HeroSlide[]) {
@@ -322,7 +317,6 @@ const linkedSlide: HeroSlide = {
   image: "/featured.jpg",
   tourSlug: "featured-tour",
   enabled: true,
-  focalPoint: "center",
 };
 const publishedTour: Tour = {
   slug: "featured-tour",
@@ -431,7 +425,7 @@ In `Hero`, call `resolvePublicHeroSlides(content, tours)` and replace only the e
 
 - [ ] **Step 5: Add responsive styles**
 
-Use `object-fit: cover` and focal classes mapping to `object-position: left center`, `center center`, and `right center`. Keep controls clear of the navbar and existing actions at desktop and mobile widths. Give controls stable square dimensions and a restrained high-contrast treatment. Disable transition animation in `prefers-reduced-motion: reduce`.
+Use `object-fit: cover` with `object-position: center center`. Keep controls clear of the navbar and existing actions at desktop and mobile widths. Give controls stable square dimensions and a restrained high-contrast treatment. Disable transition animation in `prefers-reduced-motion: reduce`.
 
 Set pointer-event rules so non-interactive Hero space reaches the background link while cards, actions, broadcast, and carousel controls remain interactive. Do not wrap the Hero or its existing links in another anchor.
 

@@ -57,19 +57,27 @@ test("integrates published tours without changing existing Hero actions", () => 
   assert.match(heroSource, /<HeroSlideshow/);
 });
 
-test("styles stable crossfades, focal cropping, controls, and reduced motion", () => {
-  assert.match(css, /\.slideImage\s*\{[\s\S]*object-fit:\s*cover;/);
-  assert.match(css, /\.focalLeft\s*\{[\s\S]*object-position:\s*left center;/);
-  assert.match(css, /\.focalCenter\s*\{[\s\S]*object-position:\s*center center;/);
-  assert.match(css, /\.focalRight\s*\{[\s\S]*object-position:\s*right center;/);
+test("styles stable crossfades, centered cropping, controls, and reduced motion", () => {
+  assert.match(
+    css,
+    /\.slideImage\s*\{[\s\S]*object-fit:\s*cover;[\s\S]*object-position:\s*center center;/,
+  );
+  assert.doesNotMatch(css, /\.focal(Left|Center|Right)/);
   assert.match(css, /@keyframes heroSlideFade/);
   assert.match(css, /\.carouselButton\s*\{[\s\S]*width:\s*44px;[\s\S]*height:\s*44px;/);
   assert.match(css, /@media \(prefers-reduced-motion:\s*reduce\)/);
 });
 
-test("keeps mobile carousel controls below the Hero statistics", () => {
+test("keeps the Hero image full-coverage on mobile", () => {
+  assert.doesNotMatch(
+    css,
+    /@media \(max-width:\s*520px\)\s*\{[\s\S]*?\.slideImage\s*\{[\s\S]*?object-fit:\s*contain;/,
+  );
+});
+
+test("keeps mobile carousel controls on opposite sides of the Hero", () => {
   assert.match(
     css,
-    /@media \(max-width:\s*520px\)\s*\{[\s\S]*?\.carouselControls\s*\{[\s\S]*?bottom:\s*4px;/,
+    /@media \(max-width:\s*520px\)\s*\{[\s\S]*?\.carouselControls\s*\{[\s\S]*?top:\s*50%;[\s\S]*?right:\s*12px;[\s\S]*?bottom:\s*auto;[\s\S]*?left:\s*12px;[\s\S]*?transform:\s*translateY\(-50%\);/,
   );
 });

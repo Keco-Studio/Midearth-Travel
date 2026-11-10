@@ -16,7 +16,6 @@ function slide(id: string): HeroSlide {
     image: `/${id}.jpg`,
     tourSlug: "",
     enabled: true,
-    focalPoint: "center",
   };
 }
 
@@ -27,7 +26,6 @@ test("migrates the legacy background into one enabled slide", () => {
       image: "/hero/legacy.jpg",
       tourSlug: "",
       enabled: true,
-      focalPoint: "center",
     },
   ]);
 });
@@ -59,13 +57,11 @@ test("normalizes stored slide values and removes invalid entries", () => {
       image: " /coast.jpg ",
       tourSlug: " maritime-tour ",
       enabled: true,
-      focalPoint: "right",
     },
     {
       id: "city",
       image: "/city.jpg",
       enabled: "yes",
-      focalPoint: "bottom",
     },
     { image: "/missing-id.jpg" },
     null,
@@ -77,14 +73,12 @@ test("normalizes stored slide values and removes invalid entries", () => {
       image: "/coast.jpg",
       tourSlug: "maritime-tour",
       enabled: true,
-      focalPoint: "right",
     },
     {
       id: "city",
       image: "/city.jpg",
       tourSlug: "",
       enabled: false,
-      focalPoint: "center",
     },
   ]);
 });
@@ -127,7 +121,6 @@ test("creates a disabled empty slide with a stable supplied id", () => {
     image: "",
     tourSlug: "",
     enabled: false,
-    focalPoint: "center",
   });
 });
 

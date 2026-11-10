@@ -4,7 +4,7 @@
 
 Replace the homepage Hero's single background image with a CMS-managed slideshow. The slideshow changes only the background image and its optional tour destination. Existing Hero headlines, broadcast, feature cards, statistics, and action buttons remain unchanged.
 
-Editors can add, remove, reorder, replace, enable, disable, save, and publish any number of slides. Each slide contains an image, an optional published-tour association, and a crop focal point. The public homepage rotates enabled slides automatically and provides previous and next controls.
+Editors can add, remove, reorder, replace, enable, disable, save, and publish any number of slides. Each slide contains an image and an optional published-tour association. The public homepage rotates enabled slides automatically and provides previous and next controls.
 
 ## Requirements
 
@@ -14,8 +14,7 @@ Editors can add, remove, reorder, replace, enable, disable, save, and publish an
   - a stable id;
   - an uploaded image URL;
   - an optional Tour Library slug;
-  - an enabled flag;
-  - a focal point of `left`, `center`, or `right`.
+  - an enabled flag.
 - Keep existing Hero buttons and links unchanged.
 - When a slide references a published tour, the non-interactive Hero background area links to that tour.
 - Only published tours may be selected in the CMS.
@@ -24,7 +23,7 @@ Editors can add, remove, reorder, replace, enable, disable, save, and publish an
 - Pause rotation while the Hero is hovered or contains keyboard focus.
 - Reset the timer after manual navigation.
 - Disable automatic rotation when the visitor requests reduced motion.
-- Use responsive `cover` cropping and apply each slide's focal point on desktop and mobile.
+- Use responsive `cover` cropping centered on the image on desktop and mobile.
 - A single enabled image behaves like the current Hero: no timer and no carousel controls.
 - Drafts may temporarily contain no enabled complete slide.
 - Publishing requires at least one enabled slide with a valid image.
@@ -39,17 +38,16 @@ type HeroSlide = {
   image: string;
   tourSlug: string;
   enabled: boolean;
-  focalPoint: "left" | "center" | "right";
 };
 ```
 
-The array order is the display order. A dedicated parser normalizes untrusted persisted data, removes malformed entries, normalizes focal points, and preserves stable ids. A serializer writes the canonical representation.
+The array order is the display order. A dedicated parser normalizes untrusted persisted data, removes malformed entries, and preserves stable ids. A serializer writes the canonical representation.
 
 The existing primitive-only `ContentValue` contract remains unchanged because `slidesData` is a JSON string. This follows the repository's existing `monthsData` collection pattern and keeps slides inside the Hero module's atomic draft/publish lifecycle.
 
 ### Backward Compatibility
 
-When `slidesData` is absent, the parser creates one enabled center-focused slide from the existing `backgroundImage`. This keeps all existing installations and a one-image Hero working without a database migration.
+When `slidesData` is absent, the parser creates one enabled slide from the existing `backgroundImage`. This keeps all existing installations and a one-image Hero working without a database migration.
 
 Whenever the editor commits slide changes and at least one complete enabled slide exists, it also sets `backgroundImage` to the first such slide. The field stays in persisted Hero data as a compatibility value but is hidden from the Hero editor. Booking and Contact page background fallback behavior therefore remains unchanged.
 
@@ -64,7 +62,6 @@ Each slide row contains:
 - image preview and upload/replace control;
 - enabled switch;
 - searchable published-tour selector with a clear option;
-- segmented left/center/right focal-point control;
 - move up and move down icon buttons;
 - delete icon button.
 
@@ -91,7 +88,7 @@ For one slide it renders one image with no carousel state, timer, or controls.
 
 The tour link is an absolute background interaction layer rather than a wrapper around the Hero. This avoids invalid nested links because the existing action buttons and feature cards already use links. The Hero's non-interactive headline area allows pointer events to reach the background link, while cards, buttons, broadcast content, and carousel controls remain independent interactive elements. The link has an accessible name derived from the selected tour.
 
-Images continue using `next/image` with `fill`, `sizes="100vw"`, and responsive `object-fit: cover`. The slide focal point maps to `object-position` values for left, center, and right. The first active image is prioritized; subsequent images are loaded as needed.
+Images continue using `next/image` with `fill`, `sizes="100vw"`, responsive `object-fit: cover`, and fixed centered positioning. The first active image is prioritized; subsequent images are loaded as needed.
 
 ## Validation And Failure Handling
 

@@ -21,12 +21,6 @@ type HeroSlideshowProps = {
   focused: boolean;
 };
 
-const focalPointClasses = {
-  left: styles.focalLeft,
-  center: styles.focalCenter,
-  right: styles.focalRight,
-};
-
 export function HeroSlideshow({ slides, hovered, focused }: HeroSlideshowProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [previousSlide, setPreviousSlide] = useState<PublicHeroSlide | null>(null);
@@ -169,7 +163,7 @@ function SlideImage({
     <div className={`${styles.slideFrame} ${className}`} aria-hidden>
       <Image
         alt=""
-        className={`${styles.slideImage} ${focalPointClasses[slide.focalPoint]}`}
+        className={styles.slideImage}
         fill
         priority={priority}
         sizes="100vw"

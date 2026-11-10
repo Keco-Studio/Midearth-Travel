@@ -7,7 +7,6 @@ export const LEGACY_HERO_SLIDE_ID = "legacy-hero-slide";
 
 const DEFAULT_HERO_IMAGE = "/hero/hero-coast.jpg";
 
-export type HeroSlideFocalPoint = "left" | "center" | "right";
 export type HeroSlideMoveDirection = "up" | "down";
 
 export type HeroSlide = {
@@ -15,7 +14,6 @@ export type HeroSlide = {
   image: string;
   tourSlug: string;
   enabled: boolean;
-  focalPoint: HeroSlideFocalPoint;
 };
 
 export class HeroSlidesPublishError extends Error {
@@ -47,7 +45,6 @@ export function parseHeroSlides(content: ContentData): HeroSlide[] {
       image: getStringContent(content, "backgroundImage", DEFAULT_HERO_IMAGE).trim(),
       tourSlug: "",
       enabled: true,
-      focalPoint: "center",
     },
   ];
 }
@@ -62,7 +59,6 @@ export function createEmptyHeroSlide(id = createHeroSlideId()): HeroSlide {
     image: "",
     tourSlug: "",
     enabled: false,
-    focalPoint: "center",
   };
 }
 
@@ -127,12 +123,7 @@ function normalizeHeroSlide(value: unknown): HeroSlide | null {
     image: typeof raw.image === "string" ? raw.image.trim() : "",
     tourSlug: typeof raw.tourSlug === "string" ? raw.tourSlug.trim() : "",
     enabled: raw.enabled === true,
-    focalPoint: isHeroSlideFocalPoint(raw.focalPoint) ? raw.focalPoint : "center",
   };
-}
-
-function isHeroSlideFocalPoint(value: unknown): value is HeroSlideFocalPoint {
-  return value === "left" || value === "center" || value === "right";
 }
 
 function createHeroSlideId(): string {

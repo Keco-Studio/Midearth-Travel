@@ -27,11 +27,15 @@ test("supports every required slide management action", () => {
   assert.match(slideEditorSource, /ArrowDownOutlined/);
   assert.match(slideEditorSource, /DeleteOutlined/);
   assert.match(slideEditorSource, /<Switch/);
-  assert.match(slideEditorSource, /<Segmented/);
   assert.match(slideEditorSource, /<Select/);
   assert.match(slideEditorSource, /tour\.status === "published"/);
   assert.match(slideEditorSource, /<Upload/);
   assert.match(slideEditorSource, /validateInlineImageFile/);
+});
+
+test("does not expose per-slide crop controls", () => {
+  assert.doesNotMatch(slideEditorSource, /Crop focus/);
+  assert.doesNotMatch(slideEditorSource, /<Segmented/);
 });
 
 test("uploads by stable slide id and synchronizes the compatibility background", () => {

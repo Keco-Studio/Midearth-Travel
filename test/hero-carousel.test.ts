@@ -17,7 +17,6 @@ const linkedSlide: HeroSlide = {
   image: "/featured.jpg",
   tourSlug: "featured-tour",
   enabled: true,
-  focalPoint: "center",
 };
 
 const publishedTour: Tour = {

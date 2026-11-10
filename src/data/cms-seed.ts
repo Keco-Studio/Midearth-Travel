@@ -274,7 +274,6 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
           image: "/hero/hero-coast.jpg",
           tourSlug: "",
           enabled: true,
-          focalPoint: "center",
         },
       ]),
       titleMain: "Midearth Travel",

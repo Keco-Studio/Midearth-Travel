@@ -12,7 +12,6 @@ import {
   Button,
   Input,
   Popconfirm,
-  Segmented,
   Select,
   Space,
   Switch,
@@ -28,7 +27,6 @@ import {
   moveHeroSlide,
   parseHeroSlides,
   type HeroSlide,
-  type HeroSlideFocalPoint,
   withHeroSlides,
 } from "@/lib/hero-slides";
 import { validateInlineImageFile } from "@/lib/inline-image-upload";
@@ -41,12 +39,6 @@ type HeroSlidesEditorProps = {
   onChange: (key: string, value: ContentValue) => void;
   onImageUpload: (fieldKey: string, file: File) => Promise<string>;
 };
-
-const focalPointOptions: Array<{ label: string; value: HeroSlideFocalPoint }> = [
-  { label: "Left", value: "left" },
-  { label: "Center", value: "center" },
-  { label: "Right", value: "right" },
-];
 
 export function HeroSlidesEditor({
   content,
@@ -237,19 +229,6 @@ export function HeroSlidesEditor({
                     placeholder="Select a published tour"
                     showSearch
                     value={slide.tourSlug || undefined}
-                  />
-                </label>
-
-                <label style={{ display: "grid", gap: 6 }}>
-                  <Typography.Text>Crop focus</Typography.Text>
-                  <Segmented
-                    onChange={(focalPoint) =>
-                      updateSlide(slide.id, {
-                        focalPoint: focalPoint as HeroSlideFocalPoint,
-                      })
-                    }
-                    options={focalPointOptions}
-                    value={slide.focalPoint}
                   />
                 </label>
 
