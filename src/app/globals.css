@@ -675,7 +675,11 @@ body {
   opacity: 0.85;
 }
 
-.header-contact a {
+.header-phone-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   color: inherit;
   text-decoration: none;
 }
@@ -743,27 +747,22 @@ body {
 
 @media (max-width: 1024px) {
   .header-contact {
-    display: none;
+    display: flex;
   }
 
   .header-inner {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      "brand actions"
-      "nav nav";
     align-items: center;
-    gap: 8px 10px;
+    gap: 10px;
     padding: 10px clamp(14px, 4vw, 20px);
   }
 
   .brand {
-    grid-area: brand;
     justify-content: flex-start;
   }
 
   .header-right {
-    grid-area: actions;
     flex-wrap: nowrap;
     justify-content: flex-end;
     gap: 6px;
@@ -771,43 +770,47 @@ body {
   }
 
   .nav-desktop {
-    grid-area: nav;
-    order: unset;
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    width: 100%;
-    margin-left: 0;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    gap: 0;
-    padding-bottom: 2px;
-  }
-
-  .nav-desktop::-webkit-scrollbar {
     display: none;
   }
 
-  .nav-link {
-    flex: 0 0 auto;
-    padding: 7px 10px;
-    font-size: 13px;
-    white-space: nowrap;
+  .hamburger {
+    display: flex;
   }
 }
 
 @media (max-width: 560px) {
-  .header-pill:not(.header-pill-drawer) {
-    min-height: 34px;
-    padding: 8px 12px;
-    font-size: 12.5px;
+  .header-inner {
+    gap: 6px;
+    padding: 8px 10px;
   }
 
-  .nav-link {
-    padding: 6px 9px;
-    font-size: 12.5px;
+  .header-inner .brand-logo {
+    width: 96px;
+    height: 30px;
+  }
+
+  .header-right {
+    gap: 4px;
+  }
+
+  .header-pill:not(.header-pill-drawer) {
+    min-height: 32px;
+    padding: 7px 8px;
+    font-size: 11.5px;
+  }
+
+  .header-phone-link {
+    font-size: clamp(10.5px, 3vw, 12px);
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .header-phone-label {
+    display: inline;
+  }
+
+  .hamburger {
+    padding: 6px;
   }
 }
 
@@ -925,6 +928,11 @@ body {
   font-size: 14px;
   line-height: 1.7;
   color: var(--ink-soft);
+}
+
+.drawer-contact a {
+  color: inherit;
+  text-decoration: none;
 }
 
 .lang-switcher-drawer {
