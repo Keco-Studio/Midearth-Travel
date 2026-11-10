@@ -37,7 +37,9 @@ export function getBusToursContent(value: unknown): BusToursContent {
       Object.entries(fallback).map(([key, defaultValue]) => [
         key,
         key === "monthsData"
-          ? serializeMonthEntries(parseMonthEntries(parsed[key]))
+          ? serializeMonthEntries(
+              parseMonthEntries(parsed[key], { completeMonths: true }),
+            )
           : readString(parsed[key], defaultValue),
       ]),
     ),
@@ -45,7 +47,9 @@ export function getBusToursContent(value: unknown): BusToursContent {
 }
 
 export function getBusToursMonthEntries(value: unknown): MonthEntry[] {
-  return parseMonthEntries(getBusToursContent(value).monthsData);
+  return parseMonthEntries(getBusToursContent(value).monthsData, {
+    completeMonths: true,
+  });
 }
 
 function parseContent(value: unknown): Record<string, unknown> {

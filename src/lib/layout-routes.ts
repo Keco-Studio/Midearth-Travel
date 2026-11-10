@@ -61,17 +61,6 @@ export const layoutRouteConfig: { routes: LayoutRoute[] } = {
         },
       ],
     },
-    {
-      path: "/system",
-      name: "System",
-      routes: [
-        {
-          path: "/settings",
-          name: "Global Settings",
-          workspace: "settings",
-        },
-      ],
-    },
   ],
 };
 
@@ -110,8 +99,7 @@ export function parseLayoutPath(pathname: string): {
     workspace === "tours" ||
     workspace === "bookings" ||
     workspace === "inquiries" ||
-    workspace === "payments" ||
-    workspace === "settings"
+    workspace === "payments"
   ) {
     return { workspace };
   }

@@ -3,6 +3,7 @@ import test from "node:test";
 import { homeModuleSeeds } from "../src/data/cms-seed.ts";
 import {
   canonicalizeHomeModule,
+  canonicalizeHomeModuleForPublish,
   createDraftHomeModuleRow,
   createPublishedHomeModuleRow,
   getBooleanContent,
@@ -11,6 +12,11 @@ import {
   toHomeModuleRow,
   type HomeModuleRow,
 } from "../src/lib/home-content.ts";
+import {
+  HERO_SLIDES_DATA_KEY,
+  parseHeroSlides,
+  withHeroSlides,
+} from "../src/lib/hero-slides.ts";
 
 const heroSeed = homeModuleSeeds.find((module) => module.id === "hero");
 
@@ -67,6 +73,51 @@ test("serializes seed modules into initial Supabase rows", () => {
   assert.deepEqual(row.draft_data, heroSeed.data);
   assert.deepEqual(row.published_data, heroSeed.data);
   assert.equal(row.module_index, 2);
+});
+
+test("seeds the Hero with one CMS-managed background slide", () => {
+  const slides = parseHeroSlides(heroSeed.data);
+
+  assert.ok(heroSeed.fields.some((field) => field.key === HERO_SLIDES_DATA_KEY));
+  assert.equal(slides.length, 1);
+  assert.equal(slides[0]?.image, "/hero/hero-coast.jpg");
+  assert.equal(slides[0]?.enabled, true);
+});
+
+test("migrates a stored legacy Hero using its own background image", () => {
+  const legacyData = { ...heroSeed.data };
+  delete legacyData.slidesData;
+  const legacy: HomeModuleRow = {
+    ...storedHero,
+    published_data: {
+      ...legacyData,
+      backgroundImage: "/hero/stored-legacy.jpg",
+      titleMainEn: "Legacy Hero",
+    },
+  };
+
+  const hero = mergeHomeModuleRows([legacy], "published").find(
+    (module) => module.id === "hero",
+  );
+
+  assert.equal(parseHeroSlides(hero?.data ?? {})[0]?.image, "/hero/stored-legacy.jpg");
+});
+
+test("allows an empty Hero slide draft but rejects it for publishing", () => {
+  const candidate = {
+    ...heroSeed,
+    data: withHeroSlides(heroSeed.data, []),
+  };
+
+  assert.equal(canonicalizeHomeModule(candidate).data.slidesData, "[]");
+  assert.throws(
+    () => canonicalizeHomeModuleForPublish(candidate),
+    /at least one Hero slide/i,
+  );
+});
+
+test("accepts a Hero publication with an enabled uploaded image", () => {
+  assert.doesNotThrow(() => canonicalizeHomeModuleForPublish(heroSeed));
 });
 
 test("keeps monthly destination data as one editor-managed field", () => {

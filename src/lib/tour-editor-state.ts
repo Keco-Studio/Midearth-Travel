@@ -129,6 +129,7 @@ export function buildTourEditorStorage(
         image: current.image.startsWith("blob:") ? source.image : current.image,
         essentials: { ...current.essentials },
         fares: { ...current.fares },
+        addOns: current.addOns?.map((item) => ({ ...item, ticketTypes: item.ticketTypes.map((ticket) => ({ ...ticket })) })),
       };
     }),
   };
@@ -208,6 +209,7 @@ function trimTourRecord(record: TourRecord): TourRecord {
       triple: safeTrim(fares.triple),
       quad: safeTrim(fares.quad),
     },
+    addOns: Array.isArray(record.addOns) ? record.addOns : [],
     pdfTitle: safeTrim(record.pdfTitle),
     localizedPdfTitle: safeTrim(record.localizedPdfTitle),
     pdfFileName: safeTrim(record.pdfFileName),
@@ -244,6 +246,7 @@ function isTourRecord(value: unknown): value is TourRecord {
       value.status === "draft" ||
       value.status === "unpublished") &&
     isFareFields(value.fares) &&
+    (value.addOns === undefined || Array.isArray(value.addOns)) &&
     isEssentialFields(value.essentials) &&
     Array.isArray(value.destinationCategoryIds) &&
     value.destinationCategoryIds.every((entry) => typeof entry === "string")

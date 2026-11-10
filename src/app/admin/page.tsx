@@ -54,7 +54,6 @@ export default async function AdminPage() {
       initialDestinationCategories={destinationCategories}
       initialHomeModules={withSyncedFinalCtaContactFields(homeModules, settings)}
       initialServices={services}
-      initialSettings={settings}
       initialTestimonials={testimonials}
       initialPayments={payments}
       initialBookings={bookings}

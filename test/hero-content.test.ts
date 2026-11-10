@@ -31,7 +31,7 @@ test("hero cards use one editable description and image icon", () => {
     iconImage: "https://example.com/cruise-icon.png",
     title: "Cruise Booking",
     description: "Ocean journeys worldwide",
-    href: "/services/flights",
+    href: "/services/flights-hotels",
   });
   assert.equal(cards[1]?.fallbackIcon, "Bus");
   assert.equal(cards[1]?.href, "/tours/category/bus-tours");

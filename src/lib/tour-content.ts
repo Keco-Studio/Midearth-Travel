@@ -238,6 +238,7 @@ export function mapTourRecordToPublicTour(record: TourRecord): Tour {
     localizedNotIncluded:
       localizedNotIncluded.length > 0 ? localizedNotIncluded : undefined,
     fares: fares.length > 0 ? fares : undefined,
+    addOns: record.addOns?.length ? record.addOns : base?.addOns,
     featured: record.specialOffer,
     hotSale: record.specialDeals,
     busTourPackage: record.busTourPackage,
@@ -263,6 +264,7 @@ function normalizeStoredTour(
     status: row.status,
     updatedAt: row.updated_at,
     fares: { ...emptyFareFields, ...fallback?.fares, ...storedData.fares },
+    addOns: storedData.addOns ?? fallback?.addOns ?? [],
     essentials: {
       ...emptyEssentialFields,
       ...fallback?.essentials,
@@ -278,6 +280,7 @@ function cloneTourRecord(record: TourRecord): TourRecord {
     ...record,
     essentials: { ...record.essentials },
     fares: { ...record.fares },
+    addOns: record.addOns?.map((item) => ({ ...item, ticketTypes: item.ticketTypes.map((ticket) => ({ ...ticket })) })),
   };
 }
 

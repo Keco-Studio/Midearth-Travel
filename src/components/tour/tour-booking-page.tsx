@@ -18,6 +18,7 @@ import {
   type TourBookingFormValues,
 } from "@/lib/tour-booking-request";
 import styles from "./tour-booking-page.module.css";
+import { calculateAddOnTotal, defaultAddOnSelections, type TourAddOnSelection } from "@/lib/tour-add-ons";
 
 type BookingForm = TourBookingFormValues;
 
@@ -47,11 +48,17 @@ export function TourBookingPage({
   const [saving, setSaving] = useState(false);
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [addOnSelections, setAddOnSelections] = useState<TourAddOnSelection[]>(() => defaultAddOnSelections(tour.addOns ?? []));
 
   const title = getLocalizedTourValue(lang, tour.localizedTitle, getTourDisplayTitle(tour));
   const duration = getLocalizedTourValue(lang, tour.localizedDuration, tour.duration);
   const departures = getLocalizedTourList(lang, tour.localizedDepartures, tour.departures ?? []);
   const fare = tour.fares?.[0];
+  const addOns = tour.addOns ?? [];
+  const addOnTotal = calculateAddOnTotal(addOns, addOnSelections);
+  const packageCents = fare ? Math.round(Number(fare.price.replace(/[$,\s]/g, "")) * 100) : 0;
+  const tourTaxCents = Math.round(packageCents * 0.13);
+  const totalPrice = `$${((packageCents + tourTaxCents + addOnTotal) / 100).toFixed(2)}`;
   const text = {
     book: getLocalizedContent(content, "book", lang, "Book now"),
     complete: getLocalizedContent(content, "complete", lang, "Complete your details, then review your booking and payment amount."),
@@ -124,6 +131,7 @@ export function TourBookingPage({
           paymentType: "full",
           customerEmail: form.customerEmail,
           bookingId,
+          addOnSelections,
         }),
       });
       const result = (await response.json()) as { url?: string; error?: string };
@@ -228,6 +236,7 @@ export function TourBookingPage({
                 <p className={styles.eyebrow}>{text.book}</p>
                 <h1 className={styles.title}>{text.review}</h1>
                 <p className={styles.description}>{text.reviewHint}</p>
+                <div className={styles.reviewCard}>
                 <dl className={styles.reviewList}>
                   <div className={styles.reviewRow}><dt>{text.package}</dt><dd>{title}</dd></div>
                   <div className={styles.reviewRow}><dt>{text.departure}</dt><dd>{form.departureDate}</dd></div>
@@ -235,14 +244,29 @@ export function TourBookingPage({
                   <div className={styles.reviewRow}><dt>{text.email}</dt><dd>{form.customerEmail}</dd></div>
                 </dl>
                 <div className={styles.totalRow}>
-                  <span className={styles.totalLabel}>{text.packagePrice}</span>
+                  <span className={styles.totalLabel}>{text.packagePrice} (before tax)</span>
                   <span className={styles.totalAmount}>{fare?.price ?? ""}</span>
                 </div>
+                <div className={styles.taxRow}><span>Tax on tour fare (13%)</span><span>${(tourTaxCents / 100).toFixed(2)}</span></div>
+                </div>
+                {addOns.length > 0 ? <section className={styles.addOnSection} aria-labelledby="add-ons-title">
+                  <h2 id="add-ons-title" className={styles.addOnTitle}>Optional Activities, Meals &amp; Service Fee</h2>
+                  <p className={styles.addOnHint}>Optional items - Prices include tax</p>
+                  <div className={styles.addOnList}>
+                    {addOns.map((item) => {
+                      const selected = addOnSelections.filter((entry) => entry.addOnId === item.id);
+                      return <div className={styles.addOnRow} key={item.id}>
+                        <label className={styles.addOnCheck}><input type="checkbox" checked={selected.length > 0} disabled={item.required} onChange={(event) => setAddOnSelections((current) => event.target.checked ? [...current, { addOnId: item.id, ticketTypeId: item.ticketTypes[0]?.id ?? "", quantity: 1 }] : current.filter((entry) => entry.addOnId !== item.id))} /><span>{item.localizedName && lang === "zh" ? item.localizedName : item.name}{item.required ? " (Required)" : ""}</span></label>
+                        {selected.length > 0 ? <div className={styles.addOnTicketRows}>{item.ticketTypes.map((ticket) => { const choice = selected.find((entry) => entry.ticketTypeId === ticket.id); return <div className={styles.addOnTicketRow} key={ticket.id}><label><input type="checkbox" checked={Boolean(choice)} onChange={(event) => setAddOnSelections((current) => event.target.checked ? [...current, { addOnId: item.id, ticketTypeId: ticket.id, quantity: 1 }] : current.filter((entry) => !(entry.addOnId === item.id && entry.ticketTypeId === ticket.id)))} /> {lang === "zh" ? ticket.localizedLabel : ticket.label}</label>{choice ? <><input className={styles.addOnQuantity} type="number" min="1" max="99" value={choice.quantity} onChange={(event) => setAddOnSelections((current) => current.map((entry) => entry.addOnId === item.id && entry.ticketTypeId === ticket.id ? { ...entry, quantity: Math.max(1, Math.min(99, Number(event.target.value) || 1)) } : entry))} /><span className={styles.addOnPrice}>× ${((ticket.priceCents) / 100).toFixed(2)}</span></> : null}</div>; })}</div> : null}
+                      </div>;
+                    })}
+                  </div>
+                </section> : null}
                 <div className={styles.reviewActions}>
                   <button type="button" className={styles.secondaryButton} onClick={() => setStep("form")}>{text.back}</button>
                   <button type="button" className={styles.primaryButton} disabled={paying || !fare} onClick={() => void startCheckout()}>
                     {paying ? <LoaderCircle size={17} className="animate-spin" aria-hidden /> : <CreditCard size={17} aria-hidden />}
-                    {paying ? text.pay : `${text.pay} ${fare?.price ?? ""}`}
+                    {paying ? text.pay : `${text.pay} ${totalPrice}`}
                   </button>
                 </div>
               </>

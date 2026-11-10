@@ -10,6 +10,7 @@ import {
   MAX_HOMEPAGE_TESTIMONIALS,
   mergeServiceRows,
   mergeTestimonialRows,
+  isServicePageIntroWithinLimit,
   normalizePageFields,
   serviceToRow,
   testimonialToRow,
@@ -64,12 +65,11 @@ export async function saveHomepageServices(input: Service[]): Promise<Service[]>
     if (title.length > 80 || titleZh.length > 80 || summary.length > 180 || summaryZh.length > 180) {
       throw new Error("Service title or summary is too long");
     }
-    if (page.title.length > 120 || page.intro.length > 4000) {
+    if (page.title.length > 120 || !isServicePageIntroWithinLimit(id, page)) {
       throw new Error("Service page title or intro is too long");
     }
     if (
       (page.titleZh?.length ?? 0) > 120 ||
-      (page.introZh?.length ?? 0) > 4000 ||
       (page.signOffZh?.length ?? 0) > 80 ||
       (page.disclaimerZh?.length ?? 0) > 500 ||
       (page.quoteLabelZh?.length ?? 0) > 120 ||
@@ -277,7 +277,11 @@ async function upsertTestimonials(rows: TestimonialRow[]): Promise<void> {
 
 async function replaceHomepageServices(rows: ServiceRow[]): Promise<void> {
   await upsert("homepage_services", rows);
-  const keepIds = rows.map((row) => row.id);
+  // Keep the source records recoverable until the database consolidation
+  // migration has archived and removed them transactionally.
+  const keepIds = [
+    ...new Set([...rows.map((row) => row.id), "flights", "hotels"]),
+  ];
   if (keepIds.length === 0) return;
 
   const encoded = keepIds.map(encodeURIComponent).join(",");

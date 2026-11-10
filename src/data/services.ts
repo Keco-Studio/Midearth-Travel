@@ -138,42 +138,32 @@ export function createEmptyService(): Service {
 
 export const services: Service[] = [
   {
-    id: "flights",
-    slug: "flights",
-    title: "Flights",
-    summary: "Competitive global fares with concierge support.",
+    id: "flights-hotels",
+    slug: "flights-hotels",
+    title: "Flights & Hotels",
+    titleZh: "机票与酒店",
+    summary: "Competitive global airfares and hand-picked stays.",
+    summaryZh: "全球优惠机票与精心挑选的酒店住宿。",
     image: "/american-east-coast-new-york.jpg",
     page: {
-      title: "FLIGHTS",
-      quoteLabel: "Flights",
+      title: "FLIGHTS & HOTELS",
+      titleZh: "机票与酒店",
+      quoteLabel: "Flights & Hotels",
+      quoteLabelZh: "机票与酒店",
       intro:
-        'Tired of constantly scavenging the internet for the best deal? You will be glad to know that MidEarth Travel offers the most competitive rates on flights to destinations around the world. Check out our partner airlines and take advantage of our special fares today. Call 613.236.5226 / 613.236.2323, or send "Request A Quote" on the left of the page to book now.',
+        "Tired of constantly scavenging the internet for the best deal? MidEarth Travel offers competitive rates on flights and hotel rooms around the world. Check out our partner airlines and take advantage of our special fares. For hotel stays, whether you're traveling for business or leisure, tell us the city and your preferred star rating and we'll find the best available price. Call 613.236.5226 / 613.236.2323 or send a Request A Quote on the left side of the page for more information.",
+      introZh:
+        "还在为寻找最优惠的机票和酒店而反复浏览网站吗？Midearth Travel 为全球目的地提供具有竞争力的机票及酒店价格。您可以查询合作航空公司的特价机票；预订酒店时，只需告诉我们城市和期望的星级，我们便会为商务或休闲出行寻找合适价格。欢迎致电 613.236.5226 / 613.236.2323，或通过页面左侧的询价表联系我们。",
       deals: flightDealSeeds,
       disclaimer:
         "*Via the United States: requires a Canadian passport or American visa. All fares before tax.",
       signOff: "Thanks",
-      metaTitle: "Flights | Midearth Travel",
+      metaTitle: "Flights & Hotels | Midearth Travel",
+      metaTitleZh: "机票与酒店 | Midearth Travel",
       metaDescription:
-        "Competitive flight fares from Ottawa to destinations around the world. Request a quote from MidEarth Travel.",
-    },
-  },
-  {
-    id: "hotels",
-    slug: "hotels",
-    title: "Hotels",
-    summary: "From boutique to five-star, hand-picked stays.",
-    image: "/european-cities-paris-eiffel-tower-romantic.jpg",
-    page: {
-      title: "HOTELS",
-      quoteLabel: "Hotels",
-      intro:
-        "Tired of constantly scavenging the internet for the best deal? You will be glad to know that MidEarth Travel offers the most competitive rates for hotel rooms around the world. Whether you're traveling for business or leisure, whether you're looking for value or luxury, MidEarth Travel can accommodate all your needs and wishes. Just name us a city and a preferred star-rating, and we'll give you the best price. Call 613.236.5226 / 613.236.2323 or send a Request A Quote on the left side of the page for more information.",
-      deals: [],
-      disclaimer: "",
-      signOff: "Thanks",
-      metaTitle: "Hotels | Midearth Travel",
-      metaDescription:
-        "Competitive hotel rates worldwide. Request a quote from MidEarth Travel.",
+        "Competitive flight fares and hotel rates worldwide. Request a quote from MidEarth Travel.",
+      metaDescriptionZh:
+        "Midearth Travel 提供全球优惠机票和酒店价格，欢迎提交询价。",
     },
   },
   {

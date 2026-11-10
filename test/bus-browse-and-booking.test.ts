@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
-import { resolveExploreByMonthEntries } from "../src/lib/explore-by-month.ts";
+import {
+  parseMonthEntries,
+  resolveExploreByMonthEntries,
+} from "../src/lib/explore-by-month.ts";
 import { resolveRegionCards } from "../src/data/destinations-by-region.ts";
 import { destinationsByMonth } from "../src/data/destinations-by-month.ts";
 import { destinationsByRegion, groupToursByRegion } from "../src/data/destinations-by-region.ts";
@@ -37,6 +40,35 @@ test("month browse data can require a matching bus tour", () => {
   );
 
   assert.deepEqual(entries[0].destinations.map((destination) => destination.tourSlug), ["bus-tour"]);
+});
+
+test("Bus Tours month data always contains January through December", () => {
+  const entries = parseMonthEntries(
+    JSON.stringify([
+      {
+        month: "May",
+        label: "May",
+        destinations: [],
+      },
+    ]),
+    { completeMonths: true },
+  );
+
+  assert.deepEqual(
+    entries.map((entry) => entry.month),
+    ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+  );
+  assert.deepEqual(entries.find((entry) => entry.month === "Jan")?.destinations, []);
+});
+
+test("Bus Tours keeps empty month tabs and renders an empty state", () => {
+  const source = readFileSync(
+    new URL("../src/components/listing/popular-by-month.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.doesNotMatch(source, /resolvedSource\.filter\(/);
+  assert.match(source, /noToursThisMonth/);
 });
 
 test("region browse data can exclude static showcase cards for bus-only listings", () => {

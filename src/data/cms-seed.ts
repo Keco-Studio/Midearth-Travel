@@ -18,6 +18,10 @@ import {
   footerServiceLinkSeeds,
   serializeFooterLinks,
 } from "../lib/footer-links.ts";
+import {
+  HERO_SLIDES_DATA_KEY,
+  serializeHeroSlides,
+} from "../lib/hero-slides.ts";
 import type {
   FieldDefinition,
   HomeModuleRecord,
@@ -46,6 +50,7 @@ const sharedHomeFieldKeys = new Set([
   "whatsappLabel",
   EXPLORE_MONTHS_DATA_KEY,
   FOOTER_SERVICE_LINKS_KEY,
+  HERO_SLIDES_DATA_KEY,
 ]);
 
 function isLocalizedCopyField(field: FieldDefinition): boolean {
@@ -220,10 +225,16 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
   createModule(
     "hero",
     2,
-    "Manage the fixed hero background, headline, broadcasts, and primary calls to action.",
+    "Manage rotating hero backgrounds, headline, broadcasts, and primary calls to action.",
     "published",
     [
       { key: "backgroundImage", label: "Background image", type: "image", required: true },
+      {
+        key: HERO_SLIDES_DATA_KEY,
+        label: "Hero slides",
+        type: "textarea",
+        required: true,
+      },
       { key: "titleMain", label: "Main title", type: "text", required: true, maxLength: 40 },
       { key: "subtitle", label: "Subtitle", type: "text", required: true, maxLength: 80 },
       { key: "liveLabel", label: "Live label", type: "text", required: true, maxLength: 20 },
@@ -257,6 +268,14 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
     ],
     {
       backgroundImage: "/hero/hero-coast.jpg",
+      [HERO_SLIDES_DATA_KEY]: serializeHeroSlides([
+        {
+          id: "hero-slide-1",
+          image: "/hero/hero-coast.jpg",
+          tourSlug: "",
+          enabled: true,
+        },
+      ]),
       titleMain: "Midearth Travel",
       subtitle: "Your One-Stop Travel Solution",
       liveLabel: "Live",

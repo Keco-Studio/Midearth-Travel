@@ -10,6 +10,7 @@ export type TourFare = {
   label: string;
   price: string;
 };
+import type { TourAddOn } from "@/lib/tour-add-ons";
 
 export type TourPolicy = {
   title: string;
@@ -60,6 +61,7 @@ export type Tour = {
   };
   policies?: TourPolicy[];
   fares?: TourFare[];
+  addOns?: TourAddOn[];
   featured?: boolean;
   hotSale?: boolean;
   busTourPackage?: boolean;

@@ -21,8 +21,12 @@ export const FOOTER_SERVICE_LINKS_KEY = "serviceLinksData";
 export const FOOTER_LINK_FIELD_KEYS = [FOOTER_SERVICE_LINKS_KEY] as const;
 
 export const footerServiceLinkSeeds: FooterLink[] = [
-  { id: "flights", label: "Flights", labelZh: "机票", href: "/services/flights" },
-  { id: "hotels", label: "Hotels", labelZh: "酒店", href: "/services/hotels" },
+  {
+    id: "flights-hotels",
+    label: "Flights & Hotels",
+    labelZh: "机票与酒店",
+    href: "/services/flights-hotels",
+  },
   { id: "charters", label: "Charters", labelZh: "包机服务", href: "/services/charters" },
   {
     id: "travel-insurance",
@@ -47,13 +51,15 @@ export function getFooterLinkEditorData(content: ContentData): {
 } {
   return {
     serviceLinks: restoreStandardServiceLinks(
-      parseFooterLinks(
-        getStringContent(
-          content,
-          FOOTER_SERVICE_LINKS_KEY,
-          serializeFooterLinks(footerServiceLinkSeeds),
+      collapseLegacyFlightHotelLinks(
+        parseFooterLinks(
+          getStringContent(
+            content,
+            FOOTER_SERVICE_LINKS_KEY,
+            serializeFooterLinks(footerServiceLinkSeeds),
+          ),
+          footerServiceLinkSeeds,
         ),
-        footerServiceLinkSeeds,
       ),
     ),
   };
@@ -192,6 +198,24 @@ function restoreStandardServiceLinks(links: FooterLink[]): FooterLink[] {
       href: seed.href,
       labelZh: stored?.labelZh?.trim() || seed.labelZh,
     };
+  });
+}
+
+function collapseLegacyFlightHotelLinks(links: FooterLink[]): FooterLink[] {
+  const legacyIds = new Set(["flights", "hotels"]);
+  const hasLegacy = links.some((link) => legacyIds.has(link.id));
+  if (!hasLegacy) return links;
+
+  const hasCombined = links.some((link) => link.id === "flights-hotels");
+  const firstLegacyIndex = links.findIndex((link) => legacyIds.has(link.id));
+  const combinedSeed = footerServiceLinkSeeds[0]!;
+
+  return links.flatMap((link, index) => {
+    if (legacyIds.has(link.id)) {
+      if (!hasCombined && index === firstLegacyIndex) return [{ ...combinedSeed }];
+      return [];
+    }
+    return [{ ...link }];
   });
 }
 

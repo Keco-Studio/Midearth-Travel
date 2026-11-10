@@ -14,6 +14,7 @@ import {
   Form,
   Image,
   Input,
+  InputNumber,
   Row,
   Space,
   Switch,
@@ -55,6 +56,13 @@ const requiredRules = {
   tourType: [{ required: true, whitespace: true, message: "Enter a tour type" }],
 };
 
+function defaultTicketTypes(category: "activity" | "meal" | "service_fee") {
+  const labels = category === "activity"
+    ? [["adult", "Adult", "成人"], ["child", "Child", "儿童"]]
+    : [["adult", "Adult", "成人"], ["child", "Child", "儿童"], ["senior", "Senior", "长者"]];
+  return labels.map(([id, label, localizedLabel]) => ({ id, label, localizedLabel, priceCents: 0 }));
+}
+
 export function TourEditor({
   tour,
   destinationCategories = destinationCategorySeeds,
@@ -76,6 +84,13 @@ export function TourEditor({
   const initialValues = useMemo(
     () => ({
       ...tour,
+      addOns: (tour.addOns ?? []).map((item) => ({
+        ...item,
+        ticketTypes: item.ticketTypes.map((ticket) => ({
+          ...ticket,
+          priceCents: (typeof ticket.priceCents === "number" ? ticket.priceCents : Number(ticket.priceCents)) / 100,
+        })),
+      })),
       destinationCategoryIds: resolveTourDestinationCategoryIds(tour),
     }),
     [tour],
@@ -180,9 +195,17 @@ export function TourEditor({
   }
 
   function handleFinish(values: TourRecord) {
+    const addOns = (values.addOns ?? []).map((item) => ({
+      ...item,
+      ticketTypes: item.ticketTypes.map((ticket) => ({
+        ...ticket,
+        priceCents: Math.round(Number(ticket.priceCents) * 100),
+      })),
+    }));
     const merged: TourRecord = {
       ...tour,
       ...values,
+      addOns,
       pdfFileName,
       galleryImages: galleryImages.join("\n"),
       essentials: {
@@ -263,6 +286,31 @@ export function TourEditor({
               </Form.Item>
             </Col>
           </Row>
+        </EditorSection>
+
+        <EditorSection title="Optional activities, meals & service fees">
+          <Form.List name="addOns">
+            {(items, { add, remove }) => <>
+              {items.map(({ key, name, ...restField }) => <div key={key} style={{ borderBottom: "1px solid #eee", paddingBottom: 16, marginBottom: 16 }}>
+                <Row gutter={[12, 0]}>
+                  <Col xs={24} md={8}><Form.Item {...restField} name={[name, "name"]} label="Name (English)" rules={[{ required: true }]}><Input /></Form.Item></Col>
+                  <Col xs={24} md={8}><Form.Item {...restField} name={[name, "localizedName"]} label="Name (Chinese)"><Input /></Form.Item></Col>
+                  <Col xs={12} md={4}><Form.Item {...restField} name={[name, "category"]} label="Category"><Select onChange={(category) => { const current = form.getFieldValue(["addOns", name, "ticketTypes"]); if (!Array.isArray(current) || current.length === 0) form.setFieldValue(["addOns", name, "ticketTypes"], defaultTicketTypes(category)); }} options={[{ value: "activity", label: "Activity" }, { value: "meal", label: "Meal" }, { value: "service_fee", label: "Service fee" }]} /></Form.Item></Col>
+                  <Col xs={12} md={4}><Form.Item {...restField} name={[name, "required"]} label="Required" valuePropName="checked"><Switch /></Form.Item></Col>
+                </Row>
+                <Form.List name={[name, "ticketTypes"]}>
+                  {(ticketItems, ticketOps) => <>{ticketItems.map(({ key: ticketKey, name: ticketName, ...ticketRest }) => <Row gutter={[12, 0]} key={ticketKey}>
+                    <Col xs={24} md={7}><Form.Item {...ticketRest} name={[ticketName, "label"]} label="Ticket type" rules={[{ required: true }]}><Input /></Form.Item></Col>
+                    <Col xs={24} md={7}><Form.Item {...ticketRest} name={[ticketName, "localizedLabel"]} label="Chinese label"><Input /></Form.Item></Col>
+                    <Col xs={18} md={7}><Form.Item {...ticketRest} name={[ticketName, "priceCents"]} label="Tax-included price (CAD)" rules={[{ required: true, type: "number", min: 0 }]}><InputNumber min={0} precision={2} step={0.01} style={{ width: "100%" }} /></Form.Item></Col>
+                    <Col xs={6} md={3}><Button danger icon={<DeleteOutlined />} onClick={() => ticketOps.remove(ticketName)} /></Col>
+                  </Row>)}<Button type="dashed" onClick={() => ticketOps.add({ id: `ticket-${Date.now()}`, label: "Adult", localizedLabel: "成人", priceCents: 0 })}>Add ticket type</Button></>}
+                </Form.List>
+                <Button danger type="link" icon={<DeleteOutlined />} onClick={() => remove(name)}>Remove item</Button>
+              </div>)}
+              <Button type="dashed" onClick={() => add({ id: `addon-${Date.now()}`, category: "activity", icon: "ticket", required: false, ticketTypes: defaultTicketTypes("activity") })}>Add sellable item</Button>
+            </>}
+          </Form.List>
         </EditorSection>
 
         <EditorSection title="Schedule and highlights">

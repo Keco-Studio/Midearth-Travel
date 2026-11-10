@@ -50,7 +50,7 @@ export default async function Home() {
   return (
     <main className="min-h-screen">
       <Navbar content={navbar} />
-      <Hero content={hero} />
+      <Hero content={hero} tours={publishedTours} />
       <ToursSection
         content={toursSection}
         tours={publishedTours}

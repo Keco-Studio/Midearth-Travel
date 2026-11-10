@@ -56,6 +56,7 @@ export function Navbar({ content }: { content?: ContentData }) {
     getStringContent(resolvedContent, "primaryPhoneLabel", "").trim() ||
     settings.primaryPhoneLabel.trim() ||
     "613-236-5226";
+  const phoneHref = settings.primaryPhoneHref.trim() || "tel:+16132365226";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -137,7 +138,13 @@ export function Navbar({ content }: { content?: ContentData }) {
 
         <div className="header-right">
           <div className="header-contact">
-            <span>{phoneLabel}</span>
+            <a
+              className="header-phone-link"
+              href={phoneHref}
+              aria-label={`Call ${phoneLabel}`}
+            >
+              <span className="header-phone-label">{phoneLabel}</span>
+            </a>
           </div>
           <button
             className="header-pill"
@@ -169,12 +176,14 @@ export function Navbar({ content }: { content?: ContentData }) {
         >
           <div className="drawer" onClick={(e) => e.stopPropagation()}>
             <div className="drawer-head">
-              <BrandLogo
-                solid
-                alt={logoAlt}
-                src={logoImage || undefined}
-                solidSrc={logoImageSolid || undefined}
-              />
+              <Link className="brand" href="/" onClick={() => setDrawerOpen(false)}>
+                <BrandLogo
+                  solid
+                  alt={logoAlt}
+                  src={logoImage || undefined}
+                  solidSrc={logoImageSolid || undefined}
+                />
+              </Link>
               <button
                 className="drawer-close"
                 onClick={() => setDrawerOpen(false)}
@@ -207,7 +216,7 @@ export function Navbar({ content }: { content?: ContentData }) {
                 <span className={lang === "zh" ? "active" : ""}>中文</span>
               </button>
               <div className="drawer-contact">
-                <div>{phoneLabel}</div>
+                <div><a href={phoneHref}>{phoneLabel}</a></div>
                 <div>{settings.emailLabel}</div>
               </div>
             </div>

@@ -16,10 +16,12 @@ import { AssetPreview } from "@/components/asset-preview";
 import { DestinationCategoryEditor } from "@/components/destination-category-editor";
 import { ExploreByMonthEditor } from "@/components/explore-by-month-editor";
 import { FooterLinksEditor } from "@/components/footer-links-editor";
+import { HeroSlidesEditor } from "@/components/hero-slides-editor";
 import { ServiceCardsEditor, TestimonialsEditor } from "@/components/home-collection-editors";
 import { FORBIDDEN_FIELD_KEYS } from "@/lib/content-rules";
 import { EXPLORE_MONTHS_DATA_KEY } from "@/lib/explore-by-month";
 import { FOOTER_SERVICE_LINKS_KEY } from "@/lib/footer-links";
+import { HERO_SLIDES_DATA_KEY } from "@/lib/hero-slides";
 import { validateInlineImageFile } from "@/lib/inline-image-upload";
 import {
   getFieldSectionHeader,
@@ -81,6 +83,11 @@ export function HomeModuleEditor({
           !(
             module.id === "footer" &&
             field.definition.key === FOOTER_SERVICE_LINKS_KEY
+          ) &&
+          !(
+            module.id === "hero" &&
+            (field.definition.key === HERO_SLIDES_DATA_KEY ||
+              field.definition.key === "backgroundImage")
           ),
       ),
     [module],
@@ -139,6 +146,14 @@ export function HomeModuleEditor({
           ];
         })}
       </ProForm>
+      {module.id === "hero" ? (
+        <HeroSlidesEditor
+          content={module.data}
+          tours={tours}
+          onChange={onChange}
+          onImageUpload={onImageUpload}
+        />
+      ) : null}
       {module.id === "categoryGrid" ? (
         <DestinationCategoryEditor
           categories={destinationCategories}

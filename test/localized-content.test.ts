@@ -44,6 +44,14 @@ test("resolves listing card and tour detail labels from the selected language", 
   assert.equal(getLocalizedStaticText("zh", "hotSales"), "热门优惠");
   assert.equal(getLocalizedStaticText("zh", "category"), "分类");
   assert.equal(getLocalizedStaticText("zh", "regionHeader"), "地区");
+  assert.equal(
+    getLocalizedStaticText("en", "noToursThisMonth"),
+    "No tours are available for this month.",
+  );
+  assert.equal(
+    getLocalizedStaticText("zh", "noToursThisMonth"),
+    "本月暂无可用行程。",
+  );
 });
 
 test("resolves persisted language before the provider exposes localized UI", () => {

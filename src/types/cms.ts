@@ -1,4 +1,5 @@
 import type { BookingLocale } from "@/lib/payment-domain";
+import type { TourAddOn } from "@/lib/tour-add-ons";
 
 export type ContentStatus = "published" | "draft" | "unpublished";
 
@@ -107,6 +108,7 @@ export type TourRecord = {
   localizedNotIncluded: string;
   essentials: TourEssentialFields;
   fares: TourFareFields;
+  addOns?: TourAddOn[];
   pdfTitle: string;
   localizedPdfTitle: string;
   pdfFileName: string;
@@ -168,6 +170,7 @@ export type BookingRecord = {
   children?: number;
   departureSelection?: string;
   notes?: string;
+  addOnSelections?: Array<{ addOnId: string; ticketTypeId: string; quantity: number }>;
   createdAt: string;
   updatedAt: string;
 };

@@ -17,6 +17,19 @@ test("falls back to Homepage Content for the removed media path", () => {
   });
 });
 
+test("does not expose the redundant Global Settings workspace", () => {
+  assert.equal(
+    flattenRoutes(layoutRouteConfig.routes).some(
+      ({ name }) => name === "Global Settings",
+    ),
+    false,
+  );
+  assert.deepEqual(parseLayoutPath("/settings"), {
+    workspace: "home",
+    moduleId: "navbar",
+  });
+});
+
 test("routes standalone booking and contact page editors before Tour Library", () => {
   const contentRoutes = layoutRouteConfig.routes[0]?.routes ?? [];
 

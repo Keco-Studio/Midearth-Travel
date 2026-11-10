@@ -1,9 +1,10 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { Footer } from "@/components/footer";
 import { ServiceDetailPage } from "@/components/services/service-detail-page";
 import {
   SERVICE_WHATSAPP_LABEL,
   SERVICE_WHATSAPP_QR,
+  getCanonicalServiceSlug,
   serviceToPageContent,
   servicesToNavItems,
 } from "@/data/service-pages";
@@ -21,7 +22,7 @@ export async function generateMetadata({
 }) {
   const { slug } = await params;
   const services = await loadHomepageServices();
-  const service = services.find((item) => item.slug === slug);
+  const service = services.find((item) => item.slug === getCanonicalServiceSlug(slug));
   if (!service) return {};
 
   return {
@@ -36,11 +37,16 @@ export default async function ServicePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const canonicalSlug = getCanonicalServiceSlug(slug);
+  if (canonicalSlug !== slug) {
+    permanentRedirect(`/services/${canonicalSlug}`);
+  }
+
   const [services, modules] = await Promise.all([
     loadHomepageServices(),
     loadPublishedHomeModules(),
   ]);
-  const service = services.find((item) => item.slug === slug);
+  const service = services.find((item) => item.slug === canonicalSlug);
   if (!service) notFound();
 
   const aboutSection = getHomeModule(modules, "aboutSection").data;

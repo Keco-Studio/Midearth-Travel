@@ -15,7 +15,7 @@ export type SidebarItem = {
 };
 
 export type SidebarGroup = {
-  label: "Content" | "System";
+  label: "Content";
   items: SidebarItem[];
 };
 
@@ -64,17 +64,6 @@ export function getSidebarNavigation(expandedWorkspace: Workspace | null): Sideb
           id: "payments",
           label: "Payments",
           eyebrow: "Transaction records",
-          children: [],
-        },
-      ],
-    },
-    {
-      label: "System",
-      items: [
-        {
-          id: "settings",
-          label: "Global Settings",
-          eyebrow: "Site basics",
           children: [],
         },
       ],
