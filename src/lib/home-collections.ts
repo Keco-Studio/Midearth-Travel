@@ -32,6 +32,19 @@ export type TestimonialRow = {
 };
 
 export const MAX_HOMEPAGE_TESTIMONIALS = 20;
+export const MAX_SERVICE_PAGE_INTRO_LENGTH = 4000;
+export const MAX_COMBINED_SERVICE_PAGE_INTRO_LENGTH = 8002;
+
+export function isServicePageIntroWithinLimit(
+  serviceId: string,
+  page: Pick<ServicePageFields, "intro" | "introZh">,
+): boolean {
+  const maximum =
+    serviceId === "flights-hotels"
+      ? MAX_COMBINED_SERVICE_PAGE_INTRO_LENGTH
+      : MAX_SERVICE_PAGE_INTRO_LENGTH;
+  return page.intro.length <= maximum && (page.introZh?.length ?? 0) <= maximum;
+}
 
 export function mergeServiceRows(rows: readonly ServiceRow[]): Service[] {
   if (rows.length === 0) {
@@ -39,7 +52,7 @@ export function mergeServiceRows(rows: readonly ServiceRow[]): Service[] {
   }
 
   const seedsById = new Map(services.map((seed) => [seed.id, seed]));
-  return [...rows]
+  const mapped = [...rows]
     .sort((a, b) => a.sort_order - b.sort_order)
     .map((row) => {
       const seed = seedsById.get(row.id);
@@ -54,6 +67,8 @@ export function mergeServiceRows(rows: readonly ServiceRow[]): Service[] {
         page: normalizePageFields(row.page_content, seed?.page, row.title),
       };
     });
+
+  return collapseLegacyFlightHotelServices(mapped);
 }
 
 export function mergeTestimonialRows(
@@ -174,4 +189,83 @@ function clonePage(page: ServicePageFields): ServicePageFields {
     deals: page.deals.map((deal) => ({ ...deal })),
     dealsZh: page.dealsZh?.map((deal) => ({ ...deal })),
   };
+}
+
+function collapseLegacyFlightHotelServices(list: Service[]): Service[] {
+  const legacyIds = new Set(["flights", "hotels"]);
+  const existing = list.find((service) => service.id === "flights-hotels");
+  if (existing) {
+    return list.filter((service) => !legacyIds.has(service.id));
+  }
+
+  const flight = list.find((service) => service.id === "flights");
+  const hotel = list.find((service) => service.id === "hotels");
+  if (!flight && !hotel) return list;
+
+  const seed = services.find((service) => service.id === "flights-hotels");
+  if (!seed) return list;
+
+  const firstLegacyIndex = list.findIndex((service) => legacyIds.has(service.id));
+  const combined: Service = {
+    ...seed,
+    image: flight?.image.trim() || hotel?.image.trim() || seed.image,
+    page: {
+      ...clonePage(seed.page),
+      intro: joinContent(flight?.page.intro, hotel?.page.intro) || seed.page.intro,
+      introZh:
+        joinContent(flight?.page.introZh, hotel?.page.introZh) || seed.page.introZh,
+      signOff: flight?.page.signOff || hotel?.page.signOff || seed.page.signOff,
+      signOffZh:
+        flight?.page.signOffZh || hotel?.page.signOffZh || seed.page.signOffZh,
+      disclaimer:
+        flight?.page.disclaimer || hotel?.page.disclaimer || seed.page.disclaimer,
+      disclaimerZh:
+        flight?.page.disclaimerZh || hotel?.page.disclaimerZh || seed.page.disclaimerZh,
+      deals:
+        flight?.page.deals.length || hotel?.page.deals.length
+          ? mergeServiceDeals(flight?.page.deals ?? [], hotel?.page.deals ?? [])
+          : cloneServiceDeals(seed.page.deals),
+      dealsZh:
+        flight?.page.dealsZh?.length || hotel?.page.dealsZh?.length
+          ? mergeServiceDeals(flight?.page.dealsZh ?? [], hotel?.page.dealsZh ?? [])
+          : cloneServiceDeals(seed.page.dealsZh ?? []),
+    },
+  };
+
+  return list.flatMap((service, index) => {
+    if (index === firstLegacyIndex) return [combined];
+    return legacyIds.has(service.id) ? [] : [service];
+  });
+}
+
+function joinContent(...values: Array<string | undefined>): string {
+  return values
+    .map((value) => value?.trim() ?? "")
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+function cloneServiceDeals(deals: readonly ServiceDeal[]): ServiceDeal[] {
+  return deals.map((deal) => ({ ...deal }));
+}
+
+function mergeServiceDeals(
+  flightDeals: readonly ServiceDeal[],
+  hotelDeals: readonly ServiceDeal[],
+): ServiceDeal[] {
+  const seen = new Set<string>();
+  return [
+    ...flightDeals.map((deal) => ({ deal, source: "flight" })),
+    ...hotelDeals.map((deal) => ({ deal, source: "hotel" })),
+  ].map(({ deal, source }, index) => {
+    const originalId = deal.id.trim() || `deal-${index + 1}`;
+    let id = originalId;
+    let suffix = 2;
+    while (seen.has(id)) {
+      id = `${source}-${originalId}${suffix > 2 ? `-${suffix}` : ""}`;
+      suffix += 1;
+    }
+    seen.add(id);
+    return { ...deal, id };
+  });
 }

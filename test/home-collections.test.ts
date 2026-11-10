@@ -52,9 +52,10 @@ test("uses stored service rows including custom cards and page content", () => {
   const result = mergeServiceRows(rows);
 
   assert.equal(result.length, 2);
-  assert.equal(result[0].title, "Air Fares");
-  assert.equal(result[0].slug, "air-fares");
-  assert.equal(result[0].page.title, "AIR FARES");
+  assert.equal(result[0].title, "Flights & Hotels");
+  assert.equal(result[0].slug, "flights-hotels");
+  assert.equal(result[0].page.title, "FLIGHTS & HOTELS");
+  assert.equal(result[0].page.intro, "Updated intro");
   assert.equal(result[0].page.deals[0]?.route, "Ottawa - Tokyo");
   assert.equal(result[1].title, "Cruises");
   assert.equal(result[1].page.signOff, "Thanks");
@@ -63,16 +64,16 @@ test("uses stored service rows including custom cards and page content", () => {
 test("falls back to seeded services when no rows exist", () => {
   const result = mergeServiceRows([]);
   assert.equal(result.length, services.length);
-  assert.equal(result[0].id, "flights");
+  assert.equal(result[0].id, "flights-hotels");
   assert.ok(result[0].page.intro.length > 0);
 });
 
 test("serializes empty localized service fields as database-safe empty strings", () => {
   const row = serviceToRow(
     {
-      id: "flights",
-      slug: "flights",
-      title: "Flights",
+      id: "flights-hotels",
+      slug: "flights-hotels",
+      title: "Flights & Hotels",
       titleZh: "",
       summary: "Competitive global fares.",
       summaryZh: "",

@@ -73,17 +73,16 @@ test("uses configured Chinese labels while restoring standard Footer service lin
 
   const links = getPublishedFooterLinks(content, "zh").serviceLinks;
   assert.deepEqual(links.map((link) => link.id), [
-    "flights",
-    "hotels",
+    "flights-hotels",
     "charters",
     "travel-insurance",
     "visa-application",
   ]);
   assert.deepEqual(links[0], {
-    id: "flights",
-    label: "机票",
-    labelZh: "机票",
-    href: "/services/flights",
+    id: "flights-hotels",
+    label: "机票与酒店",
+    labelZh: "机票与酒店",
+    href: "/services/flights-hotels",
   });
 });
 
@@ -98,8 +97,7 @@ test("routes seeded services to their service detail pages even when legacy href
   assert.deepEqual(
     getPublishedFooterLinks(content).serviceLinks.map(({ id, href }) => ({ id, href })),
     [
-      { id: "flights", href: "/services/flights" },
-      { id: "hotels", href: "/services/hotels" },
+      { id: "flights-hotels", href: "/services/flights-hotels" },
       { id: "charters", href: "/services/charters" },
       { id: "travel-insurance", href: "/services/travel-insurance" },
       { id: "visa-application", href: "/services/visa-application" },
@@ -119,14 +117,14 @@ test("restores Charters when a legacy footer only stores the other four standard
 
   assert.deepEqual(
     getPublishedFooterLinks(content).serviceLinks.map((link) => link.id),
-    ["flights", "hotels", "charters", "travel-insurance", "visa-application"],
+    ["flights-hotels", "charters", "travel-insurance", "visa-application"],
   );
 });
 
-test("keeps all five footer services mapped to existing service pages", () => {
+test("keeps all four footer services mapped to existing service pages", () => {
   const hrefs = getPublishedFooterLinks({}).serviceLinks.map((link) => link.href);
   assert.deepEqual(hrefs, getServicePageSlugs().map((slug) => `/services/${slug}`));
-  assert.equal(hrefs.length, 5);
+  assert.equal(hrefs.length, 4);
 });
 
 test("adds seeded Chinese labels to legacy Footer service links", () => {
@@ -136,7 +134,7 @@ test("adds seeded Chinese labels to legacy Footer service links", () => {
     ]),
   };
 
-  assert.equal(getPublishedFooterLinks(content, "zh").serviceLinks[0]?.label, "机票");
+  assert.equal(getPublishedFooterLinks(content, "zh").serviceLinks[0]?.label, "机票与酒店");
 });
 
 test("reports invalid service links with actionable editor errors", () => {

@@ -23,6 +23,15 @@ export const SERVICE_BACKGROUND_IMAGE = "/hero/hero-coast.jpg";
 export const SERVICE_WHATSAPP_QR = "/contact/whatsapp-qr.jpg";
 export const SERVICE_WHATSAPP_LABEL = "← Midearth's WhatsApp";
 
+const LEGACY_SERVICE_SLUGS: Readonly<Record<string, string>> = {
+  flights: "flights-hotels",
+  hotels: "flights-hotels",
+};
+
+export function getCanonicalServiceSlug(slug: string): string {
+  return LEGACY_SERVICE_SLUGS[slug] ?? slug;
+}
+
 export function serviceToPageContent(service: Service): ServicePageContent {
   return {
     slug: service.slug,
@@ -53,7 +62,7 @@ export function getServicePageSlugs(): string[] {
 export const serviceNavItems = servicesToNavItems(services);
 
 /** @deprecated Prefer service.page.deals from CMS services */
-export const flightDeals = services.find((s) => s.id === "flights")?.page.deals ?? [];
+export const flightDeals = services.find((s) => s.id === "flights-hotels")?.page.deals ?? [];
 
 /** @deprecated Prefer service pages from CMS */
 export const servicePages = services.map(serviceToPageContent);
