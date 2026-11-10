@@ -18,6 +18,13 @@ export type HeroSlide = {
   focalPoint: HeroSlideFocalPoint;
 };
 
+export class HeroSlidesPublishError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "HeroSlidesPublishError";
+  }
+}
+
 export function parseHeroSlides(content: ContentData): HeroSlide[] {
   const serialized = content[HERO_SLIDES_DATA_KEY];
 
@@ -98,6 +105,14 @@ export function withHeroSlides(
   }
 
   return next;
+}
+
+export function validateHeroSlidesForPublish(content: ContentData): void {
+  if (getEnabledHeroSlides(content).length === 0) {
+    throw new HeroSlidesPublishError(
+      "Add and enable at least one Hero slide with an uploaded image before publishing.",
+    );
+  }
 }
 
 function normalizeHeroSlide(value: unknown): HeroSlide | null {

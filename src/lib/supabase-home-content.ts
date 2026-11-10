@@ -3,6 +3,7 @@ import "server-only";
 import { homeModuleSeeds } from "@/data/cms-seed";
 import {
   canonicalizeHomeModule,
+  canonicalizeHomeModuleForPublish,
   createDraftHomeModuleRow,
   createPublishedHomeModuleRow,
   mergeHomeModuleRows,
@@ -56,7 +57,7 @@ export async function saveHomeModuleDraft(
 export async function publishHomeModule(id: HomeModuleId): Promise<HomeModuleRecord> {
   const existing = await getHomeModuleRow(id);
   const baseRow = existing ?? toHomeModuleRow(getSeedModule(id));
-  const canonicalDraft = canonicalizeHomeModule(
+  const canonicalDraft = canonicalizeHomeModuleForPublish(
     getMergedModule([baseRow], id, "draft"),
   );
   const canonicalRow: HomeModuleRow = {

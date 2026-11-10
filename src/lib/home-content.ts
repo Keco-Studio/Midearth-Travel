@@ -1,5 +1,11 @@
 import { homeModuleSeeds } from "../data/cms-seed.ts";
 export { getBooleanContent, getStringContent } from "./content-values.ts";
+import {
+  HERO_SLIDES_DATA_KEY,
+  parseHeroSlides,
+  serializeHeroSlides,
+  validateHeroSlidesForPublish,
+} from "./hero-slides.ts";
 import type {
   ContentStatus,
   ContentValue,
@@ -90,7 +96,15 @@ export function canonicalizeHomeModule(
     throw new Error(`Unknown homepage module: ${candidate.id}`);
   }
 
-  const normalizedCandidateData = normalizeLegacyLocalizedData(candidate.data, seed.fields);
+  let normalizedCandidateData = normalizeLegacyLocalizedData(candidate.data, seed.fields);
+  if (candidate.id === "hero") {
+    normalizedCandidateData = {
+      ...normalizedCandidateData,
+      [HERO_SLIDES_DATA_KEY]: serializeHeroSlides(
+        parseHeroSlides(normalizedCandidateData),
+      ),
+    };
+  }
   const data = seed.fields.reduce<Record<string, ContentValue>>((result, field) => {
     const storedValue = normalizedCandidateData[field.key];
     const seedValue = seed.data[field.key];
@@ -127,6 +141,16 @@ export function canonicalizeHomeModule(
     fields: seed.fields.map((field) => ({ ...field })),
     data,
   };
+}
+
+export function canonicalizeHomeModuleForPublish(
+  candidate: HomeModuleRecord,
+): HomeModuleRecord {
+  const canonical = canonicalizeHomeModule(candidate);
+  if (canonical.id === "hero") {
+    validateHeroSlidesForPublish(canonical.data);
+  }
+  return canonical;
 }
 
 function normalizeLegacyLocalizedData(

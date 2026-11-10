@@ -1,6 +1,7 @@
 import { assertAdminRequest } from "@/lib/admin-auth";
 import { EXPECTED_CONTENT_MODULE_IDS } from "@/lib/content-rules";
 import { canonicalizeHomeModule } from "@/lib/home-content";
+import { HeroSlidesPublishError } from "@/lib/hero-slides";
 import {
   syncContactFieldsToFinalCta,
   syncContactFieldsToGlobalSettings,
@@ -64,7 +65,7 @@ export async function PUT(
   } catch (error) {
     return Response.json(
       { error: error instanceof Error ? error.message : "Unable to update homepage module" },
-      { status: 500 },
+      { status: error instanceof HeroSlidesPublishError ? 400 : 500 },
     );
   }
 }
