@@ -8,8 +8,7 @@ export type Workspace =
   | "tours"
   | "bookings"
   | "inquiries"
-  | "payments"
-  | "settings";
+  | "payments";
 
 export type AdminState = {
   workspace: Workspace;
@@ -29,7 +28,6 @@ const workspaceTitles: Record<Workspace, string> = {
   bookings: "Bookings",
   inquiries: "Inquiry Inbox",
   payments: "Payments",
-  settings: "Global Settings",
 };
 
 const expandableWorkspaces = new Set<Workspace>(["home"]);

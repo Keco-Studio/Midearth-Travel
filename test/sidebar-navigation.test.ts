@@ -30,16 +30,16 @@ test("only shows homepage module children while home workspace is selected", () 
   assert.equal(getVisibleHomeModuleItems(null).length, 0);
 });
 
-test("keeps system items separate from content items", () => {
+test("does not show a redundant Global Settings navigation group", () => {
   const navigation = getSidebarNavigation(null);
-  const systemGroup = navigation.find((group) => group.label === "System");
 
-  assert.ok(systemGroup);
-  assert.deepEqual(
-    systemGroup.items.map((item) => item.label),
-    ["Global Settings"],
+  assert.deepEqual(navigation.map((group) => group.label), ["Content"]);
+  assert.equal(
+    navigation.some((group) =>
+      group.items.some((item) => item.label === "Global Settings"),
+    ),
+    false,
   );
-  assert.ok(systemGroup.items.every((item) => item.children.length === 0));
 });
 
 test("keeps homepage children hidden when Homepage Content is collapsed", () => {

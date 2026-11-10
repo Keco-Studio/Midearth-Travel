@@ -13,7 +13,6 @@ import { BookingsWorkspace } from "@/components/bookings-workspace";
 import { AdminAccountMenu } from "@/components/admin-account-menu";
 import { HomeModuleEditor } from "@/components/home-module-editor";
 import { PaymentsWorkspace } from "@/components/payments-workspace";
-import { SettingsPanel } from "@/components/settings-panel";
 import { HomeModuleMenuItem, MenuBrandHeader, menuBrandMarkStyle } from "@/components/cms-menu-items";
 import { StatusTag } from "@/components/status-tag";
 import { ToursWorkspace } from "@/components/tours-workspace";
@@ -55,7 +54,6 @@ type AdminShellProps = {
   initialDestinationCategories: DestinationCategory[];
   initialServices: Service[];
   initialTestimonials: Testimonial[];
-  initialSettings: SiteSettings;
   initialPayments: PaymentRecord[];
   initialBookings?: BookingRecord[];
   initialTours?: TourRecord[];
@@ -67,7 +65,6 @@ export function AdminShell({
   initialDestinationCategories,
   initialServices,
   initialTestimonials,
-  initialSettings,
   initialPayments,
   initialBookings = bookingSeeds,
   initialTours = [],
@@ -87,7 +84,6 @@ export function AdminShell({
   );
   const [services, setServices] = useState(initialServices);
   const [testimonials, setTestimonials] = useState(initialTestimonials);
-  const [settings, setSettings] = useState(initialSettings);
   const [bookings, setBookings] = useState(
     initialBookings.length > 0 ? initialBookings : bookingSeeds,
   );
@@ -170,9 +166,6 @@ export function AdminShell({
         }
         return next;
       });
-      if (payload.settings) {
-        setSettings(payload.settings);
-      }
       message.success("Draft saved to Supabase");
     } catch (error) {
       message.error(getErrorMessage(error, "Draft could not be saved"));
@@ -207,9 +200,6 @@ export function AdminShell({
         }
         return next;
       });
-      if (payload.settings) {
-        setSettings(payload.settings);
-      }
       message.success("Module published to the homepage");
     } catch (error) {
       message.error(getErrorMessage(error, "Module could not be published"));
@@ -424,7 +414,6 @@ export function AdminShell({
           destinationCategories,
           services,
           testimonials,
-          settings,
           payments: initialPayments,
           bookings,
           tours,
@@ -433,63 +422,6 @@ export function AdminShell({
           onTestimonialsChange: setTestimonials,
           onBookingsChange: setBookings,
           onToursChange: setTours,
-          onSettingsChange: (nextSettings, extras) => {
-            setSettings(nextSettings);
-            setState((current) => {
-              let next = current;
-              if (extras?.finalCtaModule) {
-                next = applyPersistedHomeModule(
-                  next,
-                  extras.finalCtaModule,
-                  extras.finalCtaModule.data,
-                );
-              } else {
-                next = {
-                  ...next,
-                  homeModules: next.homeModules.map((module) =>
-                    module.id === "finalCta"
-                      ? {
-                          ...module,
-                          data: {
-                            ...module.data,
-                            phoneLabel: nextSettings.primaryPhoneLabel,
-                            emailLabel: nextSettings.emailLabel,
-                            officeAddress: nextSettings.officeAddress,
-                            officeAddressZh: nextSettings.officeAddressZh,
-                          },
-                        }
-                      : module,
-                  ),
-                };
-              }
-
-              for (const linkedModule of extras?.linkedModules ?? []) {
-                next = applyPersistedHomeModule(next, linkedModule, linkedModule.data);
-              }
-
-              if (!extras?.linkedModules?.length) {
-                next = {
-                  ...next,
-                  homeModules: next.homeModules.map((module) =>
-                    module.id === "navbar" ||
-                    module.id === "newsletter" ||
-                    module.id === "footer"
-                      ? {
-                          ...module,
-                          data: {
-                            ...module.data,
-                            primaryPhoneLabel: nextSettings.primaryPhoneLabel,
-                            secondaryPhoneLabel: nextSettings.secondaryPhoneLabel,
-                          },
-                        }
-                      : module,
-                  ),
-                };
-              }
-
-              return next;
-            });
-          },
           onViewBooking: (bookingId) => {
             setState((current) => openBooking(current, bookingId));
           },
@@ -624,7 +556,6 @@ function renderWorkspace(
     destinationCategories: DestinationCategory[];
     services: Service[];
     testimonials: Testimonial[];
-    settings: SiteSettings;
     payments: PaymentRecord[];
     bookings: BookingRecord[];
     tours: TourRecord[];
@@ -633,13 +564,6 @@ function renderWorkspace(
     onTestimonialsChange: (testimonials: Testimonial[]) => void;
     onBookingsChange: (bookings: BookingRecord[]) => void;
     onToursChange: (tours: TourRecord[]) => void;
-    onSettingsChange: (
-      settings: SiteSettings,
-      extras?: {
-        finalCtaModule?: HomeModuleRecord | null;
-        linkedModules?: HomeModuleRecord[];
-      },
-    ) => void;
     onViewBooking: (bookingId: string) => void;
     onViewPayment: (paymentId: string) => void;
     onFocusHandled: () => void;
@@ -710,15 +634,6 @@ function renderWorkspace(
         focusPaymentId={state.focusPaymentId}
         onFocusHandled={handlers.onFocusHandled}
         onViewBooking={handlers.onViewBooking}
-      />
-    );
-  }
-
-  if (state.workspace === "settings") {
-    return (
-      <SettingsPanel
-        settings={handlers.settings}
-        onSaved={handlers.onSettingsChange}
       />
     );
   }
