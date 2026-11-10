@@ -9,9 +9,13 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useState, type FocusEvent } from "react";
 import { HeroBroadcast } from "@/components/hero-broadcast";
-import { getStringContent, type ContentData } from "@/lib/content-values";
+import { HeroSlideshow } from "@/components/hero-slideshow";
+import type { Tour } from "@/data/tours";
+import type { ContentData } from "@/lib/content-values";
 import { useLang } from "@/context/lang-context";
+import { resolvePublicHeroSlides } from "@/lib/hero-carousel";
 import { getLocalizedContent } from "@/lib/localized-content";
 import {
   getHeroBroadcastContent,
@@ -21,9 +25,17 @@ import styles from "./hero.module.css";
 
 const cardIcons = { Plane, Bus, Globe, Ship };
 
-export function Hero({ content = {} }: { content?: ContentData }) {
+export function Hero({
+  content = {},
+  tours = [],
+}: {
+  content?: ContentData;
+  tours?: Tour[];
+}) {
   const { lang } = useLang();
-  const backgroundImage = getStringContent(content, "backgroundImage", "/hero/hero-coast.jpg");
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const slides = resolvePublicHeroSlides(content, tours, lang);
   const titleMain = getLocalizedContent(content, "titleMain", lang, "Midearth Travel");
   const subtitle = getLocalizedContent(content, "subtitle", lang, "Your One-Stop Travel Solution");
   const primaryButtonText = getLocalizedContent(content, "primaryButtonText", lang, "Explore Tours");
@@ -48,18 +60,18 @@ export function Hero({ content = {} }: { content?: ContentData }) {
   ];
 
   return (
-    <section className={styles.hero}>
-      <div className={styles.bg} aria-hidden>
-        <Image
-          src={backgroundImage}
-          alt=""
-          fill
-          priority
-          unoptimized
-          sizes="100vw"
-          className={styles.bgImage}
-        />
-      </div>
+    <section
+      className={styles.hero}
+      onBlurCapture={(event: FocusEvent<HTMLElement>) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setFocused(false);
+        }
+      }}
+      onFocusCapture={() => setFocused(true)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <HeroSlideshow slides={slides} hovered={hovered} focused={focused} />
       <div className={styles.overlay} aria-hidden />
 
       <div className={styles.inner}>

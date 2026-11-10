@@ -138,7 +138,8 @@ export function HeroSlidesEditor({
               key={slide.id}
               style={{
                 display: "grid",
-                gridTemplateColumns: "minmax(220px, 320px) minmax(0, 1fr)",
+                gridTemplateColumns:
+                  "repeat(auto-fit, minmax(min(100%, 280px), 1fr))",
                 gap: 20,
                 padding: 16,
                 border: "1px solid #e8e2d4",
@@ -220,7 +221,8 @@ export function HeroSlidesEditor({
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "minmax(0, 1fr) minmax(220px, auto)",
+                  gridTemplateColumns:
+                    "repeat(auto-fit, minmax(min(100%, 220px), 1fr))",
                   alignContent: "start",
                   gap: 16,
                 }}

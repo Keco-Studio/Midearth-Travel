@@ -19,15 +19,121 @@
   --hero-terra: #c5481f;
 }
 
-.bg {
+.slideshow {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  overflow: hidden;
 }
 
-.bgImage {
+.slideFrame {
+  position: absolute;
+  inset: 0;
+}
+
+.slidePrevious,
+.slideActive {
+  z-index: 0;
+  opacity: 1;
+}
+
+.slideEntering {
+  z-index: 1;
+  animation: heroSlideFade 0.7s ease both;
+}
+
+.slideImage {
   object-fit: cover;
-  object-position: center 42%;
+}
+
+.focalLeft {
+  object-position: left center;
+}
+
+.focalCenter {
+  object-position: center center;
+}
+
+.focalRight {
+  object-position: right center;
+}
+
+@keyframes heroSlideFade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.slideLink {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.slideLink:focus-visible {
+  outline: 3px solid var(--hero-amber);
+  outline-offset: -6px;
+}
+
+.carouselControls {
+  position: absolute;
+  top: 50%;
+  right: clamp(16px, 3vw, 42px);
+  left: clamp(16px, 3vw, 42px);
+  z-index: 4;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.carouselButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--hero-forest);
+  cursor: pointer;
+  pointer-events: auto;
+  background: rgba(253, 250, 244, 0.88);
+  border: 1px solid rgba(22, 53, 48, 0.24);
+  border-radius: 50%;
+  box-shadow: 0 8px 24px rgba(10, 29, 55, 0.18);
+  backdrop-filter: blur(10px);
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.carouselButton:is(:hover, :focus-visible) {
+  background: #fff;
+  border-color: var(--hero-gold);
+  transform: scale(1.05);
+}
+
+@media (max-width: 520px) {
+  .carouselControls {
+    top: auto;
+    right: auto;
+    bottom: 14px;
+    left: 50%;
+    gap: 8px;
+    transform: translateX(-50%);
+  }
+
+  .carouselButton {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slideEntering {
+    animation: none;
+  }
 }
 
 .overlay {
@@ -51,7 +157,7 @@
 
 .inner {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -62,6 +168,7 @@
   margin: 0 auto;
   padding: 6.25rem 1.5rem 3rem;
   text-align: center;
+  pointer-events: none;
 }
 
 .headline {
@@ -222,6 +329,7 @@
   width: 100%;
   max-width: 760px;
   margin: 0 auto 2.25rem;
+  pointer-events: auto;
 }
 
 @media (max-width: 900px) {
@@ -350,6 +458,7 @@
   justify-content: center;
   gap: 1rem;
   margin-bottom: 2.5rem;
+  pointer-events: auto;
 }
 
 @media (max-width: 520px) {
