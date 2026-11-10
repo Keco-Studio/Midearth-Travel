@@ -118,7 +118,7 @@
   .carouselControls {
     top: auto;
     right: auto;
-    bottom: 14px;
+    bottom: 4px;
     left: 50%;
     gap: 8px;
     transform: translateX(-50%);

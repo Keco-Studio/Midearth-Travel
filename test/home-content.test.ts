@@ -85,7 +85,8 @@ test("seeds the Hero with one CMS-managed background slide", () => {
 });
 
 test("migrates a stored legacy Hero using its own background image", () => {
-  const { slidesData: _slidesData, ...legacyData } = heroSeed.data;
+  const legacyData = { ...heroSeed.data };
+  delete legacyData.slidesData;
   const legacy: HomeModuleRow = {
     ...storedHero,
     published_data: {

@@ -66,3 +66,10 @@ test("styles stable crossfades, focal cropping, controls, and reduced motion", (
   assert.match(css, /\.carouselButton\s*\{[\s\S]*width:\s*44px;[\s\S]*height:\s*44px;/);
   assert.match(css, /@media \(prefers-reduced-motion:\s*reduce\)/);
 });
+
+test("keeps mobile carousel controls below the Hero statistics", () => {
+  assert.match(
+    css,
+    /@media \(max-width:\s*520px\)\s*\{[\s\S]*?\.carouselControls\s*\{[\s\S]*?bottom:\s*4px;/,
+  );
+});
