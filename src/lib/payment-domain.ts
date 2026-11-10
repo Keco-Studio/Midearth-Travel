@@ -1,4 +1,5 @@
 import type Stripe from "stripe";
+import type { TourAddOnSelection } from "./tour-add-ons";
 
 export type InternalPaymentStatus = "pending" | "paid" | "failed";
 
@@ -10,6 +11,7 @@ export type CheckoutInput = {
   paymentType: "deposit" | "balance" | "full";
   customerEmail: string;
   bookingId?: string;
+  addOnSelections?: TourAddOnSelection[];
 };
 
 export type TourBookingInput = {
@@ -111,6 +113,7 @@ export function validateCheckoutInput(value: unknown): CheckoutInput {
     customerEmail,
   };
   if (typeof input.bookingId === "string" && input.bookingId.trim()) result.bookingId = input.bookingId.trim();
+  if (Array.isArray(input.addOnSelections)) result.addOnSelections = input.addOnSelections as TourAddOnSelection[];
   return result;
 }
 

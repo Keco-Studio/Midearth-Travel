@@ -19,12 +19,13 @@ export type BookingRow = {
   child_count?: number | null;
   departure_selection?: string | null;
   notes: string | null;
+  add_on_selections?: Array<{ addOnId: string; ticketTypeId: string; quantity: number }> | null;
   created_at: string;
   updated_at: string;
 };
 
 export function rowToBooking(row: BookingRow): BookingRecord {
-  return {
+  const booking: BookingRecord = {
     id: row.id,
     reference: row.reference,
     status: row.status,
@@ -45,6 +46,10 @@ export function rowToBooking(row: BookingRow): BookingRecord {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+  if (row.add_on_selections !== undefined && row.add_on_selections !== null) {
+    booking.addOnSelections = row.add_on_selections;
+  }
+  return booking;
 }
 
 export function bookingToRow(booking: BookingRecord): BookingRow {
@@ -62,6 +67,7 @@ export function bookingToRow(booking: BookingRecord): BookingRow {
     departure_date: booking.departureDate ?? null,
     party_size: booking.partySize ?? null,
     notes: booking.notes ?? null,
+    add_on_selections: booking.addOnSelections ?? [],
     created_at: booking.createdAt,
     updated_at: booking.updatedAt,
   };

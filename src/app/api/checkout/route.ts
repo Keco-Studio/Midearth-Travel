@@ -5,6 +5,7 @@ import {
   normalizeCurrency,
   validateCheckoutInput,
 } from "@/lib/payment-domain";
+import { calculateAddOnTotal, validateAddOnSelections } from "@/lib/tour-add-ons";
 import { getStripe } from "@/lib/stripe";
 import {
   attachStripeSession,
@@ -25,6 +26,10 @@ export async function POST(request: Request) {
     if (!fare) return Response.json({ error: "Fare not found" }, { status: 400 });
 
     const amountCents = getFareAmountInCents(fare.price);
+    const tourTaxCents = Math.round(amountCents * 0.13);
+    const addOnSelections = validateAddOnSelections(tour.addOns ?? [], input.addOnSelections ?? []);
+    const addOnTotal = calculateAddOnTotal(tour.addOns ?? [], addOnSelections);
+    const totalAmountCents = amountCents + tourTaxCents + addOnTotal;
     const currency = normalizeCurrency("CAD");
     const paymentId = `pay_${randomUUID()}`;
     const reference = `PAY-${new Date().getUTCFullYear()}-${paymentId.slice(-8).toUpperCase()}`;
@@ -37,7 +42,7 @@ export async function POST(request: Request) {
       fareLabel: fare.label,
       paymentType: input.paymentType,
       customerEmail: input.customerEmail,
-      amountCents,
+      amountCents: totalAmountCents,
       currency,
     });
 
@@ -55,13 +60,18 @@ export async function POST(request: Request) {
           quantity: 1,
           price_data: {
             currency,
-            unit_amount: amountCents,
+            unit_amount: amountCents + tourTaxCents,
             product_data: {
               name: `${tour.title} — ${fare.label}`,
               description: `${input.paymentType} payment for ${tour.title}`,
             },
           },
         },
+        ...addOnSelections.map((selection) => {
+          const item = tour.addOns!.find((candidate) => candidate.id === selection.addOnId)!;
+          const ticket = item.ticketTypes.find((candidate) => candidate.id === selection.ticketTypeId)!;
+          return { quantity: selection.quantity, price_data: { currency, unit_amount: ticket.priceCents, product_data: { name: `${item.name} — ${ticket.label}`, description: `Tax-inclusive add-on for ${tour.title}` } } };
+        }),
       ],
       metadata: {
         paymentId,
@@ -69,6 +79,7 @@ export async function POST(request: Request) {
         tourSlug: tour.slug,
         fareLabel: fare.label,
         paymentType: input.paymentType,
+        addOnTotalCents: String(addOnTotal),
       },
       success_url: returnUrls.successUrl,
       cancel_url: returnUrls.cancelUrl,
