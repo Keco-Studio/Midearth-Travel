@@ -1,10 +1,16 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useState } from "react";
+import { FormEvent, useReducer, useState } from "react";
 import { useLang } from "@/context/lang-context";
 import { useSiteSettings } from "@/context/site-settings-context";
 import { getContactQuoteRequirements } from "@/lib/contact-prefill";
+import {
+  createContactSubmissionState,
+  getContactConfirmationMessage,
+  getContactReferenceLine,
+  reduceContactSubmissionState,
+} from "@/lib/contact-submission-state";
 import { type ContentData } from "@/lib/content-values";
 import { getLocalizedContent } from "@/lib/localized-content";
 import styles from "./contact-page.module.css";
@@ -55,13 +61,17 @@ export function ContactPage({
     email: prefilledEmail ?? "",
     requirements: getInitialContactRequirements(tourTitle, quoteRequested, lang, text.quoteRequestedText),
   }));
-  const [status, setStatus] = useState("");
+  const [submission, dispatchSubmission] = useReducer(
+    reduceContactSubmissionState,
+    undefined,
+    createContactSubmissionState,
+  );
   const [busy, setBusy] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
-    setStatus("");
+    dispatchSubmission({ type: "started" });
     try {
       const response = await fetch("/api/contact", {
         method: "POST",
@@ -71,9 +81,15 @@ export function ContactPage({
       const payload = (await response.json()) as { ok?: boolean; reference?: string; error?: string };
       if (!response.ok) throw new Error(payload.error ?? text.failure);
       setForm({ name: "", phone: "", email: "", requirements: "" });
-      setStatus(text.successTemplate.replace("{{reference}}", payload.reference ?? ""));
+      dispatchSubmission({
+        type: "succeeded",
+        reference: payload.reference ?? "",
+      });
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : text.failure);
+      dispatchSubmission({
+        type: "failed",
+        error: error instanceof Error ? error.message : text.failure,
+      });
     } finally {
       setBusy(false);
     }
@@ -97,15 +113,51 @@ export function ContactPage({
         <div className={styles.shell}>
           <aside className={styles.sidebar}>
             <section className={styles.formCard} aria-labelledby="quote-title">
-              <h2 id="quote-title" className={styles.formTitle}>{text.formTitle}</h2>
-              <form className={styles.form} onSubmit={submit}>
-                <input className={styles.input} required placeholder={text.namePlaceholder} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
-                <input className={styles.input} required placeholder={text.phonePlaceholder} value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} />
-                <input className={styles.input} required type="email" placeholder={text.emailPlaceholder} value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} />
-                <textarea className={`${styles.input} ${styles.textarea}`} required placeholder={text.requirementsPlaceholder} value={form.requirements} onChange={(event) => setForm({ ...form, requirements: event.target.value })} />
-                <button className={styles.button} type="submit" disabled={busy}>{busy ? text.sending : text.submit}</button>
-                {status ? <p className={styles.status} role="status">{status}</p> : null}
-              </form>
+              {submission.view === "success" ? (
+                <div className={styles.confirmation}>
+                  <span className={styles.confirmationIcon} aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                      <path d="m5 12.5 4.2 4.2L19 7" />
+                    </svg>
+                  </span>
+                  <h2 id="quote-title" className={styles.confirmationTitle}>
+                    {zh ? "申请已提交" : "Request submitted"}
+                  </h2>
+                  <p className={styles.confirmationMessage} role="status">
+                    {getContactConfirmationMessage(text.successTemplate)}
+                  </p>
+                  {submission.reference ? (
+                    <p
+                      className={styles.confirmationReference}
+                      aria-label={getContactReferenceLine(lang, submission.reference)}
+                    >
+                      <span aria-hidden="true">
+                        {zh ? "申请编号：" : "Reference: "}
+                      </span>
+                      <strong aria-hidden="true">{submission.reference}</strong>
+                    </p>
+                  ) : null}
+                  <button
+                    className={`${styles.button} ${styles.confirmationBack}`}
+                    type="button"
+                    onClick={() => dispatchSubmission({ type: "returned" })}
+                  >
+                    {zh ? "返回填写" : "Back to form"}
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <h2 id="quote-title" className={styles.formTitle}>{text.formTitle}</h2>
+                  <form className={styles.form} onSubmit={submit}>
+                    <input className={styles.input} required placeholder={text.namePlaceholder} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
+                    <input className={styles.input} required placeholder={text.phonePlaceholder} value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} />
+                    <input className={styles.input} required type="email" placeholder={text.emailPlaceholder} value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} />
+                    <textarea className={`${styles.input} ${styles.textarea}`} required placeholder={text.requirementsPlaceholder} value={form.requirements} onChange={(event) => setForm({ ...form, requirements: event.target.value })} />
+                    <button className={styles.button} type="submit" disabled={busy}>{busy ? text.sending : text.submit}</button>
+                    {submission.error ? <p className={styles.status} role="status">{submission.error}</p> : null}
+                  </form>
+                </>
+              )}
             </section>
           </aside>
 
