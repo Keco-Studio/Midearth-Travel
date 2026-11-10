@@ -17,6 +17,7 @@ import {
 } from "antd";
 import { useEffect, useMemo, useState } from "react";
 import { StatusTag } from "@/components/status-tag";
+import { SyncedHorizontalScroller } from "@/components/synced-horizontal-scroller";
 import { TourEditor } from "@/components/tour-editor";
 import { TourTypeAutoComplete } from "@/components/tour-type-autocomplete";
 import {
@@ -61,10 +62,6 @@ export function ToursWorkspace({
     () => getTourTypeOptions(tourState.records, tourState.customTypes),
     [tourState.customTypes, tourState.records],
   );
-
-  useEffect(() => {
-    setTourState(createInitialTourWorkspaceState(tours));
-  }, [tours]);
 
   useEffect(() => {
     if (tours.length > 0) return;
@@ -320,39 +317,41 @@ export function ToursWorkspace({
 
       <Row gutter={[24, 24]}>
         <Col xs={24}>
-          <ProTable<TourRecord>
-            headerTitle={false}
-            columns={columns}
-            dataSource={tourState.records}
-            rowKey="slug"
-            search={false}
-            options={{ density: true, setting: true, reload: false }}
-            pagination={false}
-            scroll={{ x: 1080 }}
-            toolBarRender={() => [
-              <Button
-                key="new-tour"
-                type="primary"
-                className="cms-primary-action"
-                onClick={openNewTour}
-              >
-                New Tour
-              </Button>,
-            ]}
-            locale={{
-              emptyText: (
-                <Empty description="No tours yet">
-                  <Button
-                    type="primary"
-                    className="cms-primary-action"
-                    onClick={openNewTour}
-                  >
-                    New Tour
-                  </Button>
-                </Empty>
-              ),
-            }}
-          />
+          <SyncedHorizontalScroller>
+            <ProTable<TourRecord>
+              headerTitle={false}
+              columns={columns}
+              dataSource={tourState.records}
+              rowKey="slug"
+              search={false}
+              options={{ density: true, setting: true, reload: false }}
+              pagination={false}
+              scroll={{ x: 1080 }}
+              toolBarRender={() => [
+                <Button
+                  key="new-tour"
+                  type="primary"
+                  className="cms-primary-action"
+                  onClick={openNewTour}
+                >
+                  New Tour
+                </Button>,
+              ]}
+              locale={{
+                emptyText: (
+                  <Empty description="No tours yet">
+                    <Button
+                      type="primary"
+                      className="cms-primary-action"
+                      onClick={openNewTour}
+                    >
+                      New Tour
+                    </Button>
+                  </Empty>
+                ),
+              }}
+            />
+          </SyncedHorizontalScroller>
         </Col>
       </Row>
     </Space>
