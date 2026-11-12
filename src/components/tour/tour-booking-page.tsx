@@ -10,9 +10,12 @@ import { type Tour, getTourDisplayTitle } from "@/data/tours";
 import { type ContentData } from "@/lib/content-values";
 import {
   getLocalizedContent,
-  getLocalizedTourList,
   getLocalizedTourValue,
 } from "@/lib/localized-content";
+import {
+  getTourDepartureOptions,
+  isBookableTourDeparture,
+} from "@/lib/tour-departure-availability";
 import {
   buildTourBookingRequest,
   type TourBookingFormValues,
@@ -52,7 +55,15 @@ export function TourBookingPage({
 
   const title = getLocalizedTourValue(lang, tour.localizedTitle, getTourDisplayTitle(tour));
   const duration = getLocalizedTourValue(lang, tour.localizedDuration, tour.duration);
-  const departures = getLocalizedTourList(lang, tour.localizedDepartures, tour.departures ?? []);
+  const departureOptions = getTourDepartureOptions(
+    lang,
+    tour.departures ?? [],
+    tour.localizedDepartures ?? [],
+  );
+  const canContinue = isBookableTourDeparture(
+    form.departureDate,
+    departureOptions,
+  );
   const fare = tour.fares?.[0];
   const addOns = tour.addOns ?? [];
   const addOnTotal = calculateAddOnTotal(addOns, addOnSelections);
@@ -98,6 +109,7 @@ export function TourBookingPage({
 
   async function submitBooking(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!canContinue) return;
     setError(null);
     setSaving(true);
     try {
@@ -189,8 +201,14 @@ export function TourBookingPage({
                       onChange={(event) => updateForm("departureDate", event.target.value)}
                     >
                       <option value="">{text.selectDeparture}</option>
-                      {departures.map((departure) => (
-                        <option key={departure} value={departure}>{departure}</option>
+                      {departureOptions.map((departure) => (
+                        <option
+                          key={departure.value}
+                          value={departure.value}
+                          disabled={departure.soldOut}
+                        >
+                          {departure.label}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -223,7 +241,11 @@ export function TourBookingPage({
                   </div>
 
                   <div className={styles.actionRow}>
-                    <button type="submit" className={styles.primaryButton} disabled={saving || !fare}>
+                    <button
+                      type="submit"
+                      className={styles.primaryButton}
+                      disabled={saving || !fare || !canContinue}
+                    >
                       {saving ? <LoaderCircle size={17} className="animate-spin" aria-hidden /> : <ArrowRight size={17} aria-hidden />}
                       {text.continue}
                     </button>
