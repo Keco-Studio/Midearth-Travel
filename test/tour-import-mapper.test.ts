@@ -101,6 +101,42 @@ test("parseItineraryFromRichText extracts Chinese day-by-day content", () => {
   ]);
 });
 
+test("parseItineraryFromRichText accepts common Chinese day heading separators", () => {
+  const separators = ["：", ":", "｜", "|", "—", "–", "-", "、", ".", "．"];
+
+  for (const separator of separators) {
+    const itinerary = parseItineraryFromRichText(
+      `<p><strong>第1天 ${separator} 渥太华 - 魁北克城</strong><br />早上从渥太华出发。</p>`,
+    );
+
+    assert.deepEqual(itinerary, [
+      {
+        day: 1,
+        title: "渥太华 - 魁北克城",
+        description: "早上从渥太华出发。",
+      },
+    ]);
+  }
+});
+
+test("parseItineraryFromRichText accepts common English day heading separators", () => {
+  const separators = ["：", ":", "｜", "|", "—", "–", "-", "、", ".", "．"];
+
+  for (const separator of separators) {
+    const itinerary = parseItineraryFromRichText(
+      `<p><strong>Day 1 ${separator} Ottawa - Quebec City</strong><br />Depart Ottawa at 7:00 AM.</p>`,
+    );
+
+    assert.deepEqual(itinerary, [
+      {
+        day: 1,
+        title: "Ottawa - Quebec City",
+        description: "Depart Ottawa at 7:00 AM.",
+      },
+    ]);
+  }
+});
+
 test("parseItineraryFromRichText splits route titles when Day N has no inline title", () => {
   const itinerary = parseItineraryFromRichText(
     "<p><strong>Day 1:</strong><br />Ottawa – Rivière-du-Loup – Campbellton Depart Ottawa in the morning and travel east.</p><p><strong>Day 2:</strong><br />Campbellton – Bathurst Visit Bathurst and continue along the coast.</p>",
@@ -140,6 +176,8 @@ test("mapTourRecordToPublicTour uses imported itinerary when static data is miss
       "highlights(required)": "Beijing",
       "description(required)":
         "<p><strong>Day 1: Toronto - Beijing</strong><br />Overnight flight.</p>",
+      ChineseDescription:
+        "<p><strong>第1天｜多伦多 - 北京</strong><br />搭乘夜间航班前往北京。</p>",
       "admissions(required)": "Included",
       "cancellation(required)": "Policy",
       "importantNotice(required)": "Notice",
@@ -167,5 +205,8 @@ test("mapTourRecordToPublicTour uses imported itinerary when static data is miss
   assert.equal(publicTour.slug, "a-taste-of-cathay");
   assert.deepEqual(publicTour.itinerary, [
     { day: 1, title: "Toronto - Beijing", description: "Overnight flight." },
+  ]);
+  assert.deepEqual(publicTour.localizedItinerary, [
+    { day: 1, title: "多伦多 - 北京", description: "搭乘夜间航班前往北京。" },
   ]);
 });
