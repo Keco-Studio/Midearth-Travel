@@ -1,16 +1,29 @@
 import type { TourDay } from "../data/tours.ts";
 import { richTextToPlainText } from "./rich-text-content.ts";
 
-/** Matches English and Chinese day headings, such as "Day 1:" and "第 1 天：". */
-export const DAY_HEADING_PATTERN =
-  /Day\s+\d+(?:\s*\([^)]*\))?\s*:|第\s*\d+\s*天\s*[：:]/i;
+const DAY_HEADING_SEPARATOR_SOURCE = "[：:｜|、.．–—-]";
+const ENGLISH_DAY_HEADING_SOURCE =
+  `Day\\s+\\d+(?:\\s*\\([^)]*\\))?\\s*${DAY_HEADING_SEPARATOR_SOURCE}`;
+const CHINESE_DAY_HEADING_SOURCE =
+  `第\\s*\\d+\\s*天\\s*${DAY_HEADING_SEPARATOR_SOURCE}`;
 
-const DAY_HEADING_SPLIT_PATTERN =
-  /(?=Day\s+\d+(?:\s*\([^)]*\))?\s*:|第\s*\d+\s*天\s*[：:])/i;
-const ENGLISH_DAY_SEGMENT_PATTERN =
-  /^Day\s+(\d+)(?:\s*\(([^)]*)\))?\s*:\s*([\s\S]*)$/i;
-const CHINESE_DAY_SEGMENT_PATTERN =
-  /^第\s*(\d+)\s*天\s*[：:]\s*([\s\S]*)$/;
+/** Matches common English and Chinese day headings, including ':' and '｜'. */
+export const DAY_HEADING_PATTERN = new RegExp(
+  `${ENGLISH_DAY_HEADING_SOURCE}|${CHINESE_DAY_HEADING_SOURCE}`,
+  "i",
+);
+
+const DAY_HEADING_SPLIT_PATTERN = new RegExp(
+  `(?=${ENGLISH_DAY_HEADING_SOURCE}|${CHINESE_DAY_HEADING_SOURCE})`,
+  "i",
+);
+const ENGLISH_DAY_SEGMENT_PATTERN = new RegExp(
+  `^Day\\s+(\\d+)(?:\\s*\\(([^)]*)\\))?\\s*${DAY_HEADING_SEPARATOR_SOURCE}\\s*([\\s\\S]*)$`,
+  "i",
+);
+const CHINESE_DAY_SEGMENT_PATTERN = new RegExp(
+  `^第\\s*(\\d+)\\s*天\\s*${DAY_HEADING_SEPARATOR_SOURCE}\\s*([\\s\\S]*)$`,
+);
 
 const narrativeStartPattern =
   /\b(Depart|Arrive|Visit|Continue|Transfer|Overnight|Today|After|In the|This morning|We |Our |Upon |Enjoy |Pick )\b/;
