@@ -2,9 +2,38 @@ export type TourAddOnCategory = "activity" | "meal" | "service_fee";
 export type TourAddOnTicketType = { id: string; label: string; localizedLabel: string; priceCents: number };
 export type TourAddOn = {
   id: string; name: string; localizedName: string; category: TourAddOnCategory;
+  description?: string; localizedDescription?: string;
   icon: string; required: boolean; ticketTypes: TourAddOnTicketType[];
 };
 export type TourAddOnSelection = { addOnId: string; ticketTypeId: string; quantity: number };
+
+export function normalizeTourAddOns(value: unknown): TourAddOn[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.map((item) => {
+    const addOn = item as TourAddOn;
+    return {
+      ...addOn,
+      description: typeof addOn.description === "string" ? addOn.description.trim() : "",
+      localizedDescription:
+        typeof addOn.localizedDescription === "string"
+          ? addOn.localizedDescription.trim()
+          : "",
+      ticketTypes: Array.isArray(addOn.ticketTypes)
+        ? addOn.ticketTypes.map((ticket) => ({ ...ticket }))
+        : [],
+    };
+  });
+}
+
+export function getTourAddOnDescription(
+  addOn: TourAddOn,
+  lang: "en" | "zh",
+): string {
+  const english = addOn.description?.trim() ?? "";
+  if (lang === "zh") return addOn.localizedDescription?.trim() || english;
+  return english;
+}
 
 export function defaultAddOnSelections(addOns: readonly TourAddOn[]): TourAddOnSelection[] {
   return addOns.filter((item) => item.required).map((item) => ({
