@@ -34,6 +34,7 @@ import {
 } from "@/lib/tour-content-audit";
 import { getLocalizedStaticText, getLocalizedTourList, getLocalizedTourValue } from "@/lib/localized-content";
 import { splitTourPolicyContent } from "@/lib/tour-policy-content";
+import { splitTourDescriptionContent } from "@/lib/tour-description-content";
 import { formatCadPrice } from "@/lib/cad-price";
 import styles from "@/components/tour/tour-detail.module.css";
 
@@ -234,9 +235,11 @@ export function TourDetail({ tour }: { tour: Tour }) {
                               {day.title}
                             </h3>
                             {day.description && (
-                              <p className={styles.dayDescription}>
-                                {day.description}
-                              </p>
+                              <div className={styles.dayDescription}>
+                                {splitTourDescriptionContent(day.description).map((line, lineIndex) => (
+                                  <p key={`${lineIndex}-${line}`}>{line}</p>
+                                ))}
+                              </div>
                             )}
                           </div>
                         </div>
