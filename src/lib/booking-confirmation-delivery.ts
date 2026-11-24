@@ -108,6 +108,7 @@ export async function deliverPaidBookingConfirmation(
       departureSelection,
       adults,
       children,
+      rooms: booking.rooms,
       duration: getLocalizedTourValue(locale, tour.localizedDuration, tour.duration),
       departureCity: tour.departureCity
         ? getLocalizedTourValue(locale, tour.localizedDepartureCity, tour.departureCity)

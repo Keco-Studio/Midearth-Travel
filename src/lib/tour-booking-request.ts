@@ -7,6 +7,7 @@ export type TourBookingFormValues = {
   customerPhone: string;
   adults: string;
   children: string;
+  rooms: string;
   notes: string;
 };
 

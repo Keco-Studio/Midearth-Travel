@@ -170,6 +170,7 @@ export type BookingRecord = {
   locale?: BookingLocale;
   adults?: number;
   children?: number;
+  rooms?: number;
   departureSelection?: string;
   notes?: string;
   addOnSelections?: Array<{ addOnId: string; ticketTypeId: string; quantity: number }>;

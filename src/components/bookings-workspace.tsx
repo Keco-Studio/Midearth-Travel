@@ -307,6 +307,7 @@ function BookingDetailsPanel({
         {variant === "bookings" ? <Descriptions.Item label="Tour code">{booking.tourCode ?? "—"}</Descriptions.Item> : null}
         {variant === "bookings" ? <Descriptions.Item label="Departure">{booking.departureDate ? formatDateOnly(booking.departureDate) : "—"}</Descriptions.Item> : null}
         {variant === "bookings" ? <Descriptions.Item label="Party size">{booking.partySize ?? "—"}</Descriptions.Item> : null}
+        {variant === "bookings" && booking.rooms !== undefined ? <Descriptions.Item label="Rooms">{booking.rooms}</Descriptions.Item> : null}
         <Descriptions.Item label={variant === "inquiries" ? "Message" : "Notes"}>{booking.notes ?? "—"}</Descriptions.Item>
         <Descriptions.Item label="Created">{formatDate(booking.createdAt)}</Descriptions.Item>
         <Descriptions.Item label="Updated">{formatDate(booking.updatedAt)}</Descriptions.Item>

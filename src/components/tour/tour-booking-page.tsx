@@ -32,6 +32,7 @@ const emptyForm: BookingForm = {
   customerPhone: "",
   adults: "1",
   children: "0",
+  rooms: "",
   notes: "",
 };
 
@@ -80,6 +81,7 @@ export function TourBookingPage({
     phone: getLocalizedContent(content, "phone", lang, "Contact phone number"),
     adults: getLocalizedContent(content, "adults", lang, "Adults"),
     children: getLocalizedContent(content, "children", lang, "Children"),
+    rooms: getLocalizedContent(content, "rooms", lang, "Rooms"),
     notes: getLocalizedContent(content, "notes", lang, "Details"),
     notesHint: getLocalizedContent(content, "notesHint", lang, "Let us know about any special requirements."),
     continue: getLocalizedContent(content, "continue", lang, "Continue to review"),
@@ -234,6 +236,10 @@ export function TourBookingPage({
                       <label htmlFor="children">{text.children}</label>
                       <input id="children" className={styles.input} type="number" min="0" required value={form.children} onChange={(event) => updateForm("children", event.target.value)} />
                     </div>
+                    <div className={styles.field}>
+                      <label htmlFor="rooms">{text.rooms}</label>
+                      <input id="rooms" className={styles.input} type="number" min="1" value={form.rooms} onChange={(event) => updateForm("rooms", event.target.value)} />
+                    </div>
                   </div>
                   <div className={styles.fieldWide}>
                     <label htmlFor="booking-notes">{text.notes}</label>
@@ -263,6 +269,7 @@ export function TourBookingPage({
                   <div className={styles.reviewRow}><dt>{text.package}</dt><dd>{title}</dd></div>
                   <div className={styles.reviewRow}><dt>{text.departure}</dt><dd>{form.departureDate}</dd></div>
                   <div className={styles.reviewRow}><dt>{text.party}</dt><dd>{partySummary}</dd></div>
+                  {form.rooms.trim() ? <div className={styles.reviewRow}><dt>{text.rooms}</dt><dd>{form.rooms}</dd></div> : null}
                   <div className={styles.reviewRow}><dt>{text.email}</dt><dd>{form.customerEmail}</dd></div>
                 </dl>
                 <div className={styles.totalRow}>

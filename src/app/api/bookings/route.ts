@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     return Response.json({ bookingId: booking.id, reference: booking.reference });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to create tour booking";
-    const status = /required|adult|children|valid|not found|available departure/i.test(message) ? 400 : 500;
+    const status = /required|adult|children|rooms|valid|not found|available departure/i.test(message) ? 400 : 500;
     return Response.json({ error: message }, { status });
   }
 }

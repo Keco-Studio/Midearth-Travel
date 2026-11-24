@@ -33,6 +33,7 @@ test("renders Chinese booking facts in both formats", () => {
     departureSelection: "2026年10月12日",
     adults: 2,
     children: 1,
+    rooms: 2,
     duration: "8天7晚",
     departureCity: "渥太华",
     meetingPlace: "中环旅游办公室",
@@ -50,6 +51,7 @@ test("renders Chinese booking facts in both formats", () => {
     "2026年10月12日",
     "2 位成人",
     "1 位儿童",
+    "房间数",
     "8天7晚",
     "渥太华",
     "中环旅游办公室",
@@ -98,7 +100,7 @@ test("omits empty optional booking rows from both formats", () => {
     tourUrl: "https://midearth.ca/tours/lake",
   });
 
-  for (const label of ["Tour code", "Departure city", "Meeting place"]) {
+  for (const label of ["Tour code", "Departure city", "Meeting place", "Rooms"]) {
     assert.doesNotMatch(result.html, new RegExp(escapeRegExp(label)));
     assert.doesNotMatch(result.text, new RegExp(escapeRegExp(label)));
   }
@@ -154,6 +156,7 @@ test("keeps the same booking facts in HTML and plain text", () => {
     departureSelection: "November 8",
     adults: 3,
     children: 2,
+    rooms: 3,
     duration: "8 days",
     departureCity: "Ottawa",
     meetingPlace: "Union Station",
@@ -171,6 +174,7 @@ test("keeps the same booking facts in HTML and plain text", () => {
     input.departureSelection,
     "3 adults",
     "2 children",
+    "Rooms",
     input.duration,
     input.departureCity,
     input.meetingPlace,

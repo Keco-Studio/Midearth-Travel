@@ -22,6 +22,7 @@ export type TourBookingInput = {
   departureDate: string;
   adults: number;
   children: number;
+  rooms?: number;
   notes: string;
   locale: BookingLocale;
 };
@@ -69,6 +70,10 @@ export function validateTourBookingInput(value: unknown): TourBookingInput {
   const notes = typeof input.notes === "string" ? input.notes.trim() : "";
   const adults = Number(input.adults);
   const children = Number(input.children);
+  const roomValue = typeof input.rooms === "string" ? input.rooms.trim() : input.rooms;
+  const rooms = roomValue === undefined || roomValue === null || roomValue === ""
+    ? undefined
+    : Number(roomValue);
 
   if (!tourSlug || !customerName || !customerPhone || !departureDate || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
     throw new Error("Please complete all required booking details");
@@ -79,6 +84,9 @@ export function validateTourBookingInput(value: unknown): TourBookingInput {
   if (!Number.isInteger(children) || children < 0) {
     throw new Error("Children must be zero or more");
   }
+  if (rooms !== undefined && (!Number.isInteger(rooms) || rooms < 1)) {
+    throw new Error("Rooms must be a positive whole number");
+  }
 
   return {
     tourSlug,
@@ -88,6 +96,7 @@ export function validateTourBookingInput(value: unknown): TourBookingInput {
     departureDate,
     adults,
     children,
+    ...(rooms === undefined ? {} : { rooms }),
     notes,
     locale: parseBookingLocale(input.locale),
   };

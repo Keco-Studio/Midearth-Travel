@@ -112,6 +112,7 @@ export async function createTourBooking(input: {
   departureDate: string;
   adults: number;
   children: number;
+  rooms?: number;
   notes: string;
   locale: BookingLocale;
 }): Promise<BookingRecord> {
@@ -121,6 +122,7 @@ export async function createTourBooking(input: {
   const details = [
     `Requested departure: ${input.departureDate}`,
     `Travel party: ${input.adults} adult${input.adults === 1 ? "" : "s"}, ${input.children} child${input.children === 1 ? "" : "ren"}`,
+    input.rooms === undefined ? "" : `Rooms: ${input.rooms}`,
     input.notes,
   ].filter(Boolean);
   const booking: BookingRecord = {
@@ -139,6 +141,7 @@ export async function createTourBooking(input: {
     locale: input.locale,
     adults: input.adults,
     children: input.children,
+    rooms: input.rooms,
     departureSelection: input.departureDate,
     notes: details.join("\n"),
     createdAt: now,
