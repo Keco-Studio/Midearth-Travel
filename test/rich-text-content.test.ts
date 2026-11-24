@@ -13,6 +13,15 @@ test("converts legacy multiline text into paragraphs and line breaks", () => {
   );
 });
 
+test("preserves line breaks inside rich tour description blocks", () => {
+  assert.equal(
+    normalizeRichText(
+      "<p>First introduction line\nSecond introduction line</p>\n<p>Next paragraph</p>",
+    ),
+    "<p>First introduction line<br />Second introduction line</p>\n<p>Next paragraph</p>",
+  );
+});
+
 test("preserves only supported rich text elements", () => {
   assert.equal(
     normalizeRichText(
