@@ -18,21 +18,21 @@ async function loadCadPriceModule(): Promise<CadPriceModule> {
 }
 
 test("formats Canadian-dollar values with one consistent prefix", async () => {
-  const module = await loadCadPriceModule();
-  assert.equal(typeof module.formatCadAmount, "function");
-  assert.equal(typeof module.formatCadPrice, "function");
-  assert.equal(typeof module.formatCadCents, "function");
-  assert.equal(typeof module.formatCurrencyAmount, "function");
-  if (!module.formatCadAmount || !module.formatCadPrice || !module.formatCadCents || !module.formatCurrencyAmount) return;
+  const cadPriceModule = await loadCadPriceModule();
+  assert.equal(typeof cadPriceModule.formatCadAmount, "function");
+  assert.equal(typeof cadPriceModule.formatCadPrice, "function");
+  assert.equal(typeof cadPriceModule.formatCadCents, "function");
+  assert.equal(typeof cadPriceModule.formatCurrencyAmount, "function");
+  if (!cadPriceModule.formatCadAmount || !cadPriceModule.formatCadPrice || !cadPriceModule.formatCadCents || !cadPriceModule.formatCurrencyAmount) return;
 
-  assert.equal(module.formatCadAmount(1699), "CAD $1,699.00");
-  assert.equal(module.formatCadPrice("$1,699"), "CAD $1,699.00");
-  assert.equal(module.formatCadPrice("969.5"), "CAD $969.50");
-  assert.equal(module.formatCadPrice("CAD $41.00"), "CAD $41.00");
-  assert.equal(module.formatCadCents(4100), "CAD $41.00");
-  assert.equal(module.formatCurrencyAmount(38, "cad"), "CAD $38.00");
-  assert.equal(module.formatCadPrice("Call for quote"), "Call for quote");
-  assert.throws(() => module.formatCurrencyAmount!(38, "not-a-currency"), RangeError);
+  assert.equal(cadPriceModule.formatCadAmount(1699), "CAD $1,699.00");
+  assert.equal(cadPriceModule.formatCadPrice("$1,699"), "CAD $1,699.00");
+  assert.equal(cadPriceModule.formatCadPrice("969.5"), "CAD $969.50");
+  assert.equal(cadPriceModule.formatCadPrice("CAD $41.00"), "CAD $41.00");
+  assert.equal(cadPriceModule.formatCadCents(4100), "CAD $41.00");
+  assert.equal(cadPriceModule.formatCurrencyAmount(38, "cad"), "CAD $38.00");
+  assert.equal(cadPriceModule.formatCadPrice("Call for quote"), "Call for quote");
+  assert.throws(() => cadPriceModule.formatCurrencyAmount!(38, "not-a-currency"), RangeError);
 });
 
 test("parses complete legacy fare strings without accepting mixed copy", async () => {

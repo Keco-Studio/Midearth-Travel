@@ -75,6 +75,8 @@ export function TourListing({
 
   useEffect(() => {
     if (region !== "all" && !regions.includes(region)) {
+      // The available labels can change when the active language changes.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRegion("all");
     }
   }, [region, regions]);

@@ -135,8 +135,8 @@ export async function syncSharedPhonesToModules(
   const updated: HomeModuleRecord[] = [];
 
   for (const id of ["navbar", "newsletter", "footer"] as const) {
-    const module = await patchHomeModuleDataFields(id, phones);
-    updated.push(module);
+    const updatedModule = await patchHomeModuleDataFields(id, phones);
+    updated.push(updatedModule);
   }
 
   return updated;
