@@ -5,6 +5,7 @@ import { parseItineraryFromRichText, hasDayByDayHeading } from "./tour-itinerary
 import { normalizeRichText, richTextToPlainText } from "./rich-text-content.ts";
 import { resolveTourDestinationCategoryIds } from "./tour-destination-categories.ts";
 import { validateTourEditorRecord } from "./tour-editor-state.ts";
+import { orderTourRecords } from "./tour-order.ts";
 
 export type TourRow = {
   slug: string;
@@ -74,7 +75,7 @@ export function mergeTourRows(rows: readonly TourRow[]): TourRecord[] {
     }
   }
 
-  return merged;
+  return orderTourRecords(merged);
 }
 
 export function isItineraryDescription(text: string): boolean {
@@ -133,7 +134,7 @@ export function resolvePdfUrl(fileName: string): string | undefined {
 }
 
 export function mapPublishedTourRecords(records: readonly TourRecord[]): Tour[] {
-  return records
+  return orderTourRecords(records)
     .filter((record) => record.status === "published")
     .map(mapTourRecordToPublicTour);
 }

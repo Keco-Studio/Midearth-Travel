@@ -78,6 +78,8 @@ export type TourEssentialFields = {
 
 export type TourRecord = {
   slug: string;
+  /** Manual default order for Tour Library and public tour collections. */
+  displayOrder?: number;
   code: string;
   title: string;
   localizedTitle: string;

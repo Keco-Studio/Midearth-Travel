@@ -164,6 +164,10 @@ function trimTourRecord(record: TourRecord): TourRecord {
 
   return {
     ...record,
+    displayOrder:
+      Number.isInteger(record.displayOrder) && (record.displayOrder ?? -1) >= 0
+        ? record.displayOrder
+        : undefined,
     slug: safeTrim(record.slug),
     code: safeTrim(record.code),
     title: safeTrim(record.title),
@@ -245,6 +249,10 @@ function isTourRecord(value: unknown): value is TourRecord {
     (value.status === "published" ||
       value.status === "draft" ||
       value.status === "unpublished") &&
+    (value.displayOrder === undefined ||
+      (typeof value.displayOrder === "number" &&
+        Number.isInteger(value.displayOrder) &&
+        value.displayOrder >= 0)) &&
     isFareFields(value.fares) &&
     (value.addOns === undefined || Array.isArray(value.addOns)) &&
     isEssentialFields(value.essentials) &&

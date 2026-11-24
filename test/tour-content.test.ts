@@ -35,6 +35,26 @@ test("merges stored tour records over seeds and keeps new records", () => {
   assert.equal(records.find((record) => record.slug === "new-tour")?.title, "New tour");
 });
 
+test("merges stored tours in their configured display order", () => {
+  const firstSeed = tourSeeds[0];
+  const secondSeed = tourSeeds[1];
+  const records = mergeTourRows([
+    {
+      ...toTourRow(firstSeed),
+      data: { ...firstSeed, displayOrder: 1 },
+    },
+    {
+      ...toTourRow(secondSeed),
+      data: { ...secondSeed, displayOrder: 0 },
+    },
+  ]);
+
+  assert.ok(
+    records.findIndex(({ slug }) => slug === secondSeed.slug) <
+      records.findIndex(({ slug }) => slug === firstSeed.slug),
+  );
+});
+
 test("normalizes legacy rows that predate tour detail CMS fields", () => {
   const legacyKeys = new Set([
     "departureCity",

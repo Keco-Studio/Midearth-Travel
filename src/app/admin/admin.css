@@ -422,6 +422,16 @@
   background: #f4f1ea;
 }
 
+.cms-tour-order-actions .ant-btn {
+  color: #2f6f5e;
+  border-color: #d9d2c5;
+}
+
+.cms-tour-order-actions .ant-btn:not(:disabled):hover {
+  color: #c8953f;
+  border-color: #c8953f;
+}
+
 .cms-synced-horizontal-scroll {
   width: 100%;
   min-width: 0;

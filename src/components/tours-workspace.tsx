@@ -1,6 +1,6 @@
 "use client";
 
-import { EditOutlined } from "@ant-design/icons";
+import { ArrowDownOutlined, ArrowUpOutlined, EditOutlined } from "@ant-design/icons";
 import { ProTable } from "@ant-design/pro-components";
 import type { ProColumns } from "@ant-design/pro-components";
 import {
@@ -28,6 +28,7 @@ import { createEmptyTourRecord } from "@/lib/create-empty-tour";
 import { replaceTourEditorRecord, validateTourEditorRecord } from "@/lib/tour-editor-state";
 import { getTourTypeOptions } from "@/lib/tour-type-state";
 import { getTourStatusCounts } from "@/lib/workspace-view-models";
+import { moveTourRecord } from "@/lib/tour-order";
 import type { TourRecord } from "@/types/cms";
 
 type ToursWorkspaceProps = {
@@ -51,6 +52,7 @@ export function ToursWorkspace({
     createInitialTourWorkspaceState(tours),
   );
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
+  const [savingOrder, setSavingOrder] = useState(false);
   const counts = getTourStatusCounts(tourState.records);
 
   const editingTour = useMemo(
@@ -96,8 +98,11 @@ export function ToursWorkspace({
   }
 
   function openNewTour() {
-    const draft = createEmptyTourRecord(tourState.records.map((tour) => tour.slug));
-    syncRecords([draft, ...tourState.records]);
+    const draft = createEmptyTourRecord(
+      tourState.records.map((tour) => tour.slug),
+      tourState.records.length,
+    );
+    syncRecords([...tourState.records, draft]);
     setEditingSlug(draft.slug);
     message.success("New tour draft opened — fill in details and save");
   }
@@ -195,6 +200,37 @@ export function ToursWorkspace({
     return payload.tour;
   }
 
+  async function moveTour(slug: string, offset: -1 | 1) {
+    if (savingOrder) return;
+
+    const previousState = tourState;
+    const records = moveTourRecord(previousState.records, slug, offset);
+    if (records.map((record) => record.slug).join("\n") === previousState.records.map((record) => record.slug).join("\n")) {
+      return;
+    }
+
+    setTourState({ ...previousState, records });
+    onToursChange?.(records);
+    setSavingOrder(true);
+    try {
+      const response = await fetch("/api/admin/tours/order", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderedSlugs: records.map((record) => record.slug) }),
+      });
+      const payload = await readApiResponse<{ tours: TourRecord[] }>(response);
+      setTourState({ ...previousState, records: payload.tours });
+      onToursChange?.(payload.tours);
+      message.success("Tour display order saved");
+    } catch (error) {
+      setTourState(previousState);
+      onToursChange?.(previousState.records);
+      message.error(getErrorMessage(error, "Tour order could not be saved"));
+    } finally {
+      setSavingOrder(false);
+    }
+  }
+
   async function uploadTourImage(slug: string, file: File): Promise<string> {
     const formData = new FormData();
     formData.set("slug", slug);
@@ -266,6 +302,38 @@ export function ToursWorkspace({
       title: "Updated",
       dataIndex: "updatedAt",
       render: (_, record) => formatDate(record.updatedAt),
+    },
+    {
+      title: "Order",
+      key: "order",
+      width: 112,
+      render: (_, record) => {
+        const index = tourState.records.findIndex((tour) => tour.slug === record.slug);
+        return (
+          <Space className="cms-tour-order-actions" size={4}>
+            <Button
+              aria-label={`Move ${record.title} up`}
+              icon={<ArrowUpOutlined />}
+              size="small"
+              disabled={savingOrder || index <= 0}
+              onClick={(event) => {
+                event.stopPropagation();
+                void moveTour(record.slug, -1);
+              }}
+            />
+            <Button
+              aria-label={`Move ${record.title} down`}
+              icon={<ArrowDownOutlined />}
+              size="small"
+              disabled={savingOrder || index < 0 || index >= tourState.records.length - 1}
+              onClick={(event) => {
+                event.stopPropagation();
+                void moveTour(record.slug, 1);
+              }}
+            />
+          </Space>
+        );
+      },
     },
     {
       title: "Edit",
