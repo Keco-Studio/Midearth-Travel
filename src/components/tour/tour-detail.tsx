@@ -34,6 +34,7 @@ import {
 } from "@/lib/tour-content-audit";
 import { getLocalizedStaticText, getLocalizedTourList, getLocalizedTourValue } from "@/lib/localized-content";
 import { splitTourPolicyContent } from "@/lib/tour-policy-content";
+import { formatCadPrice } from "@/lib/cad-price";
 import styles from "@/components/tour/tour-detail.module.css";
 
 function PolicyIcon({ icon }: { icon?: TourPolicy["icon"] }) {
@@ -398,7 +399,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
                             {fare.label}
                           </th>
                           <td className="px-6 py-3 text-right font-semibold tabular-nums">
-                            {fare.price}
+                            {formatCadPrice(fare.price)}
                           </td>
                         </tr>
                       ))}

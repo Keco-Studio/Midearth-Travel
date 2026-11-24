@@ -22,6 +22,7 @@ import {
 } from "@/lib/tour-booking-request";
 import styles from "./tour-booking-page.module.css";
 import { calculateAddOnTotal, defaultAddOnSelections, getTourAddOnDescription, type TourAddOnSelection } from "@/lib/tour-add-ons";
+import { formatCadCents, formatCadPrice, parseCadPriceToCents } from "@/lib/cad-price";
 
 type BookingForm = TourBookingFormValues;
 
@@ -68,9 +69,9 @@ export function TourBookingPage({
   const fare = tour.fares?.[0];
   const addOns = tour.addOns ?? [];
   const addOnTotal = calculateAddOnTotal(addOns, addOnSelections);
-  const packageCents = fare ? Math.round(Number(fare.price.replace(/[$,\s]/g, "")) * 100) : 0;
+  const packageCents = fare ? parseCadPriceToCents(fare.price) ?? 0 : 0;
   const tourTaxCents = Math.round(packageCents * 0.13);
-  const totalPrice = `$${((packageCents + tourTaxCents + addOnTotal) / 100).toFixed(2)}`;
+  const totalPrice = formatCadCents(packageCents + tourTaxCents + addOnTotal);
   const text = {
     book: getLocalizedContent(content, "book", lang, "Book now"),
     complete: getLocalizedContent(content, "complete", lang, "Complete your details, then review your booking and payment amount."),
@@ -274,9 +275,9 @@ export function TourBookingPage({
                 </dl>
                 <div className={styles.totalRow}>
                   <span className={styles.totalLabel}>{text.packagePrice} (before tax)</span>
-                  <span className={styles.totalAmount}>{fare?.price ?? ""}</span>
+                  <span className={styles.totalAmount}>{fare ? formatCadPrice(fare.price) : ""}</span>
                 </div>
-                <div className={styles.taxRow}><span>Tax on tour fare (13%)</span><span>${(tourTaxCents / 100).toFixed(2)}</span></div>
+                <div className={styles.taxRow}><span>Tax on tour fare (13%)</span><span>{formatCadCents(tourTaxCents)}</span></div>
                 </div>
                 {addOns.length > 0 ? <section className={styles.addOnSection} aria-labelledby="add-ons-title">
                   <h2 id="add-ons-title" className={styles.addOnTitle}>Optional Activities, Meals &amp; Service Fee</h2>
@@ -287,7 +288,7 @@ export function TourBookingPage({
                       const description = getTourAddOnDescription(item, lang);
                       return <div className={styles.addOnRow} key={item.id}>
                         <label className={styles.addOnCheck}><input type="checkbox" checked={selected.length > 0} disabled={item.required} onChange={(event) => setAddOnSelections((current) => event.target.checked ? [...current, { addOnId: item.id, ticketTypeId: item.ticketTypes[0]?.id ?? "", quantity: 1 }] : current.filter((entry) => entry.addOnId !== item.id))} /><span className={styles.addOnLabelText}><span>{item.localizedName && lang === "zh" ? item.localizedName : item.name}{item.required ? " (Required)" : ""}</span>{description ? <span className={styles.addOnDescription}>{description}</span> : null}</span></label>
-                        {selected.length > 0 ? <div className={styles.addOnTicketRows}>{item.ticketTypes.map((ticket) => { const choice = selected.find((entry) => entry.ticketTypeId === ticket.id); return <div className={styles.addOnTicketRow} key={ticket.id}><label><input type="checkbox" checked={Boolean(choice)} onChange={(event) => setAddOnSelections((current) => event.target.checked ? [...current, { addOnId: item.id, ticketTypeId: ticket.id, quantity: 1 }] : current.filter((entry) => !(entry.addOnId === item.id && entry.ticketTypeId === ticket.id)))} /> {lang === "zh" ? ticket.localizedLabel : ticket.label}</label>{choice ? <><input className={styles.addOnQuantity} type="number" min="1" max="99" value={choice.quantity} onChange={(event) => setAddOnSelections((current) => current.map((entry) => entry.addOnId === item.id && entry.ticketTypeId === ticket.id ? { ...entry, quantity: Math.max(1, Math.min(99, Number(event.target.value) || 1)) } : entry))} /><span className={styles.addOnPrice}>× ${((ticket.priceCents) / 100).toFixed(2)}</span></> : null}</div>; })}</div> : null}
+                        {selected.length > 0 ? <div className={styles.addOnTicketRows}>{item.ticketTypes.map((ticket) => { const choice = selected.find((entry) => entry.ticketTypeId === ticket.id); return <div className={styles.addOnTicketRow} key={ticket.id}><label><input type="checkbox" checked={Boolean(choice)} onChange={(event) => setAddOnSelections((current) => event.target.checked ? [...current, { addOnId: item.id, ticketTypeId: ticket.id, quantity: 1 }] : current.filter((entry) => !(entry.addOnId === item.id && entry.ticketTypeId === ticket.id)))} /> {lang === "zh" ? ticket.localizedLabel : ticket.label}</label>{choice ? <><input className={styles.addOnQuantity} type="number" min="1" max="99" value={choice.quantity} onChange={(event) => setAddOnSelections((current) => current.map((entry) => entry.addOnId === item.id && entry.ticketTypeId === ticket.id ? { ...entry, quantity: Math.max(1, Math.min(99, Number(event.target.value) || 1)) } : entry))} /><span className={styles.addOnPrice}>× {formatCadCents(ticket.priceCents)}</span></> : null}</div>; })}</div> : null}
                       </div>;
                     })}
                   </div>

@@ -680,7 +680,7 @@ function EditorSection({ title, children }: { title: string; children: ReactNode
 function PriceField({ name, label }: { name: keyof TourRecord["fares"]; label: string }) {
   return (
     <Col xs={24} sm={12} lg={8} xl={4}>
-      <Form.Item name={["fares", name]} label={`${label} price`}>
+      <Form.Item name={["fares", name]} label={`${label} price (CAD)`}>
         <Input />
       </Form.Item>
     </Col>

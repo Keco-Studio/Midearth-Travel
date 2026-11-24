@@ -55,7 +55,7 @@ test("renders Chinese booking facts in both formats", () => {
     "8天7晚",
     "渥太华",
     "中环旅游办公室",
-    "CA$2,599.00",
+    "CAD $2,599.00",
   ]) {
     assertPresentInBoth(result, value);
   }

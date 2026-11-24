@@ -3,6 +3,7 @@
 import { CreditCard, LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { formatCadPrice } from "@/lib/cad-price";
 
 export function TourCheckoutButton({
   tourSlug,
@@ -45,7 +46,7 @@ export function TourCheckoutButton({
         onChange={(event) => setFareLabel(event.target.value)}
         className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm outline-none focus:border-primary"
       >
-        {fares.map((fare) => <option key={fare.label} value={fare.label}>{fare.label} — {fare.price} CAD</option>)}
+        {fares.map((fare) => <option key={fare.label} value={fare.label}>{fare.label} — {formatCadPrice(fare.price)}</option>)}
       </select>
       <label className="block text-xs font-medium text-muted-foreground" htmlFor={`email-${tourSlug}`}>
         Email for receipt

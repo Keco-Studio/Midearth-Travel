@@ -1,5 +1,6 @@
 import type { BookingLocale } from "./payment-domain.ts";
 import { getLocalizedContent } from "./localized-content.ts";
+import { formatCurrencyAmount } from "./cad-price.ts";
 
 export type BookingConfirmationRenderInput = {
   locale: BookingLocale;
@@ -111,10 +112,11 @@ function formatParty(locale: BookingLocale, adults: number, children: number): s
 }
 
 function formatAmount(input: BookingConfirmationRenderInput): string {
-  return new Intl.NumberFormat(input.locale === "zh" ? "zh-CN" : "en-CA", {
-    style: "currency",
-    currency: input.currency.toUpperCase(),
-  }).format(input.amountCents / 100);
+  return formatCurrencyAmount(
+    input.amountCents / 100,
+    input.currency,
+    input.locale === "zh" ? "zh-CN" : "en-CA",
+  );
 }
 
 function isSafeTourUrl(value: string): boolean {

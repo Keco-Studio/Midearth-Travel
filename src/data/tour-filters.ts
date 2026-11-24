@@ -1,6 +1,7 @@
 import { categoryMeta } from "./categories.ts";
 import { getRegionBySlug } from "./regions.ts";
 import { tours, type Tour } from "./tours.ts";
+import { formatCadCents, parseCadPriceToCents } from "../lib/cad-price.ts";
 
 const regionMap: Record<string, string[]> = {
   "north-america": ["Canada", "USA", "North America"],
@@ -77,10 +78,10 @@ export function parseDurationDays(duration: string): number {
 export function getTourPriceLabel(tour: Tour): string {
   if (tour.fares?.length) {
     const prices = tour.fares
-      .map((f) => parseInt(f.price.replace(/[^0-9]/g, ""), 10))
-      .filter((n) => !Number.isNaN(n));
+      .map((fare) => parseCadPriceToCents(fare.price))
+      .filter((price): price is number => price !== null);
     if (prices.length) {
-      return `from $${Math.min(...prices)}`;
+      return `from ${formatCadCents(Math.min(...prices))}`;
     }
   }
   return "Contact for price";
