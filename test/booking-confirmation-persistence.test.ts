@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import {
   bookingToRow,
@@ -10,6 +10,13 @@ const migration = readFileSync(
   new URL("../supabase/migrations/202611050001_booking_confirmation_emails.sql", import.meta.url),
   "utf8",
 );
+const roomMigrationUrl = new URL(
+  "../supabase/migrations/202611240001_booking_room_count.sql",
+  import.meta.url,
+);
+const roomMigration = existsSync(roomMigrationUrl)
+  ? readFileSync(roomMigrationUrl, "utf8")
+  : "";
 
 test("stores localized booking details and confirmation delivery state", () => {
   assert.match(migration, /add column if not exists locale text not null default 'en'/i);
@@ -20,6 +27,11 @@ test("stores localized booking details and confirmation delivery state", () => {
   assert.match(migration, /add column if not exists confirmation_email_sent_at timestamptz/i);
   assert.match(migration, /add column if not exists confirmation_email_id text/i);
   assert.match(migration, /add column if not exists confirmation_email_error text/i);
+});
+
+test("adds an optional positive room count to bookings", () => {
+  assert.match(roomMigration, /add column if not exists room_count integer/i);
+  assert.match(roomMigration, /room_count is null or room_count >= 1/i);
 });
 
 test("maps the locale and structured travel party through a booking row", () => {
@@ -38,6 +50,7 @@ test("maps the locale and structured travel party through a booking row", () => 
     locale: "zh",
     adults: 2,
     children: 1,
+    rooms: 2,
     departureSelection: "October 12, 2026",
     notes: "Window seats, please.",
     createdAt: "2026-10-01T00:00:00.000Z",
@@ -49,12 +62,14 @@ test("maps the locale and structured travel party through a booking row", () => 
       locale: row.locale,
       adults: row.adult_count,
       children: row.child_count,
+      rooms: row.room_count,
       departureSelection: row.departure_selection,
     },
     {
       locale: "zh",
       adults: 2,
       children: 1,
+      rooms: 2,
       departureSelection: "October 12, 2026",
     },
   );
@@ -63,12 +78,14 @@ test("maps the locale and structured travel party through a booking row", () => 
       locale: rowToBooking(row).locale,
       adults: rowToBooking(row).adults,
       children: rowToBooking(row).children,
+      rooms: rowToBooking(row).rooms,
       departureSelection: rowToBooking(row).departureSelection,
     },
     {
       locale: "zh",
       adults: 2,
       children: 1,
+      rooms: 2,
       departureSelection: "October 12, 2026",
     },
   );
@@ -91,6 +108,7 @@ test("keeps historical booking rows compatible when structured details are absen
     locale: null,
     adult_count: null,
     child_count: null,
+    room_count: null,
     departure_selection: null,
     notes: null,
     created_at: "2026-10-01T00:00:00.000Z",
@@ -102,12 +120,14 @@ test("keeps historical booking rows compatible when structured details are absen
       locale: booking.locale,
       adults: booking.adults,
       children: booking.children,
+      rooms: booking.rooms,
       departureSelection: booking.departureSelection,
     },
     {
       locale: undefined,
       adults: undefined,
       children: undefined,
+      rooms: undefined,
       departureSelection: undefined,
     },
   );

@@ -197,6 +197,8 @@ export function TourEditor({
   function handleFinish(values: TourRecord) {
     const addOns = (values.addOns ?? []).map((item) => ({
       ...item,
+      description: item.description?.trim() ?? "",
+      localizedDescription: item.localizedDescription?.trim() ?? "",
       ticketTypes: item.ticketTypes.map((ticket) => ({
         ...ticket,
         priceCents: Math.round(Number(ticket.priceCents) * 100),
@@ -293,10 +295,12 @@ export function TourEditor({
             {(items, { add, remove }) => <>
               {items.map(({ key, name, ...restField }) => <div key={key} style={{ borderBottom: "1px solid #eee", paddingBottom: 16, marginBottom: 16 }}>
                 <Row gutter={[12, 0]}>
-                  <Col xs={24} md={8}><Form.Item {...restField} name={[name, "name"]} label="Name (English)" rules={[{ required: true }]}><Input /></Form.Item></Col>
-                  <Col xs={24} md={8}><Form.Item {...restField} name={[name, "localizedName"]} label="Name (Chinese)"><Input /></Form.Item></Col>
-                  <Col xs={12} md={4}><Form.Item {...restField} name={[name, "category"]} label="Category"><Select onChange={(category) => { const current = form.getFieldValue(["addOns", name, "ticketTypes"]); if (!Array.isArray(current) || current.length === 0) form.setFieldValue(["addOns", name, "ticketTypes"], defaultTicketTypes(category)); }} options={[{ value: "activity", label: "Activity" }, { value: "meal", label: "Meal" }, { value: "service_fee", label: "Service fee" }]} /></Form.Item></Col>
-                  <Col xs={12} md={4}><Form.Item {...restField} name={[name, "required"]} label="Required" valuePropName="checked"><Switch /></Form.Item></Col>
+                  <Col xs={24} md={6}><Form.Item {...restField} name={[name, "name"]} label="Name (English)" rules={[{ required: true }]}><Input /></Form.Item></Col>
+                  <Col xs={24} md={6}><Form.Item {...restField} name={[name, "description"]} label="Details (English)"><Input /></Form.Item></Col>
+                  <Col xs={24} md={6}><Form.Item {...restField} name={[name, "localizedName"]} label="Name (Chinese)"><Input /></Form.Item></Col>
+                  <Col xs={24} md={6}><Form.Item {...restField} name={[name, "localizedDescription"]} label="Details (Chinese)"><Input /></Form.Item></Col>
+                  <Col xs={12} md={6}><Form.Item {...restField} name={[name, "category"]} label="Category"><Select onChange={(category) => { const current = form.getFieldValue(["addOns", name, "ticketTypes"]); if (!Array.isArray(current) || current.length === 0) form.setFieldValue(["addOns", name, "ticketTypes"], defaultTicketTypes(category)); }} options={[{ value: "activity", label: "Activity" }, { value: "meal", label: "Meal" }, { value: "service_fee", label: "Service fee" }]} /></Form.Item></Col>
+                  <Col xs={12} md={6}><Form.Item {...restField} name={[name, "required"]} label="Required" valuePropName="checked"><Switch /></Form.Item></Col>
                 </Row>
                 <Form.List name={[name, "ticketTypes"]}>
                   {(ticketItems, ticketOps) => <>{ticketItems.map(({ key: ticketKey, name: ticketName, ...ticketRest }) => <Row gutter={[12, 0]} key={ticketKey}>
@@ -308,7 +312,7 @@ export function TourEditor({
                 </Form.List>
                 <Button danger type="link" icon={<DeleteOutlined />} onClick={() => remove(name)}>Remove item</Button>
               </div>)}
-              <Button type="dashed" onClick={() => add({ id: `addon-${Date.now()}`, category: "activity", icon: "ticket", required: false, ticketTypes: defaultTicketTypes("activity") })}>Add sellable item</Button>
+              <Button type="dashed" onClick={() => add({ id: `addon-${Date.now()}`, name: "", localizedName: "", description: "", localizedDescription: "", category: "activity", icon: "ticket", required: false, ticketTypes: defaultTicketTypes("activity") })}>Add sellable item</Button>
             </>}
           </Form.List>
         </EditorSection>
@@ -676,7 +680,7 @@ function EditorSection({ title, children }: { title: string; children: ReactNode
 function PriceField({ name, label }: { name: keyof TourRecord["fares"]; label: string }) {
   return (
     <Col xs={24} sm={12} lg={8} xl={4}>
-      <Form.Item name={["fares", name]} label={`${label} price`}>
+      <Form.Item name={["fares", name]} label={`${label} price (CAD)`}>
         <Input />
       </Form.Item>
     </Col>

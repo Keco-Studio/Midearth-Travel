@@ -12,6 +12,7 @@ type TourBookingValidator = (value: unknown) => {
   departureDate: string;
   adults: number;
   children: number;
+  rooms?: number;
   notes: string;
   locale: "en" | "zh";
 };
@@ -35,6 +36,7 @@ test("validates the details collected before an online tour payment", () => {
       departureDate: "2026-10-12",
       adults: "2",
       children: "1",
+      rooms: "3",
       notes: " Window seats, please. ",
       locale: "zh",
     }),
@@ -46,6 +48,7 @@ test("validates the details collected before an online tour payment", () => {
       departureDate: "2026-10-12",
       adults: 2,
       children: 1,
+      rooms: 3,
       notes: "Window seats, please.",
       locale: "zh",
     },
@@ -63,6 +66,36 @@ test("validates the details collected before an online tour payment", () => {
     }).locale,
     "en",
   );
+
+  assert.equal(
+    validateTourBookingInput({
+      tourSlug: "maple-leaves",
+      customerName: "Ada",
+      customerEmail: "ada@example.com",
+      customerPhone: "613-555-0123",
+      departureDate: "July 11",
+      adults: 1,
+      children: 0,
+      rooms: " ",
+    }).rooms,
+    undefined,
+  );
+
+  for (const rooms of ["0", "-1", "1.5", "two"]) {
+    assert.throws(
+      () => validateTourBookingInput({
+        tourSlug: "maple-leaves",
+        customerName: "Ada",
+        customerEmail: "ada@example.com",
+        customerPhone: "613-555-0123",
+        departureDate: "July 11",
+        adults: 1,
+        children: 0,
+        rooms,
+      }),
+      /rooms/i,
+    );
+  }
 
   assert.throws(
     () =>
@@ -104,6 +137,7 @@ test("builds a booking request with the active language", () => {
         customerPhone: "613-555-0123",
         adults: "2",
         children: "1",
+        rooms: "",
         notes: "Window seats, please.",
       },
       "maple-leaves",
@@ -117,6 +151,7 @@ test("builds a booking request with the active language", () => {
       customerPhone: "613-555-0123",
       adults: "2",
       children: "1",
+      rooms: "",
       notes: "Window seats, please.",
       locale: "zh",
     },

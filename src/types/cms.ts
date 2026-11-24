@@ -78,6 +78,8 @@ export type TourEssentialFields = {
 
 export type TourRecord = {
   slug: string;
+  /** Manual default order for Tour Library and public tour collections. */
+  displayOrder?: number;
   code: string;
   title: string;
   localizedTitle: string;
@@ -168,6 +170,7 @@ export type BookingRecord = {
   locale?: BookingLocale;
   adults?: number;
   children?: number;
+  rooms?: number;
   departureSelection?: string;
   notes?: string;
   addOnSelections?: Array<{ addOnId: string; ticketTypeId: string; quantity: number }>;

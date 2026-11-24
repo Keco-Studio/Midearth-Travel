@@ -1,5 +1,7 @@
 import sanitizeHtml from "sanitize-html";
 
+const lineBreakTextTags = new Set(["p", "h2", "h3", "li", "strong", "em", "u", "a"]);
+
 const sanitizeOptions: sanitizeHtml.IOptions = {
   allowedTags: ["p", "br", "h2", "h3", "strong", "em", "u", "ul", "ol", "li", "a"],
   allowedAttributes: { a: ["href"] },
@@ -7,6 +9,10 @@ const sanitizeOptions: sanitizeHtml.IOptions = {
   allowedSchemesAppliedToAttributes: ["href"],
   allowProtocolRelative: false,
   disallowedTagsMode: "discard",
+  textFilter: (text, tagName) =>
+    tagName && lineBreakTextTags.has(tagName)
+      ? text.replace(/\r\n?|\n/g, "<br />")
+      : text,
   transformTags: {
     a: (_tagName, attributes) => {
       const attribs: sanitizeHtml.Attributes = {};

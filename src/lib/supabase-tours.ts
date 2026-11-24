@@ -6,6 +6,7 @@ import { createStorageObjectPath } from "@/lib/inline-image-upload";
 import type { BookingConfirmationTour } from "@/lib/booking-confirmation-delivery";
 import { loadPublishedToursStrictWithRequest } from "@/lib/published-content-loaders";
 import { mapTourRecordToPublicTour, mergeTourRows, toTourRow, type TourRow } from "@/lib/tour-content";
+import { applyTourSlugOrder } from "@/lib/tour-order";
 import { validateTourEditorRecord } from "@/lib/tour-editor-state";
 import type { TourRecord } from "@/types/cms";
 
@@ -51,6 +52,15 @@ export async function saveTour(record: TourRecord): Promise<TourRecord> {
   }
 
   return saved;
+}
+
+export async function saveTourOrder(
+  orderedSlugs: readonly string[],
+): Promise<TourRecord[]> {
+  const records = mergeTourRows(await ensureTourRows());
+  const orderedRecords = applyTourSlugOrder(records, orderedSlugs);
+  const rows = await upsertTourRows(orderedRecords.map(toTourRow));
+  return mergeTourRows(rows);
 }
 
 export async function uploadTourImage(input: {

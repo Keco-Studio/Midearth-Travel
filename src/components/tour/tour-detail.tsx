@@ -33,6 +33,9 @@ import {
   getTourIntroDescription,
 } from "@/lib/tour-content-audit";
 import { getLocalizedStaticText, getLocalizedTourList, getLocalizedTourValue } from "@/lib/localized-content";
+import { splitTourPolicyContent } from "@/lib/tour-policy-content";
+import { splitTourDescriptionContent } from "@/lib/tour-description-content";
+import { formatCadPrice } from "@/lib/cad-price";
 import styles from "@/components/tour/tour-detail.module.css";
 
 function PolicyIcon({ icon }: { icon?: TourPolicy["icon"] }) {
@@ -46,6 +49,16 @@ function getPolicyTitle(lang: "en" | "zh", policy: TourPolicy): string {
   if (policy.icon === "shield") return getLocalizedStaticText(lang, "cancellation");
   if (policy.icon === "info") return getLocalizedStaticText(lang, "importantNotice");
   return policy.title;
+}
+
+function PolicyContent({ content }: { content: string }) {
+  return (
+    <div className={styles.policyContent}>
+      {splitTourPolicyContent(content).map((line, index) => (
+        <p key={`${index}-${line}`}>{line}</p>
+      ))}
+    </div>
+  );
 }
 
 export function TourDetail({ tour }: { tour: Tour }) {
@@ -222,9 +235,11 @@ export function TourDetail({ tour }: { tour: Tour }) {
                               {day.title}
                             </h3>
                             {day.description && (
-                              <p className={styles.dayDescription}>
-                                {day.description}
-                              </p>
+                              <div className={styles.dayDescription}>
+                                {splitTourDescriptionContent(day.description).map((line, lineIndex) => (
+                                  <p key={`${lineIndex}-${line}`}>{line}</p>
+                                ))}
+                              </div>
                             )}
                           </div>
                         </div>
@@ -276,8 +291,14 @@ export function TourDetail({ tour }: { tour: Tour }) {
                           </h3>
                         </div>
                       </div>
-                      <div className="px-6 text-sm leading-relaxed text-muted-foreground">
-                        {getLocalizedTourValue(lang, policy.localizedContent, policy.content)}
+                      <div className="px-6">
+                        <PolicyContent
+                          content={getLocalizedTourValue(
+                            lang,
+                            policy.localizedContent,
+                            policy.content,
+                          )}
+                        />
                       </div>
                     </div>
                   ))}
@@ -381,7 +402,7 @@ export function TourDetail({ tour }: { tour: Tour }) {
                             {fare.label}
                           </th>
                           <td className="px-6 py-3 text-right font-semibold tabular-nums">
-                            {fare.price}
+                            {formatCadPrice(fare.price)}
                           </td>
                         </tr>
                       ))}

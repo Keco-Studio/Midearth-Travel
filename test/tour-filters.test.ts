@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { filterToursForCategory } from "../src/data/tour-filters.ts";
-import type { Tour } from "../src/data/tours.ts";
+import { filterToursForCategory, getTourPriceLabel } from "../src/data/tour-filters.ts";
+import { getTourDisplayPrice, type Tour } from "../src/data/tours.ts";
 
 const sampleTours = [
   {
@@ -86,4 +86,17 @@ test("counts bus and vacation packages from explicit package flags", () => {
     filterToursForCategory(tours, "vacation-packages").map((tour) => tour.slug),
     ["both", "vacation-only"],
   );
+});
+
+test("labels the lowest public tour fare as Canadian dollars", () => {
+  const tour = {
+    ...sampleTours[0],
+    fares: [
+      { label: "Single", price: "$1,699" },
+      { label: "Double", price: "$969" },
+    ],
+  };
+
+  assert.equal(getTourPriceLabel(tour), "from CAD $969.00");
+  assert.equal(getTourDisplayPrice(tour), "from CAD $969.00");
 });

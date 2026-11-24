@@ -1,6 +1,9 @@
 import type { TourEssentialFields, TourFareFields, TourRecord } from "../types/cms.ts";
 
-export function createEmptyTourRecord(existingSlugs: readonly string[] = []): TourRecord {
+export function createEmptyTourRecord(
+  existingSlugs: readonly string[] = [],
+  displayOrder = 0,
+): TourRecord {
   const stamp = Date.now();
   let slug = `new-tour-${stamp}`;
   let index = 1;
@@ -12,6 +15,7 @@ export function createEmptyTourRecord(existingSlugs: readonly string[] = []): To
 
   return {
     slug,
+    displayOrder,
     code: "",
     title: "New Tour",
     localizedTitle: "",

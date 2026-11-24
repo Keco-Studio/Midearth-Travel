@@ -5,6 +5,8 @@ import { parseItineraryFromRichText, hasDayByDayHeading } from "./tour-itinerary
 import { normalizeRichText, richTextToPlainText } from "./rich-text-content.ts";
 import { resolveTourDestinationCategoryIds } from "./tour-destination-categories.ts";
 import { validateTourEditorRecord } from "./tour-editor-state.ts";
+import { orderTourRecords } from "./tour-order.ts";
+import { normalizeTourAddOns } from "./tour-add-ons.ts";
 
 export type TourRow = {
   slug: string;
@@ -74,7 +76,7 @@ export function mergeTourRows(rows: readonly TourRow[]): TourRecord[] {
     }
   }
 
-  return merged;
+  return orderTourRecords(merged);
 }
 
 export function isItineraryDescription(text: string): boolean {
@@ -133,7 +135,7 @@ export function resolvePdfUrl(fileName: string): string | undefined {
 }
 
 export function mapPublishedTourRecords(records: readonly TourRecord[]): Tour[] {
-  return records
+  return orderTourRecords(records)
     .filter((record) => record.status === "published")
     .map(mapTourRecordToPublicTour);
 }
@@ -264,7 +266,7 @@ function normalizeStoredTour(
     status: row.status,
     updatedAt: row.updated_at,
     fares: { ...emptyFareFields, ...fallback?.fares, ...storedData.fares },
-    addOns: storedData.addOns ?? fallback?.addOns ?? [],
+    addOns: normalizeTourAddOns(storedData.addOns ?? fallback?.addOns ?? []),
     essentials: {
       ...emptyEssentialFields,
       ...fallback?.essentials,
@@ -280,7 +282,7 @@ function cloneTourRecord(record: TourRecord): TourRecord {
     ...record,
     essentials: { ...record.essentials },
     fares: { ...record.fares },
-    addOns: record.addOns?.map((item) => ({ ...item, ticketTypes: item.ticketTypes.map((ticket) => ({ ...ticket })) })),
+    addOns: normalizeTourAddOns(record.addOns),
   };
 }
 

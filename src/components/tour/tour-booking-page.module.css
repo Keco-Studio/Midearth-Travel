@@ -141,7 +141,7 @@
 
 .fieldGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
 }
 
@@ -281,6 +281,8 @@
 .addOnList { display: grid; gap: 10px; }
 .addOnRow { display: grid; grid-template-columns: minmax(0, 1fr) 128px 64px 112px; align-items: center; column-gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .addOnCheck { display: flex; gap: 10px; align-items: center; font-weight: 700; color: var(--forest-deep); }
+.addOnLabelText { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; min-width: 0; }
+.addOnDescription { color: var(--ink-muted); font-size: .88rem; font-weight: 400; line-height: 1.45; }
 .addOnSelect, .addOnQuantity { min-height: 38px; border: 1px solid var(--line); border-radius: 8px; padding: 8px; background: #fff; }
 .addOnQuantity { width: 64px; }
 .addOnQuantity { min-height: 32px; height: 32px; padding: 5px 8px; }

@@ -422,6 +422,10 @@
   background: #f4f1ea;
 }
 
+.cms-tour-order-input {
+  width: 64px;
+}
+
 .cms-synced-horizontal-scroll {
   width: 100%;
   min-width: 0;

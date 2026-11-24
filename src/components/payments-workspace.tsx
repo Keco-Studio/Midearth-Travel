@@ -5,6 +5,7 @@ import type { ProColumns } from "@ant-design/pro-components";
 import { App, Button, Card, Col, Descriptions, Divider, Empty, Row, Space, Statistic, Tag, Typography } from "antd";
 import { useCallback, useMemo, useState } from "react";
 import { getPaymentStatusCounts } from "@/lib/workspace-view-models";
+import { formatCurrencyAmount } from "@/lib/cad-price";
 import type {
   BookingRecord,
   PaymentMethod,
@@ -289,10 +290,7 @@ function PaymentDetailsPanel({
 }
 
 function formatAmount(amount: number, currency: string, isRefund: boolean): string {
-  const formatted = new Intl.NumberFormat("en-CA", {
-    style: "currency",
-    currency,
-  }).format(amount);
+  const formatted = formatCurrencyAmount(amount, currency);
 
   return isRefund ? `-${formatted}` : formatted;
 }

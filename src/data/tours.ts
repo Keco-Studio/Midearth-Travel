@@ -1,3 +1,6 @@
+import type { TourAddOn } from "@/lib/tour-add-ons";
+import { formatCadCents, parseCadPriceToCents } from "../lib/cad-price.ts";
+
 export type TourDay = {
   day: number;
   title: string;
@@ -10,7 +13,6 @@ export type TourFare = {
   label: string;
   price: string;
 };
-import type { TourAddOn } from "@/lib/tour-add-ons";
 
 export type TourPolicy = {
   title: string;
@@ -309,12 +311,10 @@ export function getTourCategoryLabel(tour: Tour): string {
 
 export function getTourDisplayPrice(tour: Tour): string {
   if (tour.fares?.length) {
-    const lowest = tour.fares.reduce((min, fare) => {
-      const amount = Number.parseFloat(fare.price.replace(/[^0-9.]/g, ""));
-      const minAmount = Number.parseFloat(min.price.replace(/[^0-9.]/g, ""));
-      return amount < minAmount ? fare : min;
-    });
-    return `from ${lowest.price}`;
+    const prices = tour.fares
+      .map((fare) => parseCadPriceToCents(fare.price))
+      .filter((price): price is number => price !== null);
+    if (prices.length > 0) return `from ${formatCadCents(Math.min(...prices))}`;
   }
   return "Contact for price";
 }

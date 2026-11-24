@@ -10,12 +10,13 @@ import {
   Col,
   Empty,
   Image,
+  InputNumber,
   Row,
   Space,
   Statistic,
   Typography,
 } from "antd";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { StatusTag } from "@/components/status-tag";
 import { SyncedHorizontalScroller } from "@/components/synced-horizontal-scroller";
 import { TourEditor } from "@/components/tour-editor";
@@ -25,9 +26,11 @@ import {
   type DestinationCategory,
 } from "@/lib/destination-categories";
 import { createEmptyTourRecord } from "@/lib/create-empty-tour";
+import { scheduleScrollRestoration } from "@/lib/admin-scroll-restoration";
 import { replaceTourEditorRecord, validateTourEditorRecord } from "@/lib/tour-editor-state";
 import { getTourTypeOptions } from "@/lib/tour-type-state";
 import { getTourStatusCounts } from "@/lib/workspace-view-models";
+import { moveTourRecordToPosition } from "@/lib/tour-order";
 import type { TourRecord } from "@/types/cms";
 
 type ToursWorkspaceProps = {
@@ -51,6 +54,9 @@ export function ToursWorkspace({
     createInitialTourWorkspaceState(tours),
   );
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
+  const [savingOrder, setSavingOrder] = useState(false);
+  const listScrollPositionRef = useRef<number | null>(null);
+  const restoreListScrollRef = useRef(false);
   const counts = getTourStatusCounts(tourState.records);
 
   const editingTour = useMemo(
@@ -62,6 +68,19 @@ export function ToursWorkspace({
     () => getTourTypeOptions(tourState.records, tourState.customTypes),
     [tourState.customTypes, tourState.records],
   );
+
+  useLayoutEffect(() => {
+    if (
+      editingSlug !== null ||
+      !restoreListScrollRef.current ||
+      listScrollPositionRef.current === null
+    ) {
+      return;
+    }
+
+    restoreListScrollRef.current = false;
+    return scheduleScrollRestoration(listScrollPositionRef.current);
+  }, [editingSlug]);
 
   useEffect(() => {
     if (tours.length > 0) return;
@@ -96,10 +115,24 @@ export function ToursWorkspace({
   }
 
   function openNewTour() {
-    const draft = createEmptyTourRecord(tourState.records.map((tour) => tour.slug));
-    syncRecords([draft, ...tourState.records]);
-    setEditingSlug(draft.slug);
+    const draft = createEmptyTourRecord(
+      tourState.records.map((tour) => tour.slug),
+      tourState.records.length,
+    );
+    syncRecords([...tourState.records, draft]);
+    openTourEditor(draft.slug);
     message.success("New tour draft opened — fill in details and save");
+  }
+
+  function openTourEditor(slug: string) {
+    listScrollPositionRef.current = window.scrollY;
+    restoreListScrollRef.current = false;
+    setEditingSlug(slug);
+  }
+
+  function closeTourEditor() {
+    restoreListScrollRef.current = true;
+    setEditingSlug(null);
   }
 
   function resolveTourType(rawValue: string): { tourType: string; isNew: boolean } | null {
@@ -178,7 +211,7 @@ export function ToursWorkspace({
           ? [...tourState.customTypes, resolved.tourType]
           : tourState.customTypes;
       syncRecords(replaceTourEditorRecord(tourState.records, saved), nextCustomTypes);
-      setEditingSlug(null);
+      closeTourEditor();
       message.success("Tour updated in Supabase");
     } catch (error) {
       message.error(getErrorMessage(error, "Tour could not be updated"));
@@ -193,6 +226,43 @@ export function ToursWorkspace({
     });
     const payload = await readApiResponse<{ tour: TourRecord }>(response);
     return payload.tour;
+  }
+
+  async function moveTour(slug: string, position: number) {
+    if (savingOrder) return;
+
+    const previousState = tourState;
+    let records: TourRecord[];
+    try {
+      records = moveTourRecordToPosition(previousState.records, slug, position);
+    } catch (error) {
+      message.error(getErrorMessage(error, "Enter a valid tour position"));
+      return;
+    }
+    if (records.map((record) => record.slug).join("\n") === previousState.records.map((record) => record.slug).join("\n")) {
+      return;
+    }
+
+    setTourState({ ...previousState, records });
+    onToursChange?.(records);
+    setSavingOrder(true);
+    try {
+      const response = await fetch("/api/admin/tours/order", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderedSlugs: records.map((record) => record.slug) }),
+      });
+      const payload = await readApiResponse<{ tours: TourRecord[] }>(response);
+      setTourState({ ...previousState, records: payload.tours });
+      onToursChange?.(payload.tours);
+      message.success("Tour display order saved");
+    } catch (error) {
+      setTourState(previousState);
+      onToursChange?.(previousState.records);
+      message.error(getErrorMessage(error, "Tour order could not be saved"));
+    } finally {
+      setSavingOrder(false);
+    }
   }
 
   async function uploadTourImage(slug: string, file: File): Promise<string> {
@@ -268,6 +338,24 @@ export function ToursWorkspace({
       render: (_, record) => formatDate(record.updatedAt),
     },
     {
+      title: "Order",
+      key: "order",
+      width: 88,
+      render: (_, record) => {
+        const index = tourState.records.findIndex((tour) => tour.slug === record.slug);
+        return (
+          <TourPositionInput
+            key={`${record.slug}-${index}`}
+            position={index + 1}
+            max={tourState.records.length}
+            disabled={savingOrder}
+            label={`Display position for ${record.title}`}
+            onCommit={(position) => void moveTour(record.slug, position)}
+          />
+        );
+      },
+    },
+    {
       title: "Edit",
       key: "edit",
       width: 96,
@@ -275,7 +363,7 @@ export function ToursWorkspace({
         <Button
           type="link"
           icon={<EditOutlined />}
-          onClick={() => setEditingSlug(record.slug)}
+          onClick={() => openTourEditor(record.slug)}
         >
           Edit
         </Button>
@@ -288,7 +376,7 @@ export function ToursWorkspace({
       <TourEditor
         tour={editingTour}
         destinationCategories={destinationCategories}
-        onCancel={() => setEditingSlug(null)}
+        onCancel={closeTourEditor}
         onUpdate={handleTourUpdate}
         onImageUpload={(file) => uploadTourImage(editingTour.slug, file)}
       />
@@ -355,6 +443,46 @@ export function ToursWorkspace({
         </Col>
       </Row>
     </Space>
+  );
+}
+
+function TourPositionInput({
+  position,
+  max,
+  disabled,
+  label,
+  onCommit,
+}: {
+  position: number;
+  max: number;
+  disabled: boolean;
+  label: string;
+  onCommit: (position: number) => void;
+}) {
+  const [value, setValue] = useState<number | null>(position);
+
+  function commit() {
+    if (value === null || !Number.isInteger(value) || value < 1 || value > max) {
+      setValue(position);
+      return;
+    }
+    if (value !== position) onCommit(value);
+  }
+
+  return (
+    <InputNumber
+      className="cms-tour-order-input"
+      aria-label={label}
+      min={1}
+      max={max}
+      precision={0}
+      value={value}
+      disabled={disabled}
+      onChange={setValue}
+      onBlur={commit}
+      onPressEnter={(event) => event.currentTarget.blur()}
+      onClick={(event) => event.stopPropagation()}
+    />
   );
 }
 

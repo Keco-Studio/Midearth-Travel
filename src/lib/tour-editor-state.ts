@@ -1,6 +1,7 @@
 import type { TourRecord } from "../types/cms.ts";
 import { resolveTourDestinationCategoryIds } from "./tour-destination-categories.ts";
 import { normalizeRichText } from "./rich-text-content.ts";
+import { normalizeTourAddOns } from "./tour-add-ons.ts";
 
 export const TOUR_EDITOR_STORAGE_KEY = "midearth-cms.tour-editor.v1";
 
@@ -164,6 +165,10 @@ function trimTourRecord(record: TourRecord): TourRecord {
 
   return {
     ...record,
+    displayOrder:
+      Number.isInteger(record.displayOrder) && (record.displayOrder ?? -1) >= 0
+        ? record.displayOrder
+        : undefined,
     slug: safeTrim(record.slug),
     code: safeTrim(record.code),
     title: safeTrim(record.title),
@@ -209,7 +214,7 @@ function trimTourRecord(record: TourRecord): TourRecord {
       triple: safeTrim(fares.triple),
       quad: safeTrim(fares.quad),
     },
-    addOns: Array.isArray(record.addOns) ? record.addOns : [],
+    addOns: normalizeTourAddOns(record.addOns),
     pdfTitle: safeTrim(record.pdfTitle),
     localizedPdfTitle: safeTrim(record.localizedPdfTitle),
     pdfFileName: safeTrim(record.pdfFileName),
@@ -245,6 +250,10 @@ function isTourRecord(value: unknown): value is TourRecord {
     (value.status === "published" ||
       value.status === "draft" ||
       value.status === "unpublished") &&
+    (value.displayOrder === undefined ||
+      (typeof value.displayOrder === "number" &&
+        Number.isInteger(value.displayOrder) &&
+        value.displayOrder >= 0)) &&
     isFareFields(value.fares) &&
     (value.addOns === undefined || Array.isArray(value.addOns)) &&
     isEssentialFields(value.essentials) &&

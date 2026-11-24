@@ -1,5 +1,6 @@
 import type { BookingLocale } from "./payment-domain.ts";
 import { getLocalizedContent } from "./localized-content.ts";
+import { formatCurrencyAmount } from "./cad-price.ts";
 
 export type BookingConfirmationRenderInput = {
   locale: BookingLocale;
@@ -11,6 +12,7 @@ export type BookingConfirmationRenderInput = {
   departureSelection: string;
   adults: number;
   children: number;
+  rooms?: number;
   duration: string;
   departureCity?: string;
   meetingPlace?: string;
@@ -31,6 +33,7 @@ type BookingLabels = {
   tourCode: string;
   departure: string;
   party: string;
+  rooms: string;
   duration: string;
   departureCity: string;
   meetingPlace: string;
@@ -51,6 +54,7 @@ const labels: Record<BookingLocale, BookingLabels> = {
     tourCode: "Tour code",
     departure: "Departure",
     party: "Travel party",
+    rooms: "Rooms",
     duration: "Duration",
     departureCity: "Departure city",
     meetingPlace: "Meeting place",
@@ -64,6 +68,7 @@ const labels: Record<BookingLocale, BookingLabels> = {
     tourCode: "行程编号",
     departure: "出发日期",
     party: "出行人数",
+    rooms: "房间数",
     duration: "行程时长",
     departureCity: "出发城市",
     meetingPlace: "集合地点",
@@ -107,10 +112,11 @@ function formatParty(locale: BookingLocale, adults: number, children: number): s
 }
 
 function formatAmount(input: BookingConfirmationRenderInput): string {
-  return new Intl.NumberFormat(input.locale === "zh" ? "zh-CN" : "en-CA", {
-    style: "currency",
-    currency: input.currency.toUpperCase(),
-  }).format(input.amountCents / 100);
+  return formatCurrencyAmount(
+    input.amountCents / 100,
+    input.currency,
+    input.locale === "zh" ? "zh-CN" : "en-CA",
+  );
 }
 
 function isSafeTourUrl(value: string): boolean {
@@ -137,8 +143,13 @@ function createFacts(
   facts.push(
     { label: localizedLabels.departure, value: input.departureSelection },
     { label: localizedLabels.party, value: formatParty(input.locale, input.adults, input.children) },
-    { label: localizedLabels.duration, value: input.duration },
   );
+
+  if (input.rooms !== undefined) {
+    facts.push({ label: localizedLabels.rooms, value: String(input.rooms) });
+  }
+
+  facts.push({ label: localizedLabels.duration, value: input.duration });
 
   if (hasValue(input.departureCity)) {
     facts.push({ label: localizedLabels.departureCity, value: input.departureCity });

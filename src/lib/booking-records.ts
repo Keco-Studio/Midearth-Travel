@@ -17,6 +17,7 @@ export type BookingRow = {
   locale?: BookingLocale | null;
   adult_count?: number | null;
   child_count?: number | null;
+  room_count?: number | null;
   departure_selection?: string | null;
   notes: string | null;
   add_on_selections?: Array<{ addOnId: string; ticketTypeId: string; quantity: number }> | null;
@@ -41,6 +42,7 @@ export function rowToBooking(row: BookingRow): BookingRecord {
     locale: row.locale ?? undefined,
     adults: row.adult_count ?? undefined,
     children: row.child_count ?? undefined,
+    rooms: row.room_count ?? undefined,
     departureSelection: row.departure_selection ?? undefined,
     notes: row.notes ?? undefined,
     createdAt: row.created_at,
@@ -74,6 +76,7 @@ export function bookingToRow(booking: BookingRecord): BookingRow {
   if (booking.locale !== undefined) row.locale = booking.locale;
   if (booking.adults !== undefined) row.adult_count = booking.adults;
   if (booking.children !== undefined) row.child_count = booking.children;
+  if (booking.rooms !== undefined) row.room_count = booking.rooms;
   if (booking.departureSelection !== undefined) {
     row.departure_selection = booking.departureSelection;
   }

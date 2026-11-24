@@ -33,6 +33,7 @@ const booking: BookingRecord = {
   locale: "zh",
   adults: 2,
   children: 1,
+  rooms: 2,
   departureSelection: "2026年10月12日",
   createdAt: "2026-11-05T09:00:00.000Z",
   updatedAt: "2026-11-05T09:00:00.000Z",
@@ -130,6 +131,7 @@ test("renders, sends, and records one localized paid confirmation", async () => 
   assert.match(sentInput?.message.text ?? "", /8天7晚/);
   assert.match(sentInput?.message.text ?? "", /渥太华/);
   assert.match(sentInput?.message.text ?? "", /中环旅游办公室/);
+  assert.match(sentInput?.message.text ?? "", /房间数: 2/);
   assert.match(sentInput?.message.text ?? "", /https:\/\/midearth\.ca\/tours\/maple-leaves/);
 });
 
