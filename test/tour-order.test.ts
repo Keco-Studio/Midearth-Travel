@@ -14,6 +14,11 @@ type TourOrderModule = {
     slug: string,
     offset: -1 | 1,
   ) => TourRecord[];
+  moveTourRecordToPosition?: (
+    records: readonly TourRecord[],
+    slug: string,
+    position: number,
+  ) => TourRecord[];
   parseTourOrderInput?: (value: unknown) => string[];
 };
 
@@ -99,6 +104,28 @@ test("moves a tour one position and leaves boundary moves unchanged", async () =
   assert.deepEqual(
     moveTourRecord(records, "third", 1).map(({ slug }) => slug),
     ["first", "second", "third"],
+  );
+});
+
+test("moves a tour directly to a one-based position and shifts the other tours", async () => {
+  const { moveTourRecordToPosition } = await loadTourOrderModule();
+  assert.equal(typeof moveTourRecordToPosition, "function");
+  if (!moveTourRecordToPosition) return;
+
+  const moved = moveTourRecordToPosition(
+    [record("first", 0), record("second", 1), record("third", 2), record("fourth", 3)],
+    "fourth",
+    2,
+  );
+
+  assert.deepEqual(
+    moved.map(({ slug, displayOrder }) => ({ slug, displayOrder })),
+    [
+      { slug: "first", displayOrder: 0 },
+      { slug: "fourth", displayOrder: 1 },
+      { slug: "second", displayOrder: 2 },
+      { slug: "third", displayOrder: 3 },
+    ],
   );
 });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDownOutlined, ArrowUpOutlined, EditOutlined } from "@ant-design/icons";
+import { EditOutlined } from "@ant-design/icons";
 import { ProTable } from "@ant-design/pro-components";
 import type { ProColumns } from "@ant-design/pro-components";
 import {
@@ -10,6 +10,7 @@ import {
   Col,
   Empty,
   Image,
+  InputNumber,
   Row,
   Space,
   Statistic,
@@ -28,7 +29,7 @@ import { createEmptyTourRecord } from "@/lib/create-empty-tour";
 import { replaceTourEditorRecord, validateTourEditorRecord } from "@/lib/tour-editor-state";
 import { getTourTypeOptions } from "@/lib/tour-type-state";
 import { getTourStatusCounts } from "@/lib/workspace-view-models";
-import { moveTourRecord } from "@/lib/tour-order";
+import { moveTourRecordToPosition } from "@/lib/tour-order";
 import type { TourRecord } from "@/types/cms";
 
 type ToursWorkspaceProps = {
@@ -200,11 +201,17 @@ export function ToursWorkspace({
     return payload.tour;
   }
 
-  async function moveTour(slug: string, offset: -1 | 1) {
+  async function moveTour(slug: string, position: number) {
     if (savingOrder) return;
 
     const previousState = tourState;
-    const records = moveTourRecord(previousState.records, slug, offset);
+    let records: TourRecord[];
+    try {
+      records = moveTourRecordToPosition(previousState.records, slug, position);
+    } catch (error) {
+      message.error(getErrorMessage(error, "Enter a valid tour position"));
+      return;
+    }
     if (records.map((record) => record.slug).join("\n") === previousState.records.map((record) => record.slug).join("\n")) {
       return;
     }
@@ -306,32 +313,18 @@ export function ToursWorkspace({
     {
       title: "Order",
       key: "order",
-      width: 112,
+      width: 88,
       render: (_, record) => {
         const index = tourState.records.findIndex((tour) => tour.slug === record.slug);
         return (
-          <Space className="cms-tour-order-actions" size={4}>
-            <Button
-              aria-label={`Move ${record.title} up`}
-              icon={<ArrowUpOutlined />}
-              size="small"
-              disabled={savingOrder || index <= 0}
-              onClick={(event) => {
-                event.stopPropagation();
-                void moveTour(record.slug, -1);
-              }}
-            />
-            <Button
-              aria-label={`Move ${record.title} down`}
-              icon={<ArrowDownOutlined />}
-              size="small"
-              disabled={savingOrder || index < 0 || index >= tourState.records.length - 1}
-              onClick={(event) => {
-                event.stopPropagation();
-                void moveTour(record.slug, 1);
-              }}
-            />
-          </Space>
+          <TourPositionInput
+            key={`${record.slug}-${index}`}
+            position={index + 1}
+            max={tourState.records.length}
+            disabled={savingOrder}
+            label={`Display position for ${record.title}`}
+            onCommit={(position) => void moveTour(record.slug, position)}
+          />
         );
       },
     },
@@ -423,6 +416,46 @@ export function ToursWorkspace({
         </Col>
       </Row>
     </Space>
+  );
+}
+
+function TourPositionInput({
+  position,
+  max,
+  disabled,
+  label,
+  onCommit,
+}: {
+  position: number;
+  max: number;
+  disabled: boolean;
+  label: string;
+  onCommit: (position: number) => void;
+}) {
+  const [value, setValue] = useState<number | null>(position);
+
+  function commit() {
+    if (value === null || !Number.isInteger(value) || value < 1 || value > max) {
+      setValue(position);
+      return;
+    }
+    if (value !== position) onCommit(value);
+  }
+
+  return (
+    <InputNumber
+      className="cms-tour-order-input"
+      aria-label={label}
+      min={1}
+      max={max}
+      precision={0}
+      value={value}
+      disabled={disabled}
+      onChange={setValue}
+      onBlur={commit}
+      onPressEnter={(event) => event.currentTarget.blur()}
+      onClick={(event) => event.stopPropagation()}
+    />
   );
 }
 

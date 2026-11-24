@@ -75,3 +75,21 @@ export function moveTourRecord(
   [ordered[index], ordered[nextIndex]] = [ordered[nextIndex], ordered[index]];
   return ordered.map((record, displayOrder) => ({ ...record, displayOrder }));
 }
+
+export function moveTourRecordToPosition(
+  records: readonly TourRecord[],
+  slug: string,
+  position: number,
+): TourRecord[] {
+  const ordered = orderTourRecords(records);
+  if (!Number.isInteger(position) || position < 1 || position > ordered.length) {
+    throw new RangeError(`Tour position must be between 1 and ${ordered.length}`);
+  }
+
+  const currentIndex = ordered.findIndex((record) => record.slug === slug);
+  if (currentIndex < 0 || currentIndex === position - 1) return ordered;
+
+  const [record] = ordered.splice(currentIndex, 1);
+  ordered.splice(position - 1, 0, record);
+  return ordered.map((entry, displayOrder) => ({ ...entry, displayOrder }));
+}
