@@ -33,6 +33,7 @@ import {
   getTourIntroDescription,
 } from "@/lib/tour-content-audit";
 import { getLocalizedStaticText, getLocalizedTourList, getLocalizedTourValue } from "@/lib/localized-content";
+import { splitTourPolicyContent } from "@/lib/tour-policy-content";
 import styles from "@/components/tour/tour-detail.module.css";
 
 function PolicyIcon({ icon }: { icon?: TourPolicy["icon"] }) {
@@ -46,6 +47,16 @@ function getPolicyTitle(lang: "en" | "zh", policy: TourPolicy): string {
   if (policy.icon === "shield") return getLocalizedStaticText(lang, "cancellation");
   if (policy.icon === "info") return getLocalizedStaticText(lang, "importantNotice");
   return policy.title;
+}
+
+function PolicyContent({ content }: { content: string }) {
+  return (
+    <div className={styles.policyContent}>
+      {splitTourPolicyContent(content).map((line, index) => (
+        <p key={`${index}-${line}`}>{line}</p>
+      ))}
+    </div>
+  );
 }
 
 export function TourDetail({ tour }: { tour: Tour }) {
@@ -276,8 +287,14 @@ export function TourDetail({ tour }: { tour: Tour }) {
                           </h3>
                         </div>
                       </div>
-                      <div className="px-6 text-sm leading-relaxed text-muted-foreground">
-                        {getLocalizedTourValue(lang, policy.localizedContent, policy.content)}
+                      <div className="px-6">
+                        <PolicyContent
+                          content={getLocalizedTourValue(
+                            lang,
+                            policy.localizedContent,
+                            policy.content,
+                          )}
+                        />
                       </div>
                     </div>
                   ))}
