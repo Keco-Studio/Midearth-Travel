@@ -48,6 +48,9 @@ const emptyTourDetailFields = {
   notIncluded: "",
   localizedNotIncluded: "",
   galleryImages: "",
+  salePrice: "",
+  hotSaleDescription: "",
+  localizedHotSaleDescription: "",
 };
 
 export function toTourRow(record: TourRecord): TourRow {
@@ -243,6 +246,9 @@ export function mapTourRecordToPublicTour(record: TourRecord): Tour {
     addOns: record.addOns?.length ? record.addOns : base?.addOns,
     featured: record.specialOffer,
     hotSale: record.specialDeals,
+    hotSalePrice: record.salePrice,
+    hotSaleDescription: record.hotSaleDescription,
+    localizedHotSaleDescription: record.localizedHotSaleDescription,
     busTourPackage: record.busTourPackage,
     vacationPackage: record.vacationPackage,
     destinationCategoryIds: resolveTourDestinationCategoryIds(record),

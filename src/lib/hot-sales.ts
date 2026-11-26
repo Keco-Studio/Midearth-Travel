@@ -1,6 +1,11 @@
 import type { Tour } from "../data/tours.ts";
 import { formatCadCents, parseCadPriceToCents } from "./cad-price.ts";
 import type { ContentData } from "./content-values.ts";
+import {
+  destinationCategorySeeds,
+  type DestinationCategory,
+} from "./destination-categories.ts";
+import { getTourRegionBadge } from "./tour-destination-categories.ts";
 import type { TourRecord } from "../types/cms.ts";
 
 export const HOT_SALES_DATA_KEY = "promotionsData";
@@ -12,13 +17,19 @@ export type HotSalePromotion = {
   localizedOfferDescription: string;
 };
 
-export type ResolvedHotSalePromotion = HotSalePromotion & {
+export type ResolvedHotSalePromotion = Omit<HotSalePromotion, "salePrice"> & {
   tour: Tour;
   originalPrice: string | null;
   salePrice: string | null;
 };
 
 export type HotSaleMoveDirection = "up" | "down";
+
+export type HotSalePricePresentation = {
+  originalPrice: string | null;
+  salePrice: string | null;
+  strikeOriginalPrice: boolean;
+};
 
 export class HotSalesPublishError extends Error {
   constructor(message: string) {
@@ -51,6 +62,20 @@ export function serializeHotSalePromotions(
   promotions: readonly HotSalePromotion[],
 ): string {
   return JSON.stringify(promotions);
+}
+
+export function normalizeHotSalesContent(content: ContentData): ContentData {
+  const promotions = parseHotSalePromotions(content).map((promotion) => ({
+    ...promotion,
+    salePrice: promotion.salePrice.trim(),
+    offerDescription: promotion.offerDescription.trim(),
+    localizedOfferDescription: promotion.localizedOfferDescription.trim(),
+  }));
+
+  return {
+    ...content,
+    [HOT_SALES_DATA_KEY]: serializeHotSalePromotions(promotions),
+  };
 }
 
 export function addHotSalePromotion(
@@ -137,6 +162,64 @@ export function getTourOriginalPrice(tour: Pick<Tour, "fares">): string | null {
   return prices.length > 0 ? formatCadCents(Math.min(...prices)) : null;
 }
 
+export function getHotSaleRegionBadge(
+  tour: Tour,
+  categories: readonly DestinationCategory[] = destinationCategorySeeds,
+  lang: "en" | "zh" = "en",
+): string {
+  return getTourRegionBadge(tour, categories, lang);
+}
+
+export function validateTourRecordHotSale(
+  tour: Pick<
+    TourRecord,
+    | "title"
+    | "specialDeals"
+    | "salePrice"
+    | "hotSaleDescription"
+    | "localizedHotSaleDescription"
+    | "fares"
+  >,
+): void {
+  if (!tour.specialDeals) return;
+
+  const salePrice = tour.salePrice.trim();
+  const hasDescription = Boolean(
+    tour.hotSaleDescription.trim() || tour.localizedHotSaleDescription.trim(),
+  );
+  if (!salePrice && !hasDescription) {
+    throw new HotSalesPublishError(
+      `${tour.title} needs a discounted price or offer description.`,
+    );
+  }
+  if (!salePrice) return;
+
+  const saleCents = parseCadPriceToCents(salePrice);
+  if (saleCents === null || saleCents <= 0) {
+    throw new HotSalesPublishError(
+      `${tour.title} needs a valid CAD discounted price.`,
+    );
+  }
+
+  const originalPrice = Object.values(tour.fares)
+    .map(parseCadPriceToCents)
+    .filter((price): price is number => price !== null)
+    .reduce<number | null>(
+      (lowest, price) => (lowest === null ? price : Math.min(lowest, price)),
+      null,
+    );
+  if (originalPrice === null) {
+    throw new HotSalesPublishError(
+      `${tour.title} needs an original fare before adding a discounted price.`,
+    );
+  }
+  if (saleCents >= originalPrice) {
+    throw new HotSalesPublishError(
+      `${tour.title} discounted price must be lower than its original fare.`,
+    );
+  }
+}
+
 export function validateHotSalesForPublish(
   content: ContentData,
   tours: readonly Tour[],
@@ -151,19 +234,19 @@ export function validateHotSalesForPublish(
       );
     }
 
-    if (
-      !promotion.salePrice &&
-      !promotion.offerDescription &&
-      !promotion.localizedOfferDescription
-    ) {
+    const salePrice = promotion.salePrice.trim();
+    const offerDescription = promotion.offerDescription.trim();
+    const localizedOfferDescription =
+      promotion.localizedOfferDescription.trim();
+    if (!salePrice && !offerDescription && !localizedOfferDescription) {
       throw new HotSalesPublishError(
         `${tour.title} needs a discounted price or offer description.`,
       );
     }
 
-    if (!promotion.salePrice) continue;
+    if (!salePrice) continue;
 
-    const saleCents = parseCadPriceToCents(promotion.salePrice);
+    const saleCents = parseCadPriceToCents(salePrice);
     if (saleCents === null || saleCents <= 0) {
       throw new HotSalesPublishError(
         `${tour.title} needs a valid CAD discounted price.`,
@@ -194,12 +277,16 @@ export function getPublishedHotSalePromotions(
     const tour = toursBySlug.get(promotion.tourSlug);
     if (!tour) return [];
 
-    const saleCents = promotion.salePrice
-      ? parseCadPriceToCents(promotion.salePrice)
+    const salePrice = promotion.salePrice.trim();
+    const offerDescription = promotion.offerDescription.trim();
+    const localizedOfferDescription =
+      promotion.localizedOfferDescription.trim();
+    const saleCents = salePrice
+      ? parseCadPriceToCents(salePrice)
       : null;
     const originalCents = getTourOriginalPriceCents(tour);
     const hasDescription = Boolean(
-      promotion.offerDescription || promotion.localizedOfferDescription,
+      offerDescription || localizedOfferDescription,
     );
     const hasValidSale =
       saleCents !== null &&
@@ -212,6 +299,8 @@ export function getPublishedHotSalePromotions(
     return [
       {
         ...promotion,
+        offerDescription,
+        localizedOfferDescription,
         tour,
         originalPrice:
           originalCents === null ? null : formatCadCents(originalCents),
@@ -219,6 +308,27 @@ export function getPublishedHotSalePromotions(
       },
     ];
   });
+}
+
+export function getHotSalePricePresentation(
+  promotion: ResolvedHotSalePromotion,
+): HotSalePricePresentation {
+  return {
+    originalPrice: promotion.originalPrice,
+    salePrice: promotion.salePrice,
+    strikeOriginalPrice: Boolean(
+      promotion.originalPrice && promotion.salePrice,
+    ),
+  };
+}
+
+export function getHotSaleDescription(
+  promotion: ResolvedHotSalePromotion,
+  lang: "en" | "zh",
+): string {
+  return lang === "zh"
+    ? promotion.localizedOfferDescription || promotion.offerDescription
+    : promotion.offerDescription || promotion.localizedOfferDescription;
 }
 
 function normalizePromotion(value: unknown): HotSalePromotion | null {
@@ -229,14 +339,14 @@ function normalizePromotion(value: unknown): HotSalePromotion | null {
 
   return {
     tourSlug,
-    salePrice: typeof raw.salePrice === "string" ? raw.salePrice.trim() : "",
+    salePrice: typeof raw.salePrice === "string" ? raw.salePrice : "",
     offerDescription:
       typeof raw.offerDescription === "string"
-        ? raw.offerDescription.trim()
+        ? raw.offerDescription
         : "",
     localizedOfferDescription:
       typeof raw.localizedOfferDescription === "string"
-        ? raw.localizedOfferDescription.trim()
+        ? raw.localizedOfferDescription
         : "",
   };
 }
@@ -244,12 +354,7 @@ function normalizePromotion(value: unknown): HotSalePromotion | null {
 function normalizePromotionPatch(
   patch: Partial<Omit<HotSalePromotion, "tourSlug">>,
 ): Partial<Omit<HotSalePromotion, "tourSlug">> {
-  return Object.fromEntries(
-    Object.entries(patch).map(([key, value]) => [
-      key,
-      typeof value === "string" ? value.trim() : value,
-    ]),
-  );
+  return { ...patch };
 }
 
 function getTourOriginalPriceCents(tour: Pick<Tour, "fares">): number | null {

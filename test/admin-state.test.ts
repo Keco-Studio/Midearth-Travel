@@ -78,10 +78,11 @@ test("selects fixed homepage modules without changing registry order", () => {
   assert.equal(state.selectedHomeModuleId, "footer");
   assert.equal(getActiveModule(state).id, "footer");
   assert.deepEqual(
-    state.homeModules.slice(0, 10).map((module) => module.id),
+    state.homeModules.slice(0, 11).map((module) => module.id),
     [
       "navbar",
       "hero",
+      "hotSales",
       "toursSection",
       "categoryGrid",
       "exploreByMonth",
@@ -124,6 +125,36 @@ test("loads persisted modules without overwriting the module being edited", () =
     "Loaded footer",
   );
   assert.equal(nextState.hasUnsavedChanges, true);
+});
+
+test("keeps unsaved Hot Sales content when Tour Library returns a newer revision", () => {
+  const seed = createInitialAdminState().homeModules.find(
+    (module) => module.id === "hotSales",
+  )!;
+  const editedModule = {
+    ...seed,
+    data: { ...seed.data, sectionTitleEn: "Unsaved local title" },
+  };
+  const edited = {
+    ...createInitialAdminState(),
+    selectedHomeModuleId: "hotSales" as const,
+    homeModules: [editedModule],
+    hasUnsavedChanges: true,
+  };
+  const persisted = {
+    ...editedModule,
+    updatedAt: "2026-11-26T12:00:00.000Z",
+    data: {
+      ...editedModule.data,
+      sectionTitleEn: "Updated by Tour Library",
+    },
+  };
+
+  const merged = mergeLoadedHomeModules(edited, [persisted]);
+
+  assert.equal(getActiveModule(merged).data.sectionTitleEn, "Unsaved local title");
+  assert.notEqual(getActiveModule(merged).updatedAt, persisted.updatedAt);
+  assert.equal(merged.hasUnsavedChanges, true);
 });
 
 test("replaces a saved module and clears its unsaved state", () => {

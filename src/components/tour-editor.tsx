@@ -72,6 +72,7 @@ export function TourEditor({
 }: TourEditorProps) {
   const { message } = App.useApp();
   const [form] = Form.useForm<TourRecord>();
+  const hotSaleEnabled = Form.useWatch("specialDeals", form);
   const [imagePreview, setImagePreview] = useState(tour.image || "/file.svg");
   const [pdfFileName, setPdfFileName] = useState(tour.pdfFileName);
   const [galleryImages, setGalleryImages] = useState(() =>
@@ -640,6 +641,32 @@ export function TourEditor({
               label="Explore by Month package"
               tooltip="Mark tours that should be offered as Explore-by-Month destinations."
             />
+            {hotSaleEnabled ? (
+              <>
+                <Col xs={24} md={12} lg={8}>
+                  <Form.Item
+                    name="salePrice"
+                    label="Discounted price (CAD)"
+                    tooltip="Optional for description-only offers. The original price comes from the lowest fare above."
+                  >
+                    <Input placeholder="e.g. 599" />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={12} lg={8}>
+                  <Form.Item name="hotSaleDescription" label="Offer description (English)">
+                    <Input placeholder="e.g. 3rd & 4th guests 50% off" maxLength={160} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={12} lg={8}>
+                  <Form.Item
+                    name="localizedHotSaleDescription"
+                    label="Offer description (Chinese)"
+                  >
+                    <Input placeholder="例如：第三、四人半价" maxLength={160} />
+                  </Form.Item>
+                </Col>
+              </>
+            ) : null}
             <Col span={24}>
               <Typography.Text type="secondary">
                 Where to Go — linked to Destination names (rename there and labels update here)

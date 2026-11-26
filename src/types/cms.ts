@@ -119,6 +119,9 @@ export type TourRecord = {
   galleryImages: string;
   specialOffer: boolean;
   specialDeals: boolean;
+  salePrice: string;
+  hotSaleDescription: string;
+  localizedHotSaleDescription: string;
   vacationPackage: boolean;
   travelNewsPackage: boolean;
   busTourPackage: boolean;

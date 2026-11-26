@@ -2,18 +2,28 @@ import { assertAdminRequest } from "@/lib/admin-auth";
 import { EXPECTED_CONTENT_MODULE_IDS } from "@/lib/content-rules";
 import { canonicalizeHomeModule } from "@/lib/home-content";
 import { HeroSlidesPublishError } from "@/lib/hero-slides";
+import { HotSalesPublishError, validateHotSalesForPublish } from "@/lib/hot-sales";
+import { mapTourRecordToPublicTour } from "@/lib/tour-content";
 import {
   syncContactFieldsToFinalCta,
   syncContactFieldsToGlobalSettings,
   syncSharedPhonesToModules,
 } from "@/lib/office-address-sync";
 import { revalidatePublicSite } from "@/lib/revalidate-public-site";
-import { publishHomeModule, saveHomeModuleDraft } from "@/lib/supabase-home-content";
+import {
+  HotSalesConflictError,
+  loadAdminHomeModules,
+  publishHomeModule,
+  publishHotSalesModule,
+  saveHomeModuleDraft,
+  saveHotSalesModuleDraft,
+} from "@/lib/supabase-home-content";
+import { loadAdminTours } from "@/lib/supabase-tours";
 import type { HomeModuleId, HomeModuleRecord, SiteSettings } from "@/types/cms";
 
 type UpdatePayload =
-  | { action: "save"; module: HomeModuleRecord }
-  | { action: "publish" };
+  | { action: "save"; module: HomeModuleRecord; expectedUpdatedAt?: string }
+  | { action: "publish"; expectedUpdatedAt?: string };
 
 export async function PUT(
   request: Request,
@@ -49,12 +59,43 @@ export async function PUT(
         );
       }
 
-      const savedModule = await saveHomeModuleDraft(canonicalModule);
+      if (rawId === "hotSales" && !payload.expectedUpdatedAt) {
+        return Response.json({ error: "Hot Sales revision is required" }, { status: 400 });
+      }
+      const savedModule = rawId === "hotSales"
+        ? await saveHotSalesModuleDraft(
+            canonicalModule,
+            payload.expectedUpdatedAt!,
+          )
+        : await saveHomeModuleDraft(canonicalModule);
       const linked = await syncLinkedModules(savedModule);
       return Response.json({ module: savedModule, ...linked });
     }
 
     if (payload.action === "publish") {
+      if (rawId === "hotSales") {
+        if (!payload.expectedUpdatedAt) {
+          return Response.json({ error: "Hot Sales revision is required" }, { status: 400 });
+        }
+        const [modules, tours] = await Promise.all([
+          loadAdminHomeModules(),
+          loadAdminTours(),
+        ]);
+        const hotSales = modules.find((module) => module.id === "hotSales");
+        if (!hotSales) {
+          return Response.json({ error: "Hot Sales module is unavailable" }, { status: 404 });
+        }
+        validateHotSalesForPublish(
+          hotSales.data,
+          tours.map(mapTourRecordToPublicTour),
+        );
+        const result = await publishHotSalesModule(
+          payload.expectedUpdatedAt,
+          tours,
+        );
+        revalidatePublicSite();
+        return Response.json({ module: result.module, tours: result.tours });
+      }
       const publishedModule = await publishHomeModule(rawId);
       const linked = await syncLinkedModules(publishedModule);
       revalidatePublicSite();
@@ -65,7 +106,15 @@ export async function PUT(
   } catch (error) {
     return Response.json(
       { error: error instanceof Error ? error.message : "Unable to update homepage module" },
-      { status: error instanceof HeroSlidesPublishError ? 400 : 500 },
+      {
+        status:
+          error instanceof HeroSlidesPublishError ||
+          error instanceof HotSalesPublishError
+            ? 400
+            : error instanceof HotSalesConflictError
+              ? 409
+            : 500,
+      },
     );
   }
 }

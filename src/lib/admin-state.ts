@@ -46,7 +46,11 @@ export function createInitialAdminState(): AdminState {
     workspace: "home",
     expandedWorkspace: "home",
     selectedHomeModuleId: "navbar",
-    homeModules: homeModuleSeeds,
+    homeModules: homeModuleSeeds.map((module) => ({
+      ...module,
+      fields: module.fields.map((field) => ({ ...field })),
+      data: { ...module.data },
+    })),
     hasUnsavedChanges: false,
     focusBookingId: null,
     focusPaymentId: null,

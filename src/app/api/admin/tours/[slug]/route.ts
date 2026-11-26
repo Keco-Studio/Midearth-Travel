@@ -1,6 +1,10 @@
 import { assertAdminRequest } from "@/lib/admin-auth";
+import { validateTourRecordHotSale } from "@/lib/hot-sales";
 import { revalidatePublicSite } from "@/lib/revalidate-public-site";
-import { saveTour } from "@/lib/supabase-tours";
+import {
+  HotSalesConflictError,
+  saveTourAndSyncHotSales,
+} from "@/lib/supabase-home-content";
 import type { TourRecord } from "@/types/cms";
 
 export async function PUT(
@@ -18,13 +22,14 @@ export async function PUT(
       return Response.json({ error: "Invalid tour payload" }, { status: 400 });
     }
 
-    const tour = await saveTour(payload.tour);
+    validateTourRecordHotSale(payload.tour);
+    const { tour, hotSalesModule } = await saveTourAndSyncHotSales(payload.tour);
     revalidatePublicSite({ tourSlug: tour.slug });
-    return Response.json({ tour });
+    return Response.json({ tour, hotSalesModule });
   } catch (error) {
     return Response.json(
       { error: error instanceof Error ? error.message : "Unable to save tour" },
-      { status: 400 },
+      { status: error instanceof HotSalesConflictError ? 409 : 400 },
     );
   }
 }

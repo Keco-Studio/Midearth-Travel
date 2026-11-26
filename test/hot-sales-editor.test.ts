@@ -3,8 +3,12 @@ import test from "node:test";
 import {
   addHotSalePromotion,
   getTourRecordOriginalPrice,
+  HOT_SALES_DATA_KEY,
   moveHotSalePromotion,
+  normalizeHotSalesContent,
+  parseHotSalePromotions,
   removeHotSalePromotion,
+  serializeHotSalePromotions,
   updateHotSalePromotion,
   type HotSalePromotion,
 } from "../src/lib/hot-sales.ts";
@@ -47,11 +51,32 @@ test("updates one Hot Sales promotion without changing list order", () => {
       first,
       {
         ...second,
-        salePrice: "149",
-        offerDescription: "Last minute",
+        salePrice: " 149 ",
+        offerDescription: " Last minute ",
       },
     ],
   );
+});
+
+test("trims Hot Sales values only when content crosses a persistence boundary", () => {
+  const content = {
+    [HOT_SALES_DATA_KEY]: serializeHotSalePromotions([
+      {
+        ...first,
+        salePrice: " 149 ",
+        offerDescription: "Last ",
+      },
+    ]),
+  };
+
+  assert.equal(parseHotSalePromotions(content)[0]?.offerDescription, "Last ");
+  assert.deepEqual(parseHotSalePromotions(normalizeHotSalesContent(content)), [
+    {
+      ...first,
+      salePrice: "149",
+      offerDescription: "Last",
+    },
+  ]);
 });
 
 test("moves and removes Hot Sales promotions by tour slug", () => {

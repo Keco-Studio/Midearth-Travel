@@ -66,6 +66,9 @@ export type Tour = {
   addOns?: TourAddOn[];
   featured?: boolean;
   hotSale?: boolean;
+  hotSalePrice?: string;
+  hotSaleDescription?: string;
+  localizedHotSaleDescription?: string;
   busTourPackage?: boolean;
   vacationPackage?: boolean;
   /** Where to Go destination category ids when set from CMS. */
