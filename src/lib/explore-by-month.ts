@@ -8,6 +8,38 @@ import { getTourPublicHref } from "./tour-content-audit.ts";
 
 export const EXPLORE_MONTHS_DATA_KEY = "monthsData";
 
+export const EXPLORE_MONTH_KEYS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+] as const;
+
+export type ExploreMonthKey = (typeof EXPLORE_MONTH_KEYS)[number];
+
+export const EXPLORE_MONTH_LABELS: Record<ExploreMonthKey, string> = {
+  Jan: "January",
+  Feb: "February",
+  Mar: "March",
+  Apr: "April",
+  May: "May",
+  Jun: "June",
+  Jul: "July",
+  Aug: "August",
+  Sep: "September",
+  Oct: "October",
+  Nov: "November",
+  Dec: "December",
+};
+
 export type ExploreTourLookup = Tour;
 
 type ParseMonthEntriesOptions = {
@@ -58,6 +90,70 @@ function fillMissingMonths(entries: MonthEntry[]): MonthEntry[] {
 
 export function getExploreByMonthEntries(content: Record<string, unknown>): MonthEntry[] {
   return parseMonthEntries(content[EXPLORE_MONTHS_DATA_KEY]);
+}
+
+export function isExploreMonthKey(value: unknown): value is ExploreMonthKey {
+  return typeof value === "string" && EXPLORE_MONTH_KEYS.includes(
+    value as ExploreMonthKey,
+  );
+}
+
+export function findExploreMonthForTour(
+  entries: readonly MonthEntry[],
+  tourSlug: string,
+): ExploreMonthKey | "" {
+  const normalizedSlug = tourSlug.trim();
+  if (!normalizedSlug) return "";
+
+  for (const entry of entries) {
+    if (
+      isExploreMonthKey(entry.month) &&
+      entry.destinations.some(
+        (destination) => destination.tourSlug?.trim() === normalizedSlug,
+      )
+    ) {
+      return entry.month;
+    }
+  }
+
+  return "";
+}
+
+export function assignTourToExploreMonth(
+  entries: readonly MonthEntry[],
+  tourSlug: string,
+  month: ExploreMonthKey | "",
+): MonthEntry[] {
+  const normalizedSlug = tourSlug.trim();
+  const completeEntries = fillMissingMonths(cloneMonths([...entries]));
+  if (!normalizedSlug) return completeEntries;
+
+  const currentMonth = findExploreMonthForTour(completeEntries, normalizedSlug);
+  if (currentMonth === month) return completeEntries;
+
+  const withoutTour = completeEntries.map((entry) => ({
+    ...entry,
+    destinations: entry.destinations.filter(
+      (destination) => destination.tourSlug?.trim() !== normalizedSlug,
+    ),
+  }));
+
+  if (!month) return withoutTour;
+
+  return withoutTour.map((entry) =>
+    entry.month === month
+      ? {
+          ...entry,
+          destinations: [
+            ...entry.destinations,
+            {
+              ...createEmptyDestination(),
+              tourSlug: normalizedSlug,
+            },
+          ],
+        }
+      : entry,
+  );
 }
 
 export function createEmptyDestination(): MonthDestination {

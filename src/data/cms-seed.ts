@@ -26,6 +26,10 @@ import {
   HOT_SALES_DATA_KEY,
   serializeHotSalePromotions,
 } from "../lib/hot-sales.ts";
+import {
+  TOP_PICKS_DATA_KEY,
+  serializeTopPickSlugs,
+} from "../lib/top-picks.ts";
 import { tours } from "./tours.ts";
 import type {
   FieldDefinition,
@@ -57,6 +61,7 @@ const sharedHomeFieldKeys = new Set([
   FOOTER_SERVICE_LINKS_KEY,
   HERO_SLIDES_DATA_KEY,
   HOT_SALES_DATA_KEY,
+  TOP_PICKS_DATA_KEY,
 ]);
 
 function isLocalizedCopyField(field: FieldDefinition): boolean {
@@ -331,15 +336,25 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
   createModule(
     "toursSection",
     4,
-    "Section eyebrow and title only. Choose featured tours in Tour Library by enabling Special Offer on each tour.",
+    "Edit the section title and the ordered tours shown in Our Top Picks.",
     "published",
     [
       { key: "eyebrow", label: "Eyebrow", type: "text", maxLength: 30 },
       { key: "sectionTitle", label: "Section title", type: "text", required: true, maxLength: 40 },
+      {
+        key: TOP_PICKS_DATA_KEY,
+        label: "Selected tours",
+        type: "textarea",
+        maxLength: 100000,
+        helper: "Managed by the selected-tour editor below. Do not edit this JSON directly.",
+      },
     ],
     {
       eyebrow: "Featured",
       sectionTitle: "Our Top Picks",
+      [TOP_PICKS_DATA_KEY]: serializeTopPickSlugs(
+        tours.filter((tour) => tour.featured).map((tour) => tour.slug),
+      ),
     },
   ),
   createModule(
