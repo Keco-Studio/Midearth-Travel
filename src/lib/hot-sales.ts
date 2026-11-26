@@ -1,6 +1,7 @@
 import type { Tour } from "../data/tours.ts";
 import { formatCadCents, parseCadPriceToCents } from "./cad-price.ts";
 import type { ContentData } from "./content-values.ts";
+import type { TourRecord } from "../types/cms.ts";
 
 export const HOT_SALES_DATA_KEY = "promotionsData";
 
@@ -16,6 +17,8 @@ export type ResolvedHotSalePromotion = HotSalePromotion & {
   originalPrice: string | null;
   salePrice: string | null;
 };
+
+export type HotSaleMoveDirection = "up" | "down";
 
 export class HotSalesPublishError extends Error {
   constructor(message: string) {
@@ -48,6 +51,82 @@ export function serializeHotSalePromotions(
   promotions: readonly HotSalePromotion[],
 ): string {
   return JSON.stringify(promotions);
+}
+
+export function addHotSalePromotion(
+  promotions: readonly HotSalePromotion[],
+  tourSlug: string,
+): HotSalePromotion[] {
+  const normalizedSlug = tourSlug.trim();
+  if (
+    !normalizedSlug ||
+    promotions.some((promotion) => promotion.tourSlug === normalizedSlug)
+  ) {
+    return [...promotions];
+  }
+
+  return [
+    ...promotions,
+    {
+      tourSlug: normalizedSlug,
+      salePrice: "",
+      offerDescription: "",
+      localizedOfferDescription: "",
+    },
+  ];
+}
+
+export function updateHotSalePromotion(
+  promotions: readonly HotSalePromotion[],
+  tourSlug: string,
+  patch: Partial<Omit<HotSalePromotion, "tourSlug">>,
+): HotSalePromotion[] {
+  return promotions.map((promotion) =>
+    promotion.tourSlug === tourSlug
+      ? {
+          ...promotion,
+          ...normalizePromotionPatch(patch),
+        }
+      : promotion,
+  );
+}
+
+export function moveHotSalePromotion(
+  promotions: readonly HotSalePromotion[],
+  tourSlug: string,
+  direction: HotSaleMoveDirection,
+): HotSalePromotion[] {
+  const currentIndex = promotions.findIndex(
+    (promotion) => promotion.tourSlug === tourSlug,
+  );
+  const nextIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
+  if (
+    currentIndex < 0 ||
+    nextIndex < 0 ||
+    nextIndex >= promotions.length
+  ) {
+    return [...promotions];
+  }
+
+  const next = [...promotions];
+  [next[currentIndex], next[nextIndex]] = [next[nextIndex], next[currentIndex]];
+  return next;
+}
+
+export function removeHotSalePromotion(
+  promotions: readonly HotSalePromotion[],
+  tourSlug: string,
+): HotSalePromotion[] {
+  return promotions.filter((promotion) => promotion.tourSlug !== tourSlug);
+}
+
+export function getTourRecordOriginalPrice(
+  tour: Pick<TourRecord, "fares">,
+): string | null {
+  const prices = Object.values(tour.fares)
+    .map(parseCadPriceToCents)
+    .filter((price): price is number => price !== null);
+  return prices.length > 0 ? formatCadCents(Math.min(...prices)) : null;
 }
 
 export function getTourOriginalPrice(tour: Pick<Tour, "fares">): string | null {
@@ -160,6 +239,17 @@ function normalizePromotion(value: unknown): HotSalePromotion | null {
         ? raw.localizedOfferDescription.trim()
         : "",
   };
+}
+
+function normalizePromotionPatch(
+  patch: Partial<Omit<HotSalePromotion, "tourSlug">>,
+): Partial<Omit<HotSalePromotion, "tourSlug">> {
+  return Object.fromEntries(
+    Object.entries(patch).map(([key, value]) => [
+      key,
+      typeof value === "string" ? value.trim() : value,
+    ]),
+  );
 }
 
 function getTourOriginalPriceCents(tour: Pick<Tour, "fares">): number | null {

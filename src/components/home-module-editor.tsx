@@ -17,11 +17,13 @@ import { DestinationCategoryEditor } from "@/components/destination-category-edi
 import { ExploreByMonthEditor } from "@/components/explore-by-month-editor";
 import { FooterLinksEditor } from "@/components/footer-links-editor";
 import { HeroSlidesEditor } from "@/components/hero-slides-editor";
+import { HotSalesEditor } from "@/components/hot-sales-editor";
 import { ServiceCardsEditor, TestimonialsEditor } from "@/components/home-collection-editors";
 import { FORBIDDEN_FIELD_KEYS } from "@/lib/content-rules";
 import { EXPLORE_MONTHS_DATA_KEY } from "@/lib/explore-by-month";
 import { FOOTER_SERVICE_LINKS_KEY } from "@/lib/footer-links";
 import { HERO_SLIDES_DATA_KEY } from "@/lib/hero-slides";
+import { HOT_SALES_DATA_KEY } from "@/lib/hot-sales";
 import { validateInlineImageFile } from "@/lib/inline-image-upload";
 import {
   getFieldSectionHeader,
@@ -88,6 +90,10 @@ export function HomeModuleEditor({
             module.id === "hero" &&
             (field.definition.key === HERO_SLIDES_DATA_KEY ||
               field.definition.key === "backgroundImage")
+          ) &&
+          !(
+            module.id === "hotSales" &&
+            field.definition.key === HOT_SALES_DATA_KEY
           ),
       ),
     [module],
@@ -153,6 +159,9 @@ export function HomeModuleEditor({
           onChange={onChange}
           onImageUpload={onImageUpload}
         />
+      ) : null}
+      {module.id === "hotSales" ? (
+        <HotSalesEditor content={module.data} tours={tours} onChange={onChange} />
       ) : null}
       {module.id === "categoryGrid" ? (
         <DestinationCategoryEditor
