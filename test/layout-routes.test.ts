@@ -57,6 +57,23 @@ test("routes Contact Us form submissions to the dedicated inquiry inbox", () => 
   assert.deepEqual(parseLayoutPath("/inquiries"), { workspace: "inquiries" });
 });
 
+test("routes Hot Sales as its own Homepage module before Featured Tours", () => {
+  const homepageRoutes = layoutRouteConfig.routes[0]?.routes?.[0]?.routes ?? [];
+  const hotSalesIndex = homepageRoutes.findIndex(
+    (route) => route.path === "/home/hotSales",
+  );
+  const featuredIndex = homepageRoutes.findIndex(
+    (route) => route.path === "/home/toursSection",
+  );
+
+  assert.ok(hotSalesIndex >= 0);
+  assert.ok(hotSalesIndex < featuredIndex);
+  assert.deepEqual(parseLayoutPath("/home/hotSales"), {
+    workspace: "home",
+    moduleId: "hotSales",
+  });
+});
+
 function flattenRoutes(routes: LayoutRoute[]): LayoutRoute[] {
   return routes.flatMap((route) => [route, ...flattenRoutes(route.routes ?? [])]);
 }

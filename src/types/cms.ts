@@ -16,6 +16,7 @@ export type FieldType =
 export type HomeModuleId =
   | "navbar"
   | "hero"
+  | "hotSales"
   | "toursSection"
   | "categoryGrid"
   | "exploreByMonth"

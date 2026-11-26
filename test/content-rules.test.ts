@@ -14,6 +14,7 @@ test("keeps homepage modules fixed in the approved order", () => {
     [
       "navbar",
       "hero",
+      "hotSales",
       "toursSection",
       "categoryGrid",
       "exploreByMonth",

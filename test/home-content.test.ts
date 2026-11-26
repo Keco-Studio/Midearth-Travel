@@ -84,6 +84,22 @@ test("seeds the Hero with one CMS-managed background slide", () => {
   assert.equal(slides[0]?.enabled, true);
 });
 
+test("seeds Hot Sales as a dedicated module before Featured Tours", () => {
+  const hotSalesIndex = homeModuleSeeds.findIndex(
+    (module) => module.id === "hotSales",
+  );
+  const featuredIndex = homeModuleSeeds.findIndex(
+    (module) => module.id === "toursSection",
+  );
+  const hotSales = homeModuleSeeds[hotSalesIndex];
+
+  assert.ok(hotSalesIndex >= 0);
+  assert.ok(hotSalesIndex < featuredIndex);
+  assert.equal(hotSales?.name, "Hot Sales");
+  assert.ok(hotSales?.fields.some((field) => field.key === "promotionsData"));
+  assert.equal(hotSales?.data.sectionTitleEn, "Hot Sales");
+});
+
 test("migrates a stored legacy Hero using its own background image", () => {
   const legacyData = { ...heroSeed.data };
   delete legacyData.slidesData;

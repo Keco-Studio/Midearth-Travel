@@ -3,6 +3,7 @@ import type { FieldDefinition, HomeModuleDefinition, HomeModuleId } from "../typ
 export const EXPECTED_HOME_MODULE_IDS = [
   "navbar",
   "hero",
+  "hotSales",
   "toursSection",
   "categoryGrid",
   "exploreByMonth",
@@ -22,6 +23,7 @@ export const EXPECTED_CONTENT_MODULE_IDS = [
 export const HOME_MODULES: readonly HomeModuleDefinition[] = [
   { id: "navbar", name: "Navigation" },
   { id: "hero", name: "Hero" },
+  { id: "hotSales", name: "Hot Sales" },
   { id: "toursSection", name: "Featured Tours" },
   { id: "categoryGrid", name: "Destination Categories" },
   { id: "exploreByMonth", name: "Explore By Month" },
