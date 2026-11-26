@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
+import postcss, { type Rule } from "postcss";
 import type { Tour } from "../src/data/tours.ts";
 import { destinationCategorySeeds } from "../src/lib/destination-categories.ts";
 import {
@@ -9,6 +11,27 @@ import {
   getPublishedHotSalePromotions,
   serializeHotSalePromotions,
 } from "../src/lib/hot-sales.ts";
+
+const cardCss = postcss.parse(
+  readFileSync(
+    new URL("../src/components/packages-section.module.css", import.meta.url),
+    "utf8",
+  ),
+);
+
+function cardDeclarationsFor(selector: string): Map<string, string> {
+  const rule = cardCss.nodes.find(
+    (node): node is Rule => node.type === "rule" && node.selector === selector,
+  );
+
+  assert.ok(rule, `expected ${selector} CSS rule`);
+
+  return new Map(
+    rule.nodes.flatMap((node) =>
+      node.type === "decl" ? [[node.prop, node.value] as const] : [],
+    ),
+  );
+}
 
 const tour: Tour = {
   slug: "cruise",
@@ -91,4 +114,15 @@ test("uses the same live localized region badge as the standard tour cards", () 
     getHotSaleRegionBadge(promotionalTour, categories, "zh"),
     "欧洲精选",
   );
+});
+
+test("positions the Hot Sales region badge at the image's top-right corner", () => {
+  const imageLink = cardDeclarationsFor(".imageLink");
+  const regionBadge = cardDeclarationsFor(".regionBadge");
+
+  assert.equal(imageLink.get("position"), "relative");
+  assert.equal(regionBadge.get("position"), "absolute");
+  assert.equal(regionBadge.get("top"), "14px");
+  assert.equal(regionBadge.get("right"), "14px");
+  assert.equal(regionBadge.has("left"), false);
 });
