@@ -37,7 +37,7 @@ type ToursWorkspaceProps = {
   tours: TourRecord[];
   destinationCategories?: DestinationCategory[];
   onToursChange?: (tours: TourRecord[]) => void;
-  onHotSalesModuleChange?: (module: HomeModuleRecord) => void;
+  onLinkedModulesChange?: (modules: HomeModuleRecord[]) => void;
 };
 
 type TourWorkspaceState = {
@@ -49,7 +49,7 @@ export function ToursWorkspace({
   tours,
   destinationCategories = destinationCategorySeeds,
   onToursChange,
-  onHotSalesModuleChange,
+  onLinkedModulesChange,
 }: ToursWorkspaceProps) {
   const { message } = App.useApp();
   const [tourState, setTourState] = useState<TourWorkspaceState>(() =>
@@ -176,7 +176,7 @@ export function ToursWorkspace({
     try {
       const result = await persistTour({ ...current, tourType: resolved.tourType });
       const saved = result.tour;
-      if (result.hotSalesModule) onHotSalesModuleChange?.(result.hotSalesModule);
+      onLinkedModulesChange?.(result.linkedModules);
       const nextCustomTypes =
         resolved.isNew && !tourState.customTypes.includes(resolved.tourType)
           ? [...tourState.customTypes, resolved.tourType]
@@ -210,7 +210,7 @@ export function ToursWorkspace({
     try {
       const result = await persistTour(updatedRecord);
       const saved = result.tour;
-      if (result.hotSalesModule) onHotSalesModuleChange?.(result.hotSalesModule);
+      onLinkedModulesChange?.(result.linkedModules);
       const nextCustomTypes =
         resolved.isNew && !tourState.customTypes.includes(resolved.tourType)
           ? [...tourState.customTypes, resolved.tourType]
@@ -225,7 +225,7 @@ export function ToursWorkspace({
 
   async function persistTour(record: TourRecord): Promise<{
     tour: TourRecord;
-    hotSalesModule?: HomeModuleRecord;
+    linkedModules: HomeModuleRecord[];
   }> {
     const response = await fetch(`/api/admin/tours/${record.slug}`, {
       method: "PUT",
@@ -234,7 +234,7 @@ export function ToursWorkspace({
     });
     return readApiResponse<{
       tour: TourRecord;
-      hotSalesModule?: HomeModuleRecord;
+      linkedModules: HomeModuleRecord[];
     }>(response);
   }
 

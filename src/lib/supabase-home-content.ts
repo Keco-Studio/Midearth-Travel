@@ -17,6 +17,12 @@ import {
   syncHotSalesContentFromTour,
   type HotSalesTourPatch,
 } from "@/lib/hot-sales-sync";
+import {
+  createExploreByMonthTourPatches,
+  createTopPicksTourPatches,
+  syncHomepageSelectionsFromTour,
+  type HomepageTourSelectionPatch,
+} from "@/lib/homepage-tour-selection-sync";
 import { normalizeHotSalesContent } from "@/lib/hot-sales";
 import { loadPublishedHomeModulesStrictWithRequest } from "@/lib/published-content-loaders";
 import {
@@ -47,10 +53,38 @@ type HotSalesTourSave = TourRow & {
 
 type HotSalesTourOperation = HotSalesTourPatch | HotSalesTourSave;
 
+type LinkedSelectionModuleId = "toursSection" | "exploreByMonth";
+
+type LinkedHomeOperation = {
+  row: HomeModuleRow;
+  expected_updated_at: string;
+};
+
+type LinkedTourSave = TourRow & {
+  kind: "tour";
+  expected_updated_at: string;
+};
+
+type LinkedTourOperation = HomepageTourSelectionPatch | LinkedTourSave;
+
+type LinkedHomepageTourPersistenceResult = {
+  home_modules: HomeModuleRow[];
+  tours: TourRow[];
+};
+
 export class HotSalesConflictError extends Error {
   constructor() {
     super("Hot Sales changed in another editor. Refresh and review the latest promotion values before saving again.");
     this.name = "HotSalesConflictError";
+  }
+}
+
+export class HomepageTourSelectionConflictError extends Error {
+  constructor() {
+    super(
+      "This Homepage selection changed in another editor. Refresh and review the latest Tour selections before saving again.",
+    );
+    this.name = "HomepageTourSelectionConflictError";
   }
 }
 
@@ -125,41 +159,76 @@ export async function publishHotSalesModule(
   };
 }
 
-export async function saveTourAndSyncHotSales(
+export async function saveTourAndSyncHomepageSelections(
   record: TourRecord,
-): Promise<{ tour: TourRecord; hotSalesModule: HomeModuleRecord }> {
+): Promise<{ tour: TourRecord; linkedModules: HomeModuleRecord[] }> {
   const validation = validateTourEditorRecord(record);
   if (!validation.ok) {
     throw new Error(Object.values(validation.errors)[0] ?? "Invalid tour record");
   }
 
   await loadAdminHomeModules();
-  const existing = await getHomeModuleRow("hotSales");
-  if (!existing) throw new Error("Hot Sales module is unavailable");
+  const [hotSalesRow, topPicksRow, exploreByMonthRow] = await Promise.all([
+    getHomeModuleRow("hotSales"),
+    getHomeModuleRow("toursSection"),
+    getHomeModuleRow("exploreByMonth"),
+  ]);
+  if (!hotSalesRow || !topPicksRow || !exploreByMonthRow) {
+    throw new Error("Linked Homepage modules are unavailable");
+  }
 
   const updatedAt = new Date().toISOString();
   const expectedTourUpdatedAt = validation.value.updatedAt;
   const tour = { ...validation.value, updatedAt };
-  const nextHomeRow: HomeModuleRow = {
-    ...existing,
+  const publishedSelections = syncHomepageSelectionsFromTour({
+    topPicksContent: getStoredHomeData(topPicksRow, "published"),
+    exploreContent: getStoredHomeData(exploreByMonthRow, "published"),
+    tour,
+  });
+  const draftSelections = syncHomepageSelectionsFromTour({
+    topPicksContent: getStoredHomeData(topPicksRow, "draft"),
+    exploreContent: getStoredHomeData(exploreByMonthRow, "draft"),
+    tour,
+  });
+  const nextHotSalesRow: HomeModuleRow = {
+    ...hotSalesRow,
     published_data: syncHotSalesContentFromTour(
-      isRecord(existing.published_data)
-        ? existing.published_data
-        : getSeedModule("hotSales").data,
+      getStoredHomeData(hotSalesRow, "published"),
       tour,
     ),
     draft_data: syncHotSalesContentFromTour(
-      isRecord(existing.draft_data)
-        ? existing.draft_data
-        : isRecord(existing.published_data)
-          ? existing.published_data
-          : getSeedModule("hotSales").data,
+      getStoredHomeData(hotSalesRow, "draft"),
       tour,
     ),
     updated_at: updatedAt,
   };
-  const result = await persistHotSalesState(
-    nextHomeRow,
+  const nextTopPicksRow: HomeModuleRow = {
+    ...topPicksRow,
+    published_data: publishedSelections.topPicksContent,
+    draft_data: draftSelections.topPicksContent,
+    updated_at: updatedAt,
+  };
+  const nextExploreByMonthRow: HomeModuleRow = {
+    ...exploreByMonthRow,
+    published_data: publishedSelections.exploreContent,
+    draft_data: draftSelections.exploreContent,
+    updated_at: updatedAt,
+  };
+  const result = await persistLinkedHomepageTourState(
+    [
+      {
+        row: nextHotSalesRow,
+        expected_updated_at: hotSalesRow.updated_at,
+      },
+      {
+        row: nextTopPicksRow,
+        expected_updated_at: topPicksRow.updated_at,
+      },
+      {
+        row: nextExploreByMonthRow,
+        expected_updated_at: exploreByMonthRow.updated_at,
+      },
+    ],
     [
       {
         kind: "tour",
@@ -167,7 +236,6 @@ export async function saveTourAndSyncHotSales(
         expected_updated_at: expectedTourUpdatedAt,
       },
     ],
-    existing.updated_at,
   );
   const savedTour = mergeTourRows(result.tours).find(
     (entry) => entry.slug === tour.slug,
@@ -176,11 +244,65 @@ export async function saveTourAndSyncHotSales(
 
   return {
     tour: savedTour,
-    hotSalesModule: getMergedModule(
-      [result.home_module],
-      "hotSales",
-      "draft",
+    linkedModules: result.home_modules.map((row) =>
+      getMergedModule([row], row.id, "draft"),
     ),
+  };
+}
+
+export async function saveLinkedSelectionModuleDraft(
+  module: HomeModuleRecord,
+  expectedUpdatedAt: string,
+): Promise<HomeModuleRecord> {
+  assertLinkedSelectionModuleId(module.id);
+  const canonicalModule = canonicalizeHomeModule(module);
+  const existing = await getHomeModuleRow(module.id);
+  if (!existing) {
+    throw new Error(`Homepage module is unavailable: ${module.id}`);
+  }
+
+  const nextRow = createDraftHomeModuleRow(existing, canonicalModule);
+  const result = await persistLinkedHomepageTourState(
+    [{ row: nextRow, expected_updated_at: expectedUpdatedAt }],
+    [],
+  );
+  return getMergedModule(result.home_modules, module.id, "draft");
+}
+
+export async function publishLinkedSelectionModule(
+  id: LinkedSelectionModuleId,
+  expectedUpdatedAt: string,
+  tours: readonly TourRecord[],
+): Promise<{ module: HomeModuleRecord; tours: TourRecord[] }> {
+  const existing = await getHomeModuleRow(id);
+  if (!existing) {
+    throw new Error(`Homepage module is unavailable: ${id}`);
+  }
+
+  const canonicalDraft = canonicalizeHomeModuleForPublish(
+    getMergedModule([existing], id, "draft"),
+  );
+  const canonicalRow: HomeModuleRow = {
+    ...existing,
+    module_index: canonicalDraft.index,
+    name: canonicalDraft.name,
+    description: canonicalDraft.description,
+    fields: canonicalDraft.fields,
+    draft_data: canonicalDraft.data,
+  };
+  const nextRow = createPublishedHomeModuleRow(canonicalRow);
+  const updatedAt = nextRow.updated_at;
+  const tourPatches = id === "toursSection"
+    ? createTopPicksTourPatches(nextRow.published_data, tours, updatedAt)
+    : createExploreByMonthTourPatches(nextRow.published_data, tours, updatedAt);
+  const result = await persistLinkedHomepageTourState(
+    [{ row: nextRow, expected_updated_at: expectedUpdatedAt }],
+    tourPatches,
+  );
+
+  return {
+    module: getMergedModule(result.home_modules, id, "published"),
+    tours: mergeTourRows(result.tours),
   };
 }
 
@@ -254,6 +376,36 @@ async function persistHotSalesState(
   }
 }
 
+async function persistLinkedHomepageTourState(
+  homeModules: LinkedHomeOperation[],
+  tours: LinkedTourOperation[],
+): Promise<LinkedHomepageTourPersistenceResult> {
+  try {
+    const config = getSupabaseServiceConfig();
+    return await supabaseJson<LinkedHomepageTourPersistenceResult>(
+      "/rest/v1/rpc/persist_linked_homepage_tour_state",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          p_home_modules: homeModules,
+          p_tours: tours,
+        }),
+      },
+      config,
+    );
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message.includes("HOMEPAGE_SELECTION_CONFLICT") ||
+        error.message.includes("HOMEPAGE_SELECTION_TOUR_CONFLICT"))
+    ) {
+      throw new HomepageTourSelectionConflictError();
+    }
+    throw error;
+  }
+}
+
 /** Patch Final CTA contact fields without flipping publish status. */
 export async function patchFinalCtaContactFields(contact: {
   phoneLabel: string;
@@ -316,6 +468,25 @@ export async function patchFinalCtaOfficeAddress(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function getStoredHomeData(
+  row: HomeModuleRow,
+  mode: "draft" | "published",
+): HomeModuleRecord["data"] {
+  const seed = getSeedModule(row.id);
+  const value = mode === "draft"
+    ? row.draft_data ?? row.published_data
+    : row.published_data;
+  return isRecord(value) ? value as HomeModuleRecord["data"] : seed.data;
+}
+
+function assertLinkedSelectionModuleId(
+  id: HomeModuleId,
+): asserts id is LinkedSelectionModuleId {
+  if (id !== "toursSection" && id !== "exploreByMonth") {
+    throw new Error(`Homepage module is not a linked Tour selection: ${id}`);
+  }
 }
 
 export async function uploadHomeModuleImage(input: {
@@ -450,7 +621,7 @@ function getSupabaseServiceConfig(): SupabaseConfig {
 
   if (!url || !key) {
     throw new Error(
-      "Hot Sales persistence requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
+      "Linked Homepage persistence requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
     );
   }
 

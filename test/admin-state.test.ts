@@ -157,6 +157,46 @@ test("keeps unsaved Hot Sales content when Tour Library returns a newer revision
   assert.equal(merged.hasUnsavedChanges, true);
 });
 
+test("merges linked Tour modules without replacing the active unsaved selection", () => {
+  const initial = selectHomeModule(createInitialAdminState(), "toursSection");
+  const editing = updateHomeModuleField(
+    initial,
+    "toursSection",
+    "selectedToursData",
+    '["local-top-pick"]',
+  );
+  const incoming = editing.homeModules
+    .filter((module) =>
+      module.id === "hotSales" ||
+      module.id === "toursSection" ||
+      module.id === "exploreByMonth",
+    )
+    .map((module) => ({
+      ...module,
+      updatedAt: "2026-11-26T15:00:00.000Z",
+      data: module.id === "toursSection"
+        ? { ...module.data, selectedToursData: '["server-top-pick"]' }
+        : { ...module.data, linkedRevisionMarker: module.id },
+    }));
+
+  const merged = mergeLoadedHomeModules(editing, incoming);
+
+  assert.equal(
+    getActiveModule(merged).data.selectedToursData,
+    '["local-top-pick"]',
+  );
+  assert.notEqual(
+    getActiveModule(merged).updatedAt,
+    "2026-11-26T15:00:00.000Z",
+  );
+  assert.equal(
+    merged.homeModules.find((module) => module.id === "exploreByMonth")?.data
+      .linkedRevisionMarker,
+    "exploreByMonth",
+  );
+  assert.equal(merged.hasUnsavedChanges, true);
+});
+
 test("replaces a saved module and clears its unsaved state", () => {
   const editedState = {
     ...createInitialAdminState(),

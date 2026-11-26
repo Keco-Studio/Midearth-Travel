@@ -11,12 +11,15 @@ import {
 } from "@/lib/office-address-sync";
 import { revalidatePublicSite } from "@/lib/revalidate-public-site";
 import {
+  HomepageTourSelectionConflictError,
   HotSalesConflictError,
   loadAdminHomeModules,
   publishHomeModule,
   publishHotSalesModule,
+  publishLinkedSelectionModule,
   saveHomeModuleDraft,
   saveHotSalesModuleDraft,
+  saveLinkedSelectionModuleDraft,
 } from "@/lib/supabase-home-content";
 import { loadAdminTours } from "@/lib/supabase-tours";
 import type { HomeModuleId, HomeModuleRecord, SiteSettings } from "@/types/cms";
@@ -59,20 +62,35 @@ export async function PUT(
         );
       }
 
-      if (rawId === "hotSales" && !payload.expectedUpdatedAt) {
-        return Response.json({ error: "Hot Sales revision is required" }, { status: 400 });
+      if (isRevisionedModule(rawId) && !payload.expectedUpdatedAt) {
+        return Response.json({ error: "Homepage module revision is required" }, { status: 400 });
       }
       const savedModule = rawId === "hotSales"
-        ? await saveHotSalesModuleDraft(
-            canonicalModule,
-            payload.expectedUpdatedAt!,
-          )
-        : await saveHomeModuleDraft(canonicalModule);
+        ? await saveHotSalesModuleDraft(canonicalModule, payload.expectedUpdatedAt!)
+        : isLinkedSelectionModule(rawId)
+          ? await saveLinkedSelectionModuleDraft(
+              canonicalModule,
+              payload.expectedUpdatedAt!,
+            )
+          : await saveHomeModuleDraft(canonicalModule);
       const linked = await syncLinkedModules(savedModule);
       return Response.json({ module: savedModule, ...linked });
     }
 
     if (payload.action === "publish") {
+      if (isLinkedSelectionModule(rawId)) {
+        if (!payload.expectedUpdatedAt) {
+          return Response.json({ error: "Homepage module revision is required" }, { status: 400 });
+        }
+        const tours = await loadAdminTours();
+        const result = await publishLinkedSelectionModule(
+          rawId,
+          payload.expectedUpdatedAt,
+          tours,
+        );
+        revalidatePublicSite();
+        return Response.json({ module: result.module, tours: result.tours });
+      }
       if (rawId === "hotSales") {
         if (!payload.expectedUpdatedAt) {
           return Response.json({ error: "Hot Sales revision is required" }, { status: 400 });
@@ -111,7 +129,8 @@ export async function PUT(
           error instanceof HeroSlidesPublishError ||
           error instanceof HotSalesPublishError
             ? 400
-            : error instanceof HotSalesConflictError
+            : error instanceof HotSalesConflictError ||
+                error instanceof HomepageTourSelectionConflictError
               ? 409
             : 500,
       },
@@ -147,6 +166,16 @@ async function syncLinkedModules(module: HomeModuleRecord): Promise<{
 
 function isHomeModuleId(value: string): value is HomeModuleId {
   return EXPECTED_CONTENT_MODULE_IDS.includes(value as HomeModuleId);
+}
+
+function isLinkedSelectionModule(
+  id: HomeModuleId,
+): id is "toursSection" | "exploreByMonth" {
+  return id === "toursSection" || id === "exploreByMonth";
+}
+
+function isRevisionedModule(id: HomeModuleId): boolean {
+  return id === "hotSales" || isLinkedSelectionModule(id);
 }
 
 function isHomeModuleRecord(value: unknown): value is HomeModuleRecord {

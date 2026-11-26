@@ -433,8 +433,8 @@ export function AdminShell({
           onTestimonialsChange: setTestimonials,
           onBookingsChange: setBookings,
           onToursChange: setTours,
-          onHomeModuleChange: (module) => {
-            setState((current) => mergeLoadedHomeModules(current, [module]));
+          onHomeModulesChange: (modules) => {
+            setState((current) => mergeLoadedHomeModules(current, modules));
           },
           onViewBooking: (bookingId) => {
             setState((current) => openBooking(current, bookingId));
@@ -578,7 +578,7 @@ function renderWorkspace(
     onTestimonialsChange: (testimonials: Testimonial[]) => void;
     onBookingsChange: (bookings: BookingRecord[]) => void;
     onToursChange: (tours: TourRecord[]) => void;
-    onHomeModuleChange: (module: HomeModuleRecord) => void;
+    onHomeModulesChange: (modules: HomeModuleRecord[]) => void;
     onViewBooking: (bookingId: string) => void;
     onViewPayment: (paymentId: string) => void;
     onFocusHandled: () => void;
@@ -610,9 +610,7 @@ function renderWorkspace(
         tours={handlers.tours}
         destinationCategories={handlers.destinationCategories}
         onToursChange={handlers.onToursChange}
-        onHotSalesModuleChange={(module) =>
-          handlers.onHomeModuleChange(module)
-        }
+        onLinkedModulesChange={handlers.onHomeModulesChange}
       />
     );
   }

@@ -38,13 +38,13 @@ test("Homepage Hot Sales saves and publishes with optimistic revision checks", (
   assert.match(adminShell, /expectedUpdatedAt:\s*activeModule\.updatedAt/g);
   assert.match(homeRoute, /expectedUpdatedAt/);
   assert.match(homeRoute, /HotSalesConflictError/);
-  assert.match(homeRoute, /HotSalesConflictError[\s\S]{0,80}\? 409/);
+  assert.match(homeRoute, /HotSalesConflictError[\s\S]{0,180}\? 409/);
 });
 
 test("Hot Sales linked writes use one database transaction RPC", () => {
   assert.match(homePersistence, /rpc\/persist_hot_sales_state/);
   assert.match(homeRoute, /publishHotSalesModule/);
-  assert.match(tourRoute, /saveTourAndSyncHotSales/);
+  assert.match(tourRoute, /saveTourAndSyncHomepageSelections/);
   assert.doesNotMatch(tourRoute, /await saveTour\(/);
 
   assert.match(migration, /create or replace function public\.persist_hot_sales_state/i);
