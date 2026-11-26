@@ -24,6 +24,11 @@ import {
   type HomepageTourSelectionPatch,
 } from "@/lib/homepage-tour-selection-sync";
 import { normalizeHotSalesContent } from "@/lib/hot-sales";
+import {
+  hasTopPickSelection,
+  serializeTopPickSlugs,
+  TOP_PICKS_DATA_KEY,
+} from "@/lib/top-picks";
 import { loadPublishedHomeModulesStrictWithRequest } from "@/lib/published-content-loaders";
 import {
   mergeTourRows,
@@ -524,7 +529,7 @@ export async function uploadHomeModuleImage(input: {
 }
 
 async function ensureHomeModuleRows(): Promise<HomeModuleRow[]> {
-  const rows = await listHomeModuleRows();
+  let rows = await listHomeModuleRows();
   const storedIds = new Set(rows.map((row) => row.id));
   const missingModules = homeModuleSeeds.filter(
     (module) => !storedIds.has(module.id),
@@ -542,12 +547,61 @@ async function ensureHomeModuleRows(): Promise<HomeModuleRow[]> {
     }),
   );
 
-  if (missingRows.length === 0) {
+  if (missingRows.length > 0) {
+    await upsertHomeModuleRows(missingRows);
+    rows = await listHomeModuleRows();
+  }
+
+  return backfillStoredTopPicksSelection(rows);
+}
+
+async function backfillStoredTopPicksSelection(
+  rows: HomeModuleRow[],
+): Promise<HomeModuleRow[]> {
+  const stored = rows.find((row) => row.id === "toursSection");
+  const publishedData = stored && isRecord(stored.published_data)
+    ? stored.published_data as HomeModuleRecord["data"]
+    : null;
+
+  if (!stored || (publishedData && hasTopPickSelection(publishedData))) {
     return rows;
   }
 
-  await upsertHomeModuleRows(missingRows);
-  return listHomeModuleRows();
+  const { loadAdminTours } = await import("@/lib/supabase-tours");
+  const tours = await loadAdminTours();
+  const serializedSelection = serializeTopPickSlugs(
+    tours.filter((tour) => tour.specialOffer).map((tour) => tour.slug),
+  );
+  const draftData = isRecord(stored.draft_data)
+    ? stored.draft_data as HomeModuleRecord["data"]
+    : null;
+  const nextRow: HomeModuleRow = {
+    ...stored,
+    published_data: {
+      ...(publishedData ?? {}),
+      [TOP_PICKS_DATA_KEY]: serializedSelection,
+    },
+    draft_data: draftData && !hasTopPickSelection(draftData)
+      ? { ...draftData, [TOP_PICKS_DATA_KEY]: serializedSelection }
+      : stored.draft_data,
+    updated_at: new Date().toISOString(),
+  };
+
+  try {
+    const result = await persistLinkedHomepageTourState(
+      [{ row: nextRow, expected_updated_at: stored.updated_at }],
+      [],
+    );
+    const saved = result.home_modules[0];
+    return saved
+      ? rows.map((row) => row.id === saved.id ? saved : row)
+      : rows;
+  } catch (error) {
+    if (error instanceof HomepageTourSelectionConflictError) {
+      return listHomeModuleRows();
+    }
+    throw error;
+  }
 }
 
 async function listHomeModuleRows(): Promise<HomeModuleRow[]> {

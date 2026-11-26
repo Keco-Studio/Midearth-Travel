@@ -64,3 +64,26 @@ test("Tour Library merges every linked Homepage module returned by a save", () =
   assert.doesNotMatch(workspace, /onHotSalesModuleChange/);
   assert.match(shell, /mergeLoadedHomeModules\(current, modules\)/);
 });
+
+test("legacy selection data is backfilled without replacing explicit choices", () => {
+  const migration = readFileSync(migrationPath, "utf8");
+  const persistence = read("../src/lib/supabase-home-content.ts");
+
+  assert.match(
+    migration,
+    /not\s*\(published_data\s*\?\s*'selectedToursData'\)/i,
+  );
+  assert.match(migration, /jsonb_set\([^;]*selectedToursData/i);
+  assert.match(migration, /data\s*->>\s*'specialOffer'/i);
+  assert.match(migration, /monthsData/i);
+  assert.match(migration, /\('Jan',\s*1\)[\s\S]*\('Dec',\s*12\)/i);
+  assert.match(migration, /distinct on\s*\(tour_slug\)/i);
+  assert.match(migration, /\{exploreMonth\}/i);
+  assert.match(migration, /\{travelNewsPackage\}/i);
+  assert.match(migration, /to_jsonb\(exists\(/i);
+  assert.doesNotMatch(migration, /travelNewsPackage[^;]*then[^;]*exploreMonth/i);
+
+  assert.match(persistence, /hasTopPickSelection/);
+  assert.match(persistence, /backfillStoredTopPicksSelection/);
+  assert.match(persistence, /persistLinkedHomepageTourState/);
+});

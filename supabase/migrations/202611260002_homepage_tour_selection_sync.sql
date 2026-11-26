@@ -176,3 +176,119 @@ revoke all on function public.persist_linked_homepage_tour_state(jsonb, jsonb)
   from public;
 grant execute on function public.persist_linked_homepage_tour_state(jsonb, jsonb)
   to service_role;
+
+-- Seed an ordered Top Picks list only for legacy rows where the key is absent.
+-- An explicit serialized [] is an editor choice and must remain empty.
+with selected_tours as (
+  select coalesce(
+    jsonb_agg(
+      slug
+      order by
+        case
+          when data ->> 'displayOrder' ~ '^[0-9]+$'
+            then (data ->> 'displayOrder')::integer
+          else 2147483647
+        end,
+        slug
+    ),
+    '[]'::jsonb
+  )::text as serialized_slugs
+  from public.tours
+  where data ->> 'specialOffer' = 'true'
+)
+update public.home_modules as target
+set
+  published_data = jsonb_set(
+    target.published_data,
+    '{selectedToursData}',
+    to_jsonb(selected_tours.serialized_slugs),
+    true
+  ),
+  draft_data = case
+    when target.draft_data is not null and
+      not (target.draft_data ? 'selectedToursData')
+    then jsonb_set(
+      target.draft_data,
+      '{selectedToursData}',
+      to_jsonb(selected_tours.serialized_slugs),
+      true
+    )
+    else target.draft_data
+  end,
+  updated_at = now()
+from selected_tours
+where target.id = 'toursSection'
+  and not (published_data ? 'selectedToursData');
+
+-- Project the published monthly cards back into Tour Library. Calendar order,
+-- not legacy JSON order, decides which month wins for duplicate old records.
+do $backfill_explore_month$
+declare
+  months_json jsonb := '[]'::jsonb;
+begin
+  begin
+    select coalesce((published_data ->> 'monthsData')::jsonb, '[]'::jsonb)
+    into months_json
+    from public.home_modules
+    where id = 'exploreByMonth';
+
+    if jsonb_typeof(months_json) <> 'array' then
+      months_json := '[]'::jsonb;
+    end if;
+  exception when others then
+    months_json := '[]'::jsonb;
+  end;
+
+  with month_order(month, month_position) as (
+    values
+      ('Jan', 1),
+      ('Feb', 2),
+      ('Mar', 3),
+      ('Apr', 4),
+      ('May', 5),
+      ('Jun', 6),
+      ('Jul', 7),
+      ('Aug', 8),
+      ('Sep', 9),
+      ('Oct', 10),
+      ('Nov', 11),
+      ('Dec', 12)
+  ),
+  assignments as (
+    select distinct on (tour_slug)
+      destination.value ->> 'tourSlug' as tour_slug,
+      month_order.month
+    from month_order
+    join lateral jsonb_array_elements(months_json) as month_entry(value)
+      on month_entry.value ->> 'month' = month_order.month
+    cross join lateral jsonb_array_elements(
+      coalesce(month_entry.value -> 'destinations', '[]'::jsonb)
+    ) as destination(value)
+    where coalesce(destination.value ->> 'tourSlug', '') <> ''
+    order by tour_slug, month_order.month_position
+  )
+  update public.tours as target
+  set
+    data = jsonb_set(
+      jsonb_set(
+        target.data,
+        '{exploreMonth}',
+        to_jsonb(coalesce(
+          (select assignment.month
+           from assignments as assignment
+           where assignment.tour_slug = target.slug),
+          ''
+        )),
+        true
+      ),
+      '{travelNewsPackage}',
+      to_jsonb(exists(
+        select 1
+        from assignments as assignment
+        where assignment.tour_slug = target.slug
+      )),
+      true
+    ),
+    updated_at = now();
+end;
+$backfill_explore_month$;
