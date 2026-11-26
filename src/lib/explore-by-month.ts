@@ -156,6 +156,50 @@ export function assignTourToExploreMonth(
   );
 }
 
+export function selectTourForExploreDestination(
+  entries: readonly MonthEntry[],
+  monthKey: string,
+  destinationId: string,
+  tourSlug: string,
+): MonthEntry[] {
+  const normalizedSlug = tourSlug.trim();
+
+  return cloneMonths([...entries]).map((entry) => ({
+    ...entry,
+    destinations: entry.destinations.flatMap((destination) => {
+      const isTarget =
+        entry.month === monthKey && destination.id === destinationId;
+      if (isTarget) {
+        if (destination.tourSlug?.trim() === normalizedSlug) {
+          return [destination];
+        }
+        return [
+          {
+            ...destination,
+            tourSlug: normalizedSlug,
+            name: "",
+            region: "",
+            tag: "",
+            desc: "",
+            localizedDesc: "",
+            image: "",
+            href: "",
+          },
+        ];
+      }
+
+      if (
+        normalizedSlug &&
+        destination.tourSlug?.trim() === normalizedSlug
+      ) {
+        return [];
+      }
+
+      return [destination];
+    }),
+  }));
+}
+
 export function createEmptyDestination(): MonthDestination {
   return {
     id: createDestinationId(),

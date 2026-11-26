@@ -18,12 +18,14 @@ import { ExploreByMonthEditor } from "@/components/explore-by-month-editor";
 import { FooterLinksEditor } from "@/components/footer-links-editor";
 import { HeroSlidesEditor } from "@/components/hero-slides-editor";
 import { HotSalesEditor } from "@/components/hot-sales-editor";
+import { TopPicksEditor } from "@/components/top-picks-editor";
 import { ServiceCardsEditor, TestimonialsEditor } from "@/components/home-collection-editors";
 import { FORBIDDEN_FIELD_KEYS } from "@/lib/content-rules";
 import { EXPLORE_MONTHS_DATA_KEY } from "@/lib/explore-by-month";
 import { FOOTER_SERVICE_LINKS_KEY } from "@/lib/footer-links";
 import { HERO_SLIDES_DATA_KEY } from "@/lib/hero-slides";
 import { HOT_SALES_DATA_KEY } from "@/lib/hot-sales";
+import { TOP_PICKS_DATA_KEY } from "@/lib/top-picks";
 import { validateInlineImageFile } from "@/lib/inline-image-upload";
 import {
   getFieldSectionHeader,
@@ -94,6 +96,10 @@ export function HomeModuleEditor({
           !(
             module.id === "hotSales" &&
             field.definition.key === HOT_SALES_DATA_KEY
+          ) &&
+          !(
+            module.id === "toursSection" &&
+            field.definition.key === TOP_PICKS_DATA_KEY
           ),
       ),
     [module],
@@ -105,14 +111,6 @@ export function HomeModuleEditor({
 
   return (
     <>
-      {module.id === "toursSection" ? (
-        <Typography.Paragraph type="secondary" style={{ marginTop: 0 }}>
-          To choose which tours appear in Our Top Picks, open{" "}
-          <Typography.Text strong>Tour Library</Typography.Text> and turn on{" "}
-          <Typography.Text strong>Special Offer</Typography.Text> for each tour
-          you want featured. This page only edits the section eyebrow and title.
-        </Typography.Paragraph>
-      ) : null}
       <ProForm
       key={getHomeModuleEditorKey(module)}
       layout="vertical"
@@ -162,6 +160,9 @@ export function HomeModuleEditor({
       ) : null}
       {module.id === "hotSales" ? (
         <HotSalesEditor content={module.data} tours={tours} onChange={onChange} />
+      ) : null}
+      {module.id === "toursSection" ? (
+        <TopPicksEditor content={module.data} tours={tours} onChange={onChange} />
       ) : null}
       {module.id === "categoryGrid" ? (
         <DestinationCategoryEditor

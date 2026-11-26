@@ -4,6 +4,7 @@ import {
   assignTourToExploreMonth,
   findExploreMonthForTour,
   parseMonthEntries,
+  selectTourForExploreDestination,
   serializeMonthEntries,
 } from "../src/lib/explore-by-month.ts";
 
@@ -91,4 +92,57 @@ test("removes a linked tour when its month is cleared", () => {
     ),
     false,
   );
+});
+
+test("selecting an assigned tour in another month moves it into the target row", () => {
+  const withTargetRow = linkedMonths.map((entry) =>
+    entry.month === "Jul"
+      ? {
+          ...entry,
+          destinations: [
+            {
+              id: "july-target",
+              tourSlug: "",
+              name: "",
+              region: "",
+              tag: "",
+              desc: "Placeholder copy",
+              localizedDesc: "占位说明",
+              image: "",
+              href: "",
+            },
+          ],
+        }
+      : entry,
+  );
+  const moved = selectTourForExploreDestination(
+    withTargetRow,
+    "Jul",
+    "july-target",
+    "coast",
+  );
+  const assignments = moved
+    .flatMap((entry) => entry.destinations)
+    .filter((destination) => destination.tourSlug === "coast");
+
+  assert.equal(findExploreMonthForTour(moved, "coast"), "Jul");
+  assert.equal(assignments.length, 1);
+  assert.equal(assignments[0]?.id, "july-target");
+  assert.equal(assignments[0]?.desc, "");
+  assert.equal(assignments[0]?.localizedDesc, "");
+});
+
+test("reselecting the same tour in the same row preserves its descriptions", () => {
+  const unchanged = selectTourForExploreDestination(
+    linkedMonths,
+    "Jun",
+    "coast-june",
+    "coast",
+  );
+  const assignment = unchanged
+    .find((entry) => entry.month === "Jun")
+    ?.destinations.find((destination) => destination.id === "coast-june");
+
+  assert.equal(assignment?.desc, "June coast description");
+  assert.equal(assignment?.localizedDesc, "六月海岸说明");
 });

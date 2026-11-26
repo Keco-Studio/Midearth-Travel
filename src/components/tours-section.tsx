@@ -10,6 +10,7 @@ import {
   destinationCategorySeeds,
   type DestinationCategory,
 } from "@/lib/destination-categories";
+import { resolveTopPickTours } from "@/lib/top-picks";
 import styles from "./tours-section.module.css";
 
 export function ToursSection({
@@ -23,7 +24,7 @@ export function ToursSection({
 }) {
   const { lang } = useLang();
   const sourceTours = tours ?? staticTours;
-  const featuredTours = sourceTours.filter((tour) => tour.featured);
+  const featuredTours = resolveTopPickTours(content, sourceTours);
   const eyebrow = getLocalizedContent(content, "eyebrow", lang, "Featured");
   const sectionTitle = getLocalizedContent(content, "sectionTitle", lang, "Our Top Picks");
   const seeAllLabel = `${getLocalizedStaticText(lang, "seeAllTours")} (${sourceTours.length})`;
