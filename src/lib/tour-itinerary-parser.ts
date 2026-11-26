@@ -26,7 +26,7 @@ const CHINESE_DAY_SEGMENT_PATTERN = new RegExp(
 );
 
 const narrativeStartPattern =
-  /\b(Depart|Arrive|Visit|Continue|Transfer|Overnight|Today|After|In the|This morning|We |Our |Upon |Enjoy |Pick )\b/;
+  /(?:\b(?:Depart|Arrive|Visit|Continue|Transfer|Overnight|Today|After|In the|This morning|We |Our |Upon |Enjoy |Pick )\b|我们|今天|今日|早餐后|午餐后|晚餐后|抵达后?|到达后?|随后|之后|接着|上午|下午|晚上)/;
 
 export function hasDayByDayHeading(text: string): boolean {
   return DAY_HEADING_PATTERN.test(text);

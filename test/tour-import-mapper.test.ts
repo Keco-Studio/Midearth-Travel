@@ -103,6 +103,20 @@ test("parseItineraryFromRichText extracts Chinese day-by-day content", () => {
   ]);
 });
 
+test("parseItineraryFromRichText separates an inline Chinese narrative from its location title", () => {
+  const itinerary = parseItineraryFromRichText(
+    "第 2 天：上海 我们抵达上海，近代中国的经济中心。我们到机场迎接我们的当地导游，让我们去宾馆的路上。",
+  );
+
+  assert.deepEqual(itinerary, [
+    {
+      day: 2,
+      title: "上海",
+      description: "我们抵达上海，近代中国的经济中心。我们到机场迎接我们的当地导游，让我们去宾馆的路上。",
+    },
+  ]);
+});
+
 test("parseItineraryFromRichText accepts common Chinese day heading separators", () => {
   const separators = ["：", ":", "｜", "|", "—", "–", "-", "、", ".", "．"];
 
