@@ -2,6 +2,7 @@ import { tours } from "../data/tours.ts";
 import type { ContentStatus, TourRecord } from "../types/cms.ts";
 import { deriveDestinationCategoryIds } from "./tour-destination-categories.ts";
 import { normalizeRichText } from "./rich-text-content.ts";
+import { DEFAULT_ROOM_PRICE_CENTS } from "./room-pricing.ts";
 
 export type ExcelTourRow = Record<string, unknown>;
 
@@ -191,6 +192,7 @@ export function mapExcelRowToTourRecord(
       single: readFare(lookup, "fares.single"),
       child: readFare(lookup, "fares.child"),
     },
+    roomPriceCents: DEFAULT_ROOM_PRICE_CENTS,
     pdfTitle: readString(lookup, "pdfTitle", "pdf title") || "Download PDF for tour details",
     localizedPdfTitle: readString(lookup, "ChinesePdfTitle", "chinese pdf title"),
     pdfFileName: readString(lookup, "pdfFileName", "pdf file name"),

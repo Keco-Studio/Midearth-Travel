@@ -9,6 +9,8 @@ const editorSource = readFileSync(
 
 const sectionTitles = [
   "Tour information",
+  "Room pricing",
+  "Optional activities, meals & service fees",
   "Schedule and highlights",
   "Trip essentials",
   "Pricing",
@@ -17,6 +19,20 @@ const sectionTitles = [
   "Media and PDF",
   "Publishing and categories",
 ];
+
+test("tour editor keeps room pricing separate and before optional sellable items", () => {
+  const roomPricingIndex = editorSource.indexOf('title="Room pricing"');
+  const optionalItemsIndex = editorSource.indexOf(
+    'title="Optional activities, meals & service fees"',
+  );
+
+  assert.ok(roomPricingIndex >= 0, "missing Room pricing section");
+  assert.ok(roomPricingIndex < optionalItemsIndex, "Room pricing must precede optional items");
+  assert.match(
+    editorSource,
+    /name="roomPriceCents"[\s\S]{0,80}label="Room price \(CAD\)"/,
+  );
+});
 
 test("tour editor preserves its section order and interaction handlers", () => {
   let previousIndex = -1;

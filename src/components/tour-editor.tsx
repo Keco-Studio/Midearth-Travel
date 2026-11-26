@@ -97,6 +97,7 @@ export function TourEditor({
   const initialValues = useMemo(
     () => ({
       ...tour,
+      roomPriceCents: tour.roomPriceCents / 100,
       addOns: (tour.addOns ?? []).map((item) => ({
         ...item,
         ticketTypes: item.ticketTypes.map((ticket) => ({
@@ -220,6 +221,7 @@ export function TourEditor({
     const merged: TourRecord = {
       ...tour,
       ...values,
+      roomPriceCents: Math.round(Number(values.roomPriceCents) * 100),
       addOns,
       pdfFileName,
       galleryImages: galleryImages.join("\n"),
@@ -299,6 +301,25 @@ export function TourEditor({
             <Col xs={24} md={12}>
               <Form.Item name="subregion" label="Package subregion">
                 <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+        </EditorSection>
+
+        <EditorSection title="Room pricing">
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={12} lg={8} xl={4}>
+              <Form.Item
+                name="roomPriceCents"
+                label="Room price (CAD)"
+                rules={[{ required: true, type: "number", min: 0 }]}
+              >
+                <InputNumber
+                  min={0}
+                  precision={2}
+                  step={0.01}
+                  style={{ width: "100%" }}
+                />
               </Form.Item>
             </Col>
           </Row>

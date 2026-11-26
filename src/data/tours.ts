@@ -63,6 +63,7 @@ export type Tour = {
   };
   policies?: TourPolicy[];
   fares?: TourFare[];
+  roomPriceCents?: number;
   addOns?: TourAddOn[];
   featured?: boolean;
   hotSale?: boolean;

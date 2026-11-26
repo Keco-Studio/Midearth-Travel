@@ -112,6 +112,7 @@ export type TourRecord = {
   localizedNotIncluded: string;
   essentials: TourEssentialFields;
   fares: TourFareFields;
+  roomPriceCents: number;
   addOns?: TourAddOn[];
   pdfTitle: string;
   localizedPdfTitle: string;

@@ -7,6 +7,7 @@ import { resolveTourDestinationCategoryIds } from "./tour-destination-categories
 import { validateTourEditorRecord } from "./tour-editor-state.ts";
 import { orderTourRecords } from "./tour-order.ts";
 import { normalizeTourAddOns } from "./tour-add-ons.ts";
+import { normalizeRoomPriceCents } from "./room-pricing.ts";
 
 export type TourRow = {
   slug: string;
@@ -244,6 +245,7 @@ export function mapTourRecordToPublicTour(record: TourRecord): Tour {
     localizedNotIncluded:
       localizedNotIncluded.length > 0 ? localizedNotIncluded : undefined,
     fares: fares.length > 0 ? fares : undefined,
+    roomPriceCents: normalizeRoomPriceCents(record.roomPriceCents),
     addOns: record.addOns?.length ? record.addOns : base?.addOns,
     featured: record.specialOffer,
     hotSale: record.specialDeals,
@@ -272,6 +274,7 @@ function normalizeStoredTour(
     slug: row.slug,
     status: row.status,
     updatedAt: row.updated_at,
+    roomPriceCents: normalizeRoomPriceCents(storedData.roomPriceCents),
     fares: { ...emptyFareFields, ...fallback?.fares, ...storedData.fares },
     addOns: normalizeTourAddOns(storedData.addOns ?? fallback?.addOns ?? []),
     essentials: {

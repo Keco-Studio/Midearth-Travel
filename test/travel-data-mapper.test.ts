@@ -57,6 +57,7 @@ test("maps source tour content into editable CMS fields", () => {
     triple: "$759",
     quad: "$639",
   });
+  assert.equal(record.roomPriceCents, 6600);
   assert.equal(record.specialOffer, true);
   assert.equal(record.specialDeals, true);
   assert.equal(record.vacationPackage, false);

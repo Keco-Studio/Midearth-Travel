@@ -16,3 +16,7 @@ test("starts a new tour outside Explore by Month", () => {
   assert.equal(tour.exploreMonth, "");
   assert.equal(tour.travelNewsPackage, false);
 });
+
+test("starts new tours with the configured CAD 66 room price", () => {
+  assert.equal(createEmptyTourRecord().roomPriceCents, 6600);
+});
