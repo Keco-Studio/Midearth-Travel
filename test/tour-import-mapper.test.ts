@@ -69,6 +69,8 @@ test("mapExcelRowToTourRecord maps workbook columns to TourRecord", () => {
   assert.equal(record?.fares.triple, "$0");
   assert.equal(record?.specialOffer, true);
   assert.equal(record?.vacationPackage, true);
+  assert.equal(record?.exploreMonth, "");
+  assert.equal(record?.travelNewsPackage, false);
 });
 
 test("parseItineraryFromRichText extracts day-by-day content", () => {

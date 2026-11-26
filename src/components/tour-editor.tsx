@@ -33,6 +33,10 @@ import {
 import type { DestinationCategory } from "@/lib/destination-categories";
 import { destinationCategorySeeds } from "@/lib/destination-categories";
 import { validateInlineImageFile } from "@/lib/inline-image-upload";
+import {
+  EXPLORE_MONTH_KEYS,
+  EXPLORE_MONTH_LABELS,
+} from "@/lib/explore-by-month";
 import type { TourRecord } from "@/types/cms";
 
 type TourEditorProps = {
@@ -47,6 +51,14 @@ const statusOptions = [
   { value: "published", label: "Published" },
   { value: "draft", label: "Draft" },
   { value: "unpublished", label: "Unpublished" },
+];
+
+const exploreMonthOptions = [
+  { value: "", label: "Not shown" },
+  ...EXPLORE_MONTH_KEYS.map((value) => ({
+    value,
+    label: EXPLORE_MONTH_LABELS[value],
+  })),
 ];
 
 const requiredRules = {
@@ -221,6 +233,7 @@ export function TourEditor({
       },
       destinationCategoryIds:
         values.destinationCategoryIds ?? tour.destinationCategoryIds ?? [],
+      travelNewsPackage: Boolean(values.exploreMonth),
     };
     onUpdate(applyDestinationCategoryAssignments(merged, destinationCategories));
   }
@@ -633,14 +646,22 @@ export function TourEditor({
             <ToggleField
               name="specialOffer"
               label="Our Top Picks"
-              tooltip="Show this tour on the homepage Our Top Picks section. No limit on how many can be featured."
+              tooltip="Show this tour on the homepage. Also editable in Homepage → Our Top Picks."
             />
-            <ToggleField name="specialDeals" label="Hot sale" />
             <ToggleField
-              name="travelNewsPackage"
-              label="Explore by Month package"
-              tooltip="Mark tours that should be offered as Explore-by-Month destinations."
+              name="specialDeals"
+              label="Hot sale"
+              tooltip="Also editable in Homepage → Hot Sales."
             />
+            <Col xs={24} md={12} lg={8}>
+              <Form.Item
+                name="exploreMonth"
+                label="Explore by Month"
+                tooltip="Also editable in Homepage → Explore by Month. One month per tour."
+              >
+                <Select options={exploreMonthOptions} />
+              </Form.Item>
+            </Col>
             {hotSaleEnabled ? (
               <>
                 <Col xs={24} md={12} lg={8}>
@@ -719,7 +740,7 @@ function ToggleField({
   label,
   tooltip,
 }: {
-  name: "specialOffer" | "specialDeals" | "travelNewsPackage";
+  name: "specialOffer" | "specialDeals";
   label: string;
   tooltip?: string;
 }) {

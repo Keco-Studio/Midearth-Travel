@@ -62,6 +62,7 @@ export function mapTravelToursToRecords(): TourRecord[] {
       localizedHotSaleDescription: tour.localizedHotSaleDescription ?? "",
       vacationPackage: tour.vacationPackage ?? tour.tourType === "Group Tour",
       travelNewsPackage: false,
+      exploreMonth: "",
       busTourPackage: tour.busTourPackage ?? tour.tourType === "Bus Tour",
       destinationCategoryIds: [] as string[],
       status: "published" as const,

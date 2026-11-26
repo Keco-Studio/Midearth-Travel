@@ -149,3 +149,38 @@ test("keeps legacy tour records compatible with empty Hot Sales details", () => 
     assert.equal(validation.value.localizedHotSaleDescription, "");
   }
 });
+
+test("normalizes legacy and invalid Explore by Month values", () => {
+  const record = mapTravelToursToRecords()[0];
+  const legacy = { ...record } as Partial<typeof record>;
+  delete legacy.exploreMonth;
+
+  const legacyValidation = validateTourEditorRecord(legacy as typeof record);
+  assert.equal(legacyValidation.ok, true);
+  if (legacyValidation.ok) {
+    assert.equal(legacyValidation.value.exploreMonth, "");
+    assert.equal(legacyValidation.value.travelNewsPackage, false);
+  }
+
+  const assignedValidation = validateTourEditorRecord({
+    ...record,
+    exploreMonth: "Sep",
+    travelNewsPackage: false,
+  });
+  assert.equal(assignedValidation.ok, true);
+  if (assignedValidation.ok) {
+    assert.equal(assignedValidation.value.exploreMonth, "Sep");
+    assert.equal(assignedValidation.value.travelNewsPackage, true);
+  }
+
+  const invalidValidation = validateTourEditorRecord({
+    ...record,
+    exploreMonth: "Smarch" as "Sep",
+    travelNewsPackage: true,
+  });
+  assert.equal(invalidValidation.ok, true);
+  if (invalidValidation.ok) {
+    assert.equal(invalidValidation.value.exploreMonth, "");
+    assert.equal(invalidValidation.value.travelNewsPackage, false);
+  }
+});

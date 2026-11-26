@@ -1,5 +1,6 @@
 import type { BookingLocale } from "@/lib/payment-domain";
 import type { TourAddOn } from "@/lib/tour-add-ons";
+import type { ExploreMonthKey } from "@/lib/explore-by-month";
 
 export type ContentStatus = "published" | "draft" | "unpublished";
 
@@ -124,6 +125,7 @@ export type TourRecord = {
   localizedHotSaleDescription: string;
   vacationPackage: boolean;
   travelNewsPackage: boolean;
+  exploreMonth: ExploreMonthKey | "";
   busTourPackage: boolean;
   /** Where to Go destination category ids (linked to Destination names). */
   destinationCategoryIds: string[];

@@ -61,5 +61,6 @@ test("maps source tour content into editable CMS fields", () => {
   assert.equal(record.specialDeals, true);
   assert.equal(record.vacationPackage, false);
   assert.equal(record.travelNewsPackage, false);
+  assert.equal(record.exploreMonth, "");
   assert.equal(record.busTourPackage, true);
 });

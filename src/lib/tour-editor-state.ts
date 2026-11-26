@@ -2,6 +2,7 @@ import type { TourRecord } from "../types/cms.ts";
 import { resolveTourDestinationCategoryIds } from "./tour-destination-categories.ts";
 import { normalizeRichText } from "./rich-text-content.ts";
 import { normalizeTourAddOns } from "./tour-add-ons.ts";
+import { isExploreMonthKey } from "./explore-by-month.ts";
 
 export const TOUR_EDITOR_STORAGE_KEY = "midearth-cms.tour-editor.v1";
 
@@ -53,6 +54,7 @@ const stringFields = [
   "salePrice",
   "hotSaleDescription",
   "localizedHotSaleDescription",
+  "exploreMonth",
   "updatedAt",
 ] as const satisfies readonly (keyof TourRecord)[];
 
@@ -166,6 +168,10 @@ function trimTourRecord(record: TourRecord): TourRecord {
     quad: "",
   };
 
+  const exploreMonth = isExploreMonthKey(record.exploreMonth)
+    ? record.exploreMonth
+    : "";
+
   return {
     ...record,
     displayOrder:
@@ -225,6 +231,8 @@ function trimTourRecord(record: TourRecord): TourRecord {
     salePrice: safeTrim(record.salePrice),
     hotSaleDescription: safeTrim(record.hotSaleDescription),
     localizedHotSaleDescription: safeTrim(record.localizedHotSaleDescription),
+    exploreMonth,
+    travelNewsPackage: Boolean(exploreMonth),
     destinationCategoryIds: resolveTourDestinationCategoryIds(record),
     updatedAt: safeTrim(record.updatedAt),
   };
@@ -244,7 +252,8 @@ function isTourRecord(value: unknown): value is TourRecord {
       field === "galleryImages" ||
       field === "salePrice" ||
       field === "hotSaleDescription" ||
-      field === "localizedHotSaleDescription"
+      field === "localizedHotSaleDescription" ||
+      field === "exploreMonth"
     ) {
       return value[field] === undefined || typeof value[field] === "string";
     }

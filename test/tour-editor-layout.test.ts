@@ -67,6 +67,15 @@ test("tour editor exposes all persisted tour detail fields", () => {
   }
 });
 
+test("tour editor assigns at most one Explore by Month month", () => {
+  assert.match(editorSource, /name="exploreMonth"/);
+  assert.match(editorSource, /Not shown/);
+  assert.match(editorSource, /EXPLORE_MONTH_KEYS\.map/);
+  assert.match(editorSource, /EXPLORE_MONTH_LABELS\[value\]/);
+  assert.doesNotMatch(editorSource, /ToggleField\s+name="travelNewsPackage"/);
+  assert.match(editorSource, /Homepage → Explore by Month/);
+});
+
 test("tour editor marks the Chinese title as a Chinese text input", () => {
   assert.match(
     editorSource,

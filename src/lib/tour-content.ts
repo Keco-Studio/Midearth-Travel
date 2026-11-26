@@ -51,6 +51,7 @@ const emptyTourDetailFields = {
   salePrice: "",
   hotSaleDescription: "",
   localizedHotSaleDescription: "",
+  exploreMonth: "",
 };
 
 export function toTourRow(record: TourRecord): TourRow {

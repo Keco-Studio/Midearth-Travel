@@ -57,6 +57,7 @@ export function createEmptyTourRecord(
     localizedHotSaleDescription: "",
     vacationPackage: false,
     travelNewsPackage: false,
+    exploreMonth: "",
     busTourPackage: true,
     destinationCategoryIds: [],
     status: "draft",
