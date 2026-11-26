@@ -6,6 +6,7 @@ import {
 } from "../data/tours.ts";
 import type { MediaAsset, SiteSettings, TourRecord } from "../types/cms.ts";
 import { resolveTourDestinationCategoryIds } from "./tour-destination-categories.ts";
+import { DEFAULT_ROOM_PRICE_CENTS } from "./room-pricing.ts";
 
 const uploadedAt = "2026-07-01T10:00:00Z";
 
@@ -51,14 +52,19 @@ export function mapTravelToursToRecords(): TourRecord[] {
         localizedEscortedCoach: "",
       },
       fares: mapTourFares(tour.fares),
+      roomPriceCents: tour.roomPriceCents ?? DEFAULT_ROOM_PRICE_CENTS,
       pdfTitle: "Download PDF for tour details",
       localizedPdfTitle: "",
       pdfFileName: "",
       galleryImages: "",
       specialOffer: tour.featured ?? false,
       specialDeals: tour.hotSale ?? false,
+      salePrice: tour.hotSalePrice ?? "",
+      hotSaleDescription: tour.hotSaleDescription ?? "",
+      localizedHotSaleDescription: tour.localizedHotSaleDescription ?? "",
       vacationPackage: tour.vacationPackage ?? tour.tourType === "Group Tour",
       travelNewsPackage: false,
+      exploreMonth: "",
       busTourPackage: tour.busTourPackage ?? tour.tourType === "Bus Tour",
       destinationCategoryIds: [] as string[],
       status: "published" as const,

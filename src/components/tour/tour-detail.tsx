@@ -36,6 +36,11 @@ import { getLocalizedStaticText, getLocalizedTourList, getLocalizedTourValue } f
 import { splitTourPolicyContent } from "@/lib/tour-policy-content";
 import { splitTourDescriptionContent } from "@/lib/tour-description-content";
 import { formatCadPrice } from "@/lib/cad-price";
+import {
+  getHotSaleDescription,
+  getHotSalePricePresentation,
+  type ResolvedHotSalePromotion,
+} from "@/lib/hot-sales";
 import styles from "@/components/tour/tour-detail.module.css";
 
 function PolicyIcon({ icon }: { icon?: TourPolicy["icon"] }) {
@@ -61,7 +66,13 @@ function PolicyContent({ content }: { content: string }) {
   );
 }
 
-export function TourDetail({ tour }: { tour: Tour }) {
+export function TourDetail({
+  tour,
+  promotion,
+}: {
+  tour: Tour;
+  promotion?: ResolvedHotSalePromotion;
+}) {
   const { lang } = useLang();
   const settings = useSiteSettings();
   const displayTitle = getLocalizedTourValue(
@@ -118,6 +129,12 @@ export function TourDetail({ tour }: { tour: Tour }) {
   const introDescription = getTourIntroDescription(tour, lang);
   const introDescriptionHtml = getTourIntroDescriptionHtml(tour, lang);
   const itinerary = getTourDisplayItinerary(tour, lang);
+  const hotSalePrice = promotion
+    ? getHotSalePricePresentation(promotion)
+    : null;
+  const hotSaleDescription = promotion
+    ? getHotSaleDescription(promotion, lang)
+    : "";
 
   const bookingTourCode = tour.code
     ? lang === "zh"
@@ -386,6 +403,29 @@ export function TourDetail({ tour }: { tour: Tour }) {
                     {departureCity ? `, ${getLocalizedStaticText(lang, "from")} ${departureCity}` : ""}
                   </p>
                 </div>
+
+                {promotion ? (
+                  <div className={styles.hotSaleOffer}>
+                    <span className={styles.hotSaleLabel}>
+                      {getLocalizedStaticText(lang, "hotSales")}
+                    </span>
+                    {hotSaleDescription ? (
+                      <strong>{hotSaleDescription}</strong>
+                    ) : null}
+                    {hotSalePrice?.salePrice ? (
+                      <div className={styles.hotSalePrices}>
+                        {hotSalePrice.originalPrice ? (
+                          <del>{hotSalePrice.originalPrice}</del>
+                        ) : null}
+                        <span>{hotSalePrice.salePrice}</span>
+                      </div>
+                    ) : hotSalePrice?.originalPrice ? (
+                      <span className={styles.hotSaleNormalPrice}>
+                        {getLocalizedStaticText(lang, "from")} {hotSalePrice.originalPrice}
+                      </span>
+                    ) : null}
+                  </div>
+                ) : null}
 
                 {tour.fares && tour.fares.length > 0 ? (
                   <table className="w-full text-sm">

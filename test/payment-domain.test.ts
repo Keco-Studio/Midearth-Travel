@@ -18,6 +18,21 @@ test("rejects malformed or non-positive fare values", () => {
   assert.throws(() => getFareAmountInCents("$0"), /greater than zero/i);
 });
 
+test("adds the configured room price once for every requested room", () => {
+  const calculateRoomPriceTotal = (
+    paymentDomain as typeof paymentDomain & {
+      calculateRoomPriceTotal?: (roomPriceCents: number, rooms?: number) => number;
+    }
+  ).calculateRoomPriceTotal;
+
+  assert.equal(typeof calculateRoomPriceTotal, "function");
+  if (!calculateRoomPriceTotal) return;
+
+  assert.equal(calculateRoomPriceTotal(6600, 2), 13200);
+  assert.equal(calculateRoomPriceTotal(6600, undefined), 0);
+  assert.throws(() => calculateRoomPriceTotal(6600, 1.5), /rooms/i);
+});
+
 test("maps Stripe Checkout outcomes to internal payment states", () => {
   assert.equal(getPaymentStatusForCheckoutEvent("checkout.session.completed", "paid"), "paid");
   assert.equal(getPaymentStatusForCheckoutEvent("checkout.session.completed", "unpaid"), null);
@@ -34,10 +49,15 @@ test("validates checkout input without accepting arbitrary values", () => {
       fareLabel: "Adult",
       paymentType: "full",
       customerEmail: "traveler@example.com",
+      bookingId: "booking-123",
     }),
-    { tourSlug: "tour", fareLabel: "Adult", paymentType: "full", customerEmail: "traveler@example.com" },
+    { tourSlug: "tour", fareLabel: "Adult", paymentType: "full", customerEmail: "traveler@example.com", bookingId: "booking-123" },
   );
   assert.throws(() => validateCheckoutInput({ tourSlug: "tour", fareLabel: "Adult", paymentType: "full", customerEmail: "bad" }), /valid customer email/i);
+  assert.throws(
+    () => validateCheckoutInput({ tourSlug: "tour", fareLabel: "Adult", paymentType: "full", customerEmail: "traveler@example.com" }),
+    /booking/i,
+  );
 });
 
 test("uses the checkout request origin for Stripe return URLs", () => {

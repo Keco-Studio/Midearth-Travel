@@ -1,5 +1,6 @@
 import type Stripe from "stripe";
 import type { TourAddOnSelection } from "./tour-add-ons";
+export { calculateRoomPriceTotal } from "./room-pricing.ts";
 
 export type InternalPaymentStatus = "pending" | "paid" | "failed";
 
@@ -10,7 +11,7 @@ export type CheckoutInput = {
   fareLabel: string;
   paymentType: "deposit" | "balance" | "full";
   customerEmail: string;
-  bookingId?: string;
+  bookingId: string;
   addOnSelections?: TourAddOnSelection[];
 };
 
@@ -108,9 +109,10 @@ export function validateCheckoutInput(value: unknown): CheckoutInput {
   const tourSlug = typeof input.tourSlug === "string" ? input.tourSlug.trim() : "";
   const fareLabel = typeof input.fareLabel === "string" ? input.fareLabel.trim() : "";
   const customerEmail = typeof input.customerEmail === "string" ? input.customerEmail.trim() : "";
+  const bookingId = typeof input.bookingId === "string" ? input.bookingId.trim() : "";
   const paymentType = input.paymentType;
-  if (!tourSlug || !fareLabel || !customerEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
-    throw new Error("Tour, fare, and a valid customer email are required");
+  if (!tourSlug || !fareLabel || !bookingId || !customerEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
+    throw new Error("Tour, fare, booking, and a valid customer email are required");
   }
   if (paymentType !== "deposit" && paymentType !== "balance" && paymentType !== "full") {
     throw new Error("A valid payment type is required");
@@ -120,8 +122,8 @@ export function validateCheckoutInput(value: unknown): CheckoutInput {
     fareLabel,
     paymentType,
     customerEmail,
+    bookingId,
   };
-  if (typeof input.bookingId === "string" && input.bookingId.trim()) result.bookingId = input.bookingId.trim();
   if (Array.isArray(input.addOnSelections)) result.addOnSelections = input.addOnSelections as TourAddOnSelection[];
   return result;
 }

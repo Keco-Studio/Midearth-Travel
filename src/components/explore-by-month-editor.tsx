@@ -6,7 +6,10 @@ import { useMemo } from "react";
 import {
   createEmptyDestination,
   EXPLORE_MONTHS_DATA_KEY,
+  EXPLORE_MONTH_LABELS,
+  findExploreMonthForTour,
   getExploreByMonthEntries,
+  selectTourForExploreDestination,
   serializeMonthEntries,
 } from "@/lib/explore-by-month";
 import type { MonthDestination, MonthEntry } from "@/data/destinations-by-month";
@@ -34,6 +37,12 @@ export function ExploreByMonthEditor({
   onChange,
 }: ExploreByMonthEditorProps) {
   const months = getExploreByMonthEntries(content);
+  const assignedMonths = useMemo(
+    () => new Map(
+      tours.map((tour) => [tour.slug, findExploreMonthForTour(months, tour.slug)]),
+    ),
+    [months, tours],
+  );
 
   const tourOptions = useMemo<TourOption[]>(
     () =>
@@ -44,18 +53,23 @@ export function ExploreByMonthEditor({
             (tourFilter?.(tour) ?? true),
         )
         .sort((a, b) => {
-          const aFlag = a.travelNewsPackage ? 0 : 1;
-          const bFlag = b.travelNewsPackage ? 0 : 1;
+          const aFlag = assignedMonths.get(a.slug) ? 0 : 1;
+          const bFlag = assignedMonths.get(b.slug) ? 0 : 1;
           if (aFlag !== bFlag) return aFlag - bFlag;
           return a.title.localeCompare(b.title);
         })
-        .map((tour) => ({
-          value: tour.slug,
-          label: `${tour.travelNewsPackage ? "★ " : ""}${tour.title} (${tour.slug})`,
-          region: tour.region,
-          tourType: tour.tourType,
-        })),
-    [tourFilter, tours],
+        .map((tour) => {
+          const month = assignedMonths.get(tour.slug);
+          return {
+            value: tour.slug,
+            label: `${tour.title} (${tour.slug})${
+              month ? ` — currently ${EXPLORE_MONTH_LABELS[month]}` : ""
+            }`,
+            region: tour.region,
+            tourType: tour.tourType,
+          };
+        }),
+    [assignedMonths, tourFilter, tours],
   );
 
   function commit(next: MonthEntry[]) {
@@ -172,15 +186,14 @@ export function ExploreByMonthEditor({
                       value={dest.tourSlug || undefined}
                       onChange={(slug) => {
                         if (!dest.id) return;
-                        updateDestination(month.month, dest.id, {
-                          tourSlug: slug ?? "",
-                          // Clear legacy snapshot fields so public resolve uses the tour.
-                          name: "",
-                          region: "",
-                          tag: "",
-                          image: "",
-                          href: "",
-                        });
+                        commit(
+                          selectTourForExploreDestination(
+                            months,
+                            month.month,
+                            dest.id,
+                            slug ?? "",
+                          ),
+                        );
                       }}
                     />
                   ),

@@ -37,6 +37,7 @@ export default async function Home() {
   ]);
   const navbar = getHomeModule(modules, "navbar").data;
   const hero = getHomeModule(modules, "hero").data;
+  const hotSales = getHomeModule(modules, "hotSales").data;
   const toursSection = getHomeModule(modules, "toursSection").data;
   const categoryGrid = getHomeModule(modules, "categoryGrid").data;
   const exploreByMonth = getHomeModule(modules, "exploreByMonth").data;
@@ -51,12 +52,16 @@ export default async function Home() {
     <main className="min-h-screen">
       <Navbar content={navbar} />
       <Hero content={hero} tours={publishedTours} />
+      <PackagesSection
+        content={hotSales}
+        tours={publishedTours}
+        destinationCategories={categories}
+      />
       <ToursSection
         content={toursSection}
         tours={publishedTours}
         destinationCategories={categories}
       />
-      <PackagesSection tours={publishedTours} />
       <CategoryGrid content={categoryGrid} categories={categories} />
       <ExploreByMonthSection content={exploreByMonth} tours={publishedTours} />
       <AboutSection content={aboutSection} services={homepageServices} />

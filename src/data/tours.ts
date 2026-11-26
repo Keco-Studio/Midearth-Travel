@@ -63,9 +63,13 @@ export type Tour = {
   };
   policies?: TourPolicy[];
   fares?: TourFare[];
+  roomPriceCents?: number;
   addOns?: TourAddOn[];
   featured?: boolean;
   hotSale?: boolean;
+  hotSalePrice?: string;
+  hotSaleDescription?: string;
+  localizedHotSaleDescription?: string;
   busTourPackage?: boolean;
   vacationPackage?: boolean;
   /** Where to Go destination category ids when set from CMS. */

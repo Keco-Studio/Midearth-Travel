@@ -33,6 +33,10 @@ import {
 import type { DestinationCategory } from "@/lib/destination-categories";
 import { destinationCategorySeeds } from "@/lib/destination-categories";
 import { validateInlineImageFile } from "@/lib/inline-image-upload";
+import {
+  EXPLORE_MONTH_KEYS,
+  EXPLORE_MONTH_LABELS,
+} from "@/lib/explore-by-month";
 import type { TourRecord } from "@/types/cms";
 
 type TourEditorProps = {
@@ -47,6 +51,14 @@ const statusOptions = [
   { value: "published", label: "Published" },
   { value: "draft", label: "Draft" },
   { value: "unpublished", label: "Unpublished" },
+];
+
+const exploreMonthOptions = [
+  { value: "", label: "Not shown" },
+  ...EXPLORE_MONTH_KEYS.map((value) => ({
+    value,
+    label: EXPLORE_MONTH_LABELS[value],
+  })),
 ];
 
 const requiredRules = {
@@ -72,6 +84,7 @@ export function TourEditor({
 }: TourEditorProps) {
   const { message } = App.useApp();
   const [form] = Form.useForm<TourRecord>();
+  const hotSaleEnabled = Form.useWatch("specialDeals", form);
   const [imagePreview, setImagePreview] = useState(tour.image || "/file.svg");
   const [pdfFileName, setPdfFileName] = useState(tour.pdfFileName);
   const [galleryImages, setGalleryImages] = useState(() =>
@@ -84,6 +97,7 @@ export function TourEditor({
   const initialValues = useMemo(
     () => ({
       ...tour,
+      roomPriceCents: tour.roomPriceCents / 100,
       addOns: (tour.addOns ?? []).map((item) => ({
         ...item,
         ticketTypes: item.ticketTypes.map((ticket) => ({
@@ -207,6 +221,7 @@ export function TourEditor({
     const merged: TourRecord = {
       ...tour,
       ...values,
+      roomPriceCents: Math.round(Number(values.roomPriceCents) * 100),
       addOns,
       pdfFileName,
       galleryImages: galleryImages.join("\n"),
@@ -220,6 +235,7 @@ export function TourEditor({
       },
       destinationCategoryIds:
         values.destinationCategoryIds ?? tour.destinationCategoryIds ?? [],
+      travelNewsPackage: Boolean(values.exploreMonth),
     };
     onUpdate(applyDestinationCategoryAssignments(merged, destinationCategories));
   }
@@ -285,6 +301,25 @@ export function TourEditor({
             <Col xs={24} md={12}>
               <Form.Item name="subregion" label="Package subregion">
                 <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+        </EditorSection>
+
+        <EditorSection title="Room pricing">
+          <Row gutter={[16, 0]}>
+            <Col xs={24} sm={12} lg={8} xl={4}>
+              <Form.Item
+                name="roomPriceCents"
+                label="Room price (CAD)"
+                rules={[{ required: true, type: "number", min: 0 }]}
+              >
+                <InputNumber
+                  min={0}
+                  precision={2}
+                  step={0.01}
+                  style={{ width: "100%" }}
+                />
               </Form.Item>
             </Col>
           </Row>
@@ -632,14 +667,48 @@ export function TourEditor({
             <ToggleField
               name="specialOffer"
               label="Our Top Picks"
-              tooltip="Show this tour on the homepage Our Top Picks section. No limit on how many can be featured."
+              tooltip="Show this tour on the homepage. Also editable in Homepage → Our Top Picks."
             />
-            <ToggleField name="specialDeals" label="Hot sale" />
             <ToggleField
-              name="travelNewsPackage"
-              label="Explore by Month package"
-              tooltip="Mark tours that should be offered as Explore-by-Month destinations."
+              name="specialDeals"
+              label="Hot sale"
+              tooltip="Also editable in Homepage → Hot Sales."
             />
+            <Col xs={24} md={12} lg={8}>
+              <Form.Item
+                name="exploreMonth"
+                label="Explore by Month"
+                tooltip="Also editable in Homepage → Explore by Month. One month per tour."
+              >
+                <Select options={exploreMonthOptions} />
+              </Form.Item>
+            </Col>
+            {hotSaleEnabled ? (
+              <>
+                <Col xs={24} md={12} lg={8}>
+                  <Form.Item
+                    name="salePrice"
+                    label="Discounted price (CAD)"
+                    tooltip="Optional for description-only offers. The original price comes from the lowest fare above."
+                  >
+                    <Input placeholder="e.g. 599" />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={12} lg={8}>
+                  <Form.Item name="hotSaleDescription" label="Offer description (English)">
+                    <Input placeholder="e.g. 3rd & 4th guests 50% off" maxLength={160} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={12} lg={8}>
+                  <Form.Item
+                    name="localizedHotSaleDescription"
+                    label="Offer description (Chinese)"
+                  >
+                    <Input placeholder="例如：第三、四人半价" maxLength={160} />
+                  </Form.Item>
+                </Col>
+              </>
+            ) : null}
             <Col span={24}>
               <Typography.Text type="secondary">
                 Where to Go — linked to Destination names (rename there and labels update here)
@@ -692,7 +761,7 @@ function ToggleField({
   label,
   tooltip,
 }: {
-  name: "specialOffer" | "specialDeals" | "travelNewsPackage";
+  name: "specialOffer" | "specialDeals";
   label: string;
   tooltip?: string;
 }) {

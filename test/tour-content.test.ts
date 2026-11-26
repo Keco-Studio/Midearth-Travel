@@ -140,7 +140,11 @@ test("maps editable tour fields to public tours while retaining rich static deta
       escortedCoach: "Guide and driver",
     },
     fares: { ...seed.fares, double: "$999" },
+    roomPriceCents: 7200,
     specialOffer: false,
+    salePrice: "$799",
+    hotSaleDescription: "Last minute departure",
+    localizedHotSaleDescription: "即将成团",
   };
   const mapped = mapTourRecordToPublicTour(record);
 
@@ -169,7 +173,11 @@ test("maps editable tour fields to public tours while retaining rich static deta
     },
   ]);
   assert.equal(mapped.fares?.find((fare) => fare.label === "Double")?.price, "$999");
+  assert.equal(mapped.roomPriceCents, 7200);
   assert.equal(mapped.featured, false);
+  assert.equal(mapped.hotSalePrice, "$799");
+  assert.equal(mapped.hotSaleDescription, "Last minute departure");
+  assert.equal(mapped.localizedHotSaleDescription, "即将成团");
   assert.deepEqual(mapped.itinerary, base.itinerary);
 });
 

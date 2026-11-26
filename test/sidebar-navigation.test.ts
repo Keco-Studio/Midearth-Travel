@@ -16,7 +16,7 @@ test("places homepage modules under Homepage Content instead of beside primary i
   );
 
   const homepageItem = contentGroup.items[0];
-  assert.equal(homepageItem.children.length, 10);
+  assert.equal(homepageItem.children.length, 11);
   assert.equal(contentGroup.items[1].children.length, 0);
   assert.equal(contentGroup.items[2].children.length, 0);
   assert.equal(contentGroup.items[3].children.length, 0);
@@ -26,7 +26,7 @@ test("places homepage modules under Homepage Content instead of beside primary i
 });
 
 test("only shows homepage module children while home workspace is selected", () => {
-  assert.equal(getVisibleHomeModuleItems("home").length, 10);
+  assert.equal(getVisibleHomeModuleItems("home").length, 11);
   assert.equal(getVisibleHomeModuleItems(null).length, 0);
 });
 

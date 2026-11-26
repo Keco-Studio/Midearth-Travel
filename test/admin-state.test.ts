@@ -78,10 +78,11 @@ test("selects fixed homepage modules without changing registry order", () => {
   assert.equal(state.selectedHomeModuleId, "footer");
   assert.equal(getActiveModule(state).id, "footer");
   assert.deepEqual(
-    state.homeModules.slice(0, 10).map((module) => module.id),
+    state.homeModules.slice(0, 11).map((module) => module.id),
     [
       "navbar",
       "hero",
+      "hotSales",
       "toursSection",
       "categoryGrid",
       "exploreByMonth",
@@ -124,6 +125,76 @@ test("loads persisted modules without overwriting the module being edited", () =
     "Loaded footer",
   );
   assert.equal(nextState.hasUnsavedChanges, true);
+});
+
+test("keeps unsaved Hot Sales content when Tour Library returns a newer revision", () => {
+  const seed = createInitialAdminState().homeModules.find(
+    (module) => module.id === "hotSales",
+  )!;
+  const editedModule = {
+    ...seed,
+    data: { ...seed.data, sectionTitleEn: "Unsaved local title" },
+  };
+  const edited = {
+    ...createInitialAdminState(),
+    selectedHomeModuleId: "hotSales" as const,
+    homeModules: [editedModule],
+    hasUnsavedChanges: true,
+  };
+  const persisted = {
+    ...editedModule,
+    updatedAt: "2026-11-26T12:00:00.000Z",
+    data: {
+      ...editedModule.data,
+      sectionTitleEn: "Updated by Tour Library",
+    },
+  };
+
+  const merged = mergeLoadedHomeModules(edited, [persisted]);
+
+  assert.equal(getActiveModule(merged).data.sectionTitleEn, "Unsaved local title");
+  assert.notEqual(getActiveModule(merged).updatedAt, persisted.updatedAt);
+  assert.equal(merged.hasUnsavedChanges, true);
+});
+
+test("merges linked Tour modules without replacing the active unsaved selection", () => {
+  const initial = selectHomeModule(createInitialAdminState(), "toursSection");
+  const editing = updateHomeModuleField(
+    initial,
+    "toursSection",
+    "selectedToursData",
+    '["local-top-pick"]',
+  );
+  const incoming = editing.homeModules
+    .filter((module) =>
+      module.id === "hotSales" ||
+      module.id === "toursSection" ||
+      module.id === "exploreByMonth",
+    )
+    .map((module) => ({
+      ...module,
+      updatedAt: "2026-11-26T15:00:00.000Z",
+      data: module.id === "toursSection"
+        ? { ...module.data, selectedToursData: '["server-top-pick"]' }
+        : { ...module.data, linkedRevisionMarker: module.id },
+    }));
+
+  const merged = mergeLoadedHomeModules(editing, incoming);
+
+  assert.equal(
+    getActiveModule(merged).data.selectedToursData,
+    '["local-top-pick"]',
+  );
+  assert.notEqual(
+    getActiveModule(merged).updatedAt,
+    "2026-11-26T15:00:00.000Z",
+  );
+  assert.equal(
+    merged.homeModules.find((module) => module.id === "exploreByMonth")?.data
+      .linkedRevisionMarker,
+    "exploreByMonth",
+  );
+  assert.equal(merged.hasUnsavedChanges, true);
 });
 
 test("replaces a saved module and clears its unsaved state", () => {

@@ -59,7 +59,22 @@ export async function saveTourOrder(
 ): Promise<TourRecord[]> {
   const records = mergeTourRows(await ensureTourRows());
   const orderedRecords = applyTourSlugOrder(records, orderedSlugs);
-  const rows = await upsertTourRows(orderedRecords.map(toTourRow));
+  const updatedAt = new Date().toISOString();
+  const rows = await supabaseJson<TourRow[]>(
+    "/rest/v1/rpc/persist_tour_order",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        p_order: orderedRecords.map((record) => ({
+          slug: record.slug,
+          display_order: record.displayOrder,
+          updated_at: updatedAt,
+        })),
+      }),
+    },
+    getSupabaseServiceConfig(),
+  );
   return mergeTourRows(rows);
 }
 
@@ -159,8 +174,11 @@ async function upsertTourRows(rows: TourRow[]): Promise<TourRow[]> {
   });
 }
 
-async function supabaseJson<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const config = getSupabaseConfig();
+async function supabaseJson<T>(
+  path: string,
+  init: RequestInit = {},
+  config = getSupabaseConfig(),
+): Promise<T> {
   const response = await fetch(`${config.url}${path}`, {
     ...init,
     headers: {
@@ -187,6 +205,17 @@ function getSupabaseConfig() {
 
   if (!url || !key) {
     throw new Error("Supabase is not configured");
+  }
+
+  return { url, key };
+}
+
+function getSupabaseServiceConfig() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim().replace(/\/$/, "");
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+
+  if (!url || !key) {
+    throw new Error("Tour ordering requires Supabase service-role configuration");
   }
 
   return { url, key };

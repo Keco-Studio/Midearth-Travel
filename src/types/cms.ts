@@ -1,5 +1,6 @@
 import type { BookingLocale } from "@/lib/payment-domain";
 import type { TourAddOn } from "@/lib/tour-add-ons";
+import type { ExploreMonthKey } from "@/lib/explore-by-month";
 
 export type ContentStatus = "published" | "draft" | "unpublished";
 
@@ -16,6 +17,7 @@ export type FieldType =
 export type HomeModuleId =
   | "navbar"
   | "hero"
+  | "hotSales"
   | "toursSection"
   | "categoryGrid"
   | "exploreByMonth"
@@ -110,6 +112,7 @@ export type TourRecord = {
   localizedNotIncluded: string;
   essentials: TourEssentialFields;
   fares: TourFareFields;
+  roomPriceCents: number;
   addOns?: TourAddOn[];
   pdfTitle: string;
   localizedPdfTitle: string;
@@ -118,8 +121,12 @@ export type TourRecord = {
   galleryImages: string;
   specialOffer: boolean;
   specialDeals: boolean;
+  salePrice: string;
+  hotSaleDescription: string;
+  localizedHotSaleDescription: string;
   vacationPackage: boolean;
   travelNewsPackage: boolean;
+  exploreMonth: ExploreMonthKey | "";
   busTourPackage: boolean;
   /** Where to Go destination category ids (linked to Destination names). */
   destinationCategoryIds: string[];

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import {
   createCheckoutReturnUrls,
+  calculateRoomPriceTotal,
   getFareAmountInCents,
   normalizeCurrency,
   validateCheckoutInput,
@@ -12,6 +13,8 @@ import {
   createPaymentOrder,
 } from "@/lib/supabase-payments";
 import { loadPublishedTours } from "@/lib/supabase-tours";
+import { loadBookingById } from "@/lib/supabase-bookings";
+import { DEFAULT_ROOM_PRICE_CENTS } from "@/lib/room-pricing";
 
 export const runtime = "nodejs";
 
@@ -25,11 +28,22 @@ export async function POST(request: Request) {
     );
     if (!fare) return Response.json({ error: "Fare not found" }, { status: 400 });
 
+    const booking = await loadBookingById(input.bookingId);
+    if (
+      (!booking ||
+        booking.tourSlug !== tour.slug ||
+        booking.customerEmail?.toLocaleLowerCase("en") !== input.customerEmail.toLocaleLowerCase("en"))
+    ) {
+      return Response.json({ error: "Booking not found" }, { status: 400 });
+    }
+
     const amountCents = getFareAmountInCents(fare.price);
     const tourTaxCents = Math.round(amountCents * 0.13);
+    const roomPriceCents = tour.roomPriceCents ?? DEFAULT_ROOM_PRICE_CENTS;
+    const roomTotalCents = calculateRoomPriceTotal(roomPriceCents, booking?.rooms);
     const addOnSelections = validateAddOnSelections(tour.addOns ?? [], input.addOnSelections ?? []);
     const addOnTotal = calculateAddOnTotal(tour.addOns ?? [], addOnSelections);
-    const totalAmountCents = amountCents + tourTaxCents + addOnTotal;
+    const totalAmountCents = amountCents + tourTaxCents + roomTotalCents + addOnTotal;
     const currency = normalizeCurrency("CAD");
     const paymentId = `pay_${randomUUID()}`;
     const reference = `PAY-${new Date().getUTCFullYear()}-${paymentId.slice(-8).toUpperCase()}`;
@@ -67,6 +81,19 @@ export async function POST(request: Request) {
             },
           },
         },
+        ...(booking?.rooms && roomPriceCents > 0
+          ? [{
+              quantity: booking.rooms,
+              price_data: {
+                currency,
+                unit_amount: roomPriceCents,
+                product_data: {
+                  name: `${tour.title} — Room price`,
+                  description: `Room charge for ${tour.title}`,
+                },
+              },
+            }]
+          : []),
         ...addOnSelections.map((selection) => {
           const item = tour.addOns!.find((candidate) => candidate.id === selection.addOnId)!;
           const ticket = item.ticketTypes.find((candidate) => candidate.id === selection.ticketTypeId)!;
@@ -80,6 +107,8 @@ export async function POST(request: Request) {
         fareLabel: fare.label,
         paymentType: input.paymentType,
         addOnTotalCents: String(addOnTotal),
+        roomCount: String(booking?.rooms ?? 0),
+        roomTotalCents: String(roomTotalCents),
       },
       success_url: returnUrls.successUrl,
       cancel_url: returnUrls.cancelUrl,

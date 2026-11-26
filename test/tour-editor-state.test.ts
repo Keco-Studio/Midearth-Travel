@@ -28,6 +28,9 @@ test("validates and trims editable tour fields", () => {
       meetingPlace: "  670 Bronson Ave  ",
     },
     fares: { ...record.fares, child: "  $100  " },
+    salePrice: "  $89  ",
+    hotSaleDescription: "  Last minute departure  ",
+    localizedHotSaleDescription: "  即将成团  ",
   });
 
   assert.equal(validation.ok, true);
@@ -39,6 +42,9 @@ test("validates and trims editable tour fields", () => {
     assert.equal(validation.value.included, "Coach transport\nHotels");
     assert.equal(validation.value.essentials.meetingPlace, "670 Bronson Ave");
     assert.equal(validation.value.fares.child, "$100");
+    assert.equal(validation.value.salePrice, "$89");
+    assert.equal(validation.value.hotSaleDescription, "Last minute departure");
+    assert.equal(validation.value.localizedHotSaleDescription, "即将成团");
   }
 });
 
@@ -125,5 +131,56 @@ test("normalizes tour descriptions before an editor update is saved", () => {
   if (validation.ok) {
     assert.equal(validation.value.description, "<p>Day 1<br />Visit Ottawa</p>");
     assert.equal(validation.value.localizedDescription, "");
+  }
+});
+
+test("keeps legacy tour records compatible with empty Hot Sales details", () => {
+  const record = mapTravelToursToRecords()[0];
+  const legacy = { ...record } as Partial<typeof record>;
+  delete legacy.salePrice;
+  delete legacy.hotSaleDescription;
+  delete legacy.localizedHotSaleDescription;
+
+  const validation = validateTourEditorRecord(legacy as typeof record);
+  assert.equal(validation.ok, true);
+  if (validation.ok) {
+    assert.equal(validation.value.salePrice, "");
+    assert.equal(validation.value.hotSaleDescription, "");
+    assert.equal(validation.value.localizedHotSaleDescription, "");
+  }
+});
+
+test("normalizes legacy and invalid Explore by Month values", () => {
+  const record = mapTravelToursToRecords()[0];
+  const legacy = { ...record } as Partial<typeof record>;
+  delete legacy.exploreMonth;
+
+  const legacyValidation = validateTourEditorRecord(legacy as typeof record);
+  assert.equal(legacyValidation.ok, true);
+  if (legacyValidation.ok) {
+    assert.equal(legacyValidation.value.exploreMonth, "");
+    assert.equal(legacyValidation.value.travelNewsPackage, false);
+  }
+
+  const assignedValidation = validateTourEditorRecord({
+    ...record,
+    exploreMonth: "Sep",
+    travelNewsPackage: false,
+  });
+  assert.equal(assignedValidation.ok, true);
+  if (assignedValidation.ok) {
+    assert.equal(assignedValidation.value.exploreMonth, "Sep");
+    assert.equal(assignedValidation.value.travelNewsPackage, true);
+  }
+
+  const invalidValidation = validateTourEditorRecord({
+    ...record,
+    exploreMonth: "Smarch" as "Sep",
+    travelNewsPackage: true,
+  });
+  assert.equal(invalidValidation.ok, true);
+  if (invalidValidation.ok) {
+    assert.equal(invalidValidation.value.exploreMonth, "");
+    assert.equal(invalidValidation.value.travelNewsPackage, false);
   }
 });

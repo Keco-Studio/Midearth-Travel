@@ -22,6 +22,15 @@ import {
   HERO_SLIDES_DATA_KEY,
   serializeHeroSlides,
 } from "../lib/hero-slides.ts";
+import {
+  HOT_SALES_DATA_KEY,
+  serializeHotSalePromotions,
+} from "../lib/hot-sales.ts";
+import {
+  TOP_PICKS_DATA_KEY,
+  serializeTopPickSlugs,
+} from "../lib/top-picks.ts";
+import { tours } from "./tours.ts";
 import type {
   FieldDefinition,
   HomeModuleRecord,
@@ -51,6 +60,8 @@ const sharedHomeFieldKeys = new Set([
   EXPLORE_MONTHS_DATA_KEY,
   FOOTER_SERVICE_LINKS_KEY,
   HERO_SLIDES_DATA_KEY,
+  HOT_SALES_DATA_KEY,
+  TOP_PICKS_DATA_KEY,
 ]);
 
 function isLocalizedCopyField(field: FieldDefinition): boolean {
@@ -292,22 +303,63 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
     },
   ),
   createModule(
-    "toursSection",
+    "hotSales",
     3,
-    "Section eyebrow and title only. Choose featured tours in Tour Library by enabling Special Offer on each tour.",
+    "Manage the homepage Hot Sales title, description, selected tours, discounted prices, and offer descriptions.",
     "published",
     [
       { key: "eyebrow", label: "Eyebrow", type: "text", maxLength: 30 },
       { key: "sectionTitle", label: "Section title", type: "text", required: true, maxLength: 40 },
+      { key: "description", label: "Description", type: "textarea", maxLength: 220 },
+      {
+        key: HOT_SALES_DATA_KEY,
+        label: "Hot Sales promotions",
+        type: "textarea",
+        maxLength: 100000,
+        helper: "Managed by the promotion editor below. Do not edit this JSON directly.",
+      },
+    ],
+    {
+      eyebrow: "Limited-time offers",
+      sectionTitle: "Hot Sales",
+      description: "Selected departures and packages with limited-time savings.",
+      [HOT_SALES_DATA_KEY]: serializeHotSalePromotions(
+        tours.filter((tour) => tour.hotSale).map((tour) => ({
+          tourSlug: tour.slug,
+          salePrice: "",
+          offerDescription: "Limited-time offer",
+          localizedOfferDescription: "限时优惠",
+        })),
+      ),
+    },
+  ),
+  createModule(
+    "toursSection",
+    4,
+    "Edit the section title and the ordered tours shown in Our Top Picks.",
+    "published",
+    [
+      { key: "eyebrow", label: "Eyebrow", type: "text", maxLength: 30 },
+      { key: "sectionTitle", label: "Section title", type: "text", required: true, maxLength: 40 },
+      {
+        key: TOP_PICKS_DATA_KEY,
+        label: "Selected tours",
+        type: "textarea",
+        maxLength: 100000,
+        helper: "Managed by the selected-tour editor below. Do not edit this JSON directly.",
+      },
     ],
     {
       eyebrow: "Featured",
       sectionTitle: "Our Top Picks",
+      [TOP_PICKS_DATA_KEY]: serializeTopPickSlugs(
+        tours.filter((tour) => tour.featured).map((tour) => tour.slug),
+      ),
     },
   ),
   createModule(
     "categoryGrid",
-    4,
+    5,
     "Edit the six fixed destination category slots.",
     "published",
     [
@@ -325,7 +377,7 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
   ),
   createModule(
     "exploreByMonth",
-    5,
+    6,
     "Edit section headings and monthly destination cards shown on the homepage.",
     "published",
     [
@@ -362,7 +414,7 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
   ),
   createModule(
     "aboutSection",
-    6,
+    7,
     "Edit section copy, service cards (add/remove + images), and each card's destination page content.",
     "published",
     [
@@ -410,7 +462,7 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
   ),
   createModule(
     "testimonials",
-    7,
+    8,
     "Manage review heading, rating summary, and review entries.",
     "published",
     [
@@ -426,7 +478,7 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
   ),
   createModule(
     "finalCta",
-    8,
+    9,
     "Manage the fixed final contact call to action.",
     "published",
     [
@@ -487,7 +539,7 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
   ),
   createModule(
     "newsletter",
-    9,
+    10,
     "Manage quote request copy, phones, email target, and QR images.",
     "published",
     [
@@ -541,7 +593,7 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
   ),
   createModule(
     "footer",
-    10,
+    11,
     "Manage footer brand copy, phone labels, and service links. Tour links follow the configured destination categories; tel/mailto come from Global Settings.",
     "published",
     [
@@ -585,7 +637,7 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
   ),
   createModule(
     "bookingPage",
-    11,
+    12,
     "Manage all public booking page copy and its background image. Leave the background blank to use the published homepage Hero image.",
     "published",
     [
@@ -687,7 +739,7 @@ export const homeModuleSeeds: HomeModuleRecord[] = [
   ),
   createModule(
     "contactPage",
-    12,
+    13,
     "Manage all public Contact Us page copy and its background image. Leave the background blank to use the published homepage Hero image.",
     "published",
     [

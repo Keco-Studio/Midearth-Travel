@@ -9,6 +9,8 @@ const editorSource = readFileSync(
 
 const sectionTitles = [
   "Tour information",
+  "Room pricing",
+  "Optional activities, meals & service fees",
   "Schedule and highlights",
   "Trip essentials",
   "Pricing",
@@ -17,6 +19,20 @@ const sectionTitles = [
   "Media and PDF",
   "Publishing and categories",
 ];
+
+test("tour editor keeps room pricing separate and before optional sellable items", () => {
+  const roomPricingIndex = editorSource.indexOf('title="Room pricing"');
+  const optionalItemsIndex = editorSource.indexOf(
+    'title="Optional activities, meals & service fees"',
+  );
+
+  assert.ok(roomPricingIndex >= 0, "missing Room pricing section");
+  assert.ok(roomPricingIndex < optionalItemsIndex, "Room pricing must precede optional items");
+  assert.match(
+    editorSource,
+    /name="roomPriceCents"[\s\S]{0,80}label="Room price \(CAD\)"/,
+  );
+});
 
 test("tour editor preserves its section order and interaction handlers", () => {
   let previousIndex = -1;
@@ -65,6 +81,15 @@ test("tour editor exposes all persisted tour detail fields", () => {
   ]) {
     assert.ok(editorSource.includes(field), `missing tour detail field: ${field}`);
   }
+});
+
+test("tour editor assigns at most one Explore by Month month", () => {
+  assert.match(editorSource, /name="exploreMonth"/);
+  assert.match(editorSource, /Not shown/);
+  assert.match(editorSource, /EXPLORE_MONTH_KEYS\.map/);
+  assert.match(editorSource, /EXPLORE_MONTH_LABELS\[value\]/);
+  assert.doesNotMatch(editorSource, /ToggleField\s+name="travelNewsPackage"/);
+  assert.match(editorSource, /Homepage → Explore by Month/);
 });
 
 test("tour editor marks the Chinese title as a Chinese text input", () => {

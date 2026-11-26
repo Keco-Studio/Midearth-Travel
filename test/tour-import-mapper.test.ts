@@ -69,6 +69,8 @@ test("mapExcelRowToTourRecord maps workbook columns to TourRecord", () => {
   assert.equal(record?.fares.triple, "$0");
   assert.equal(record?.specialOffer, true);
   assert.equal(record?.vacationPackage, true);
+  assert.equal(record?.exploreMonth, "");
+  assert.equal(record?.travelNewsPackage, false);
 });
 
 test("parseItineraryFromRichText extracts day-by-day content", () => {
@@ -97,6 +99,20 @@ test("parseItineraryFromRichText extracts Chinese day-by-day content", () => {
       day: 2,
       title: "坎贝尔顿 - 佩尔塞",
       description: "早餐后继续沿海旅行。",
+    },
+  ]);
+});
+
+test("parseItineraryFromRichText separates an inline Chinese narrative from its location title", () => {
+  const itinerary = parseItineraryFromRichText(
+    "第 2 天：上海 我们抵达上海，近代中国的经济中心。我们到机场迎接我们的当地导游，让我们去宾馆的路上。",
+  );
+
+  assert.deepEqual(itinerary, [
+    {
+      day: 2,
+      title: "上海",
+      description: "我们抵达上海，近代中国的经济中心。我们到机场迎接我们的当地导游，让我们去宾馆的路上。",
     },
   ]);
 });

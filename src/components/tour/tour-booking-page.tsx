@@ -23,6 +23,10 @@ import {
 import styles from "./tour-booking-page.module.css";
 import { calculateAddOnTotal, defaultAddOnSelections, getTourAddOnDescription, type TourAddOnSelection } from "@/lib/tour-add-ons";
 import { formatCadCents, formatCadPrice, parseCadPriceToCents } from "@/lib/cad-price";
+import {
+  calculateRoomPriceTotal,
+  DEFAULT_ROOM_PRICE_CENTS,
+} from "@/lib/room-pricing";
 
 type BookingForm = TourBookingFormValues;
 
@@ -71,7 +75,14 @@ export function TourBookingPage({
   const addOnTotal = calculateAddOnTotal(addOns, addOnSelections);
   const packageCents = fare ? parseCadPriceToCents(fare.price) ?? 0 : 0;
   const tourTaxCents = Math.round(packageCents * 0.13);
-  const totalPrice = formatCadCents(packageCents + tourTaxCents + addOnTotal);
+  const roomPriceCents = tour.roomPriceCents ?? DEFAULT_ROOM_PRICE_CENTS;
+  const roomCount = Number.isInteger(Number(form.rooms)) && Number(form.rooms) > 0
+    ? Number(form.rooms)
+    : undefined;
+  const roomTotalCents = calculateRoomPriceTotal(roomPriceCents, roomCount);
+  const totalPrice = formatCadCents(
+    packageCents + tourTaxCents + roomTotalCents + addOnTotal,
+  );
   const text = {
     book: getLocalizedContent(content, "book", lang, "Book now"),
     complete: getLocalizedContent(content, "complete", lang, "Complete your details, then review your booking and payment amount."),
@@ -83,6 +94,12 @@ export function TourBookingPage({
     adults: getLocalizedContent(content, "adults", lang, "Adults"),
     children: getLocalizedContent(content, "children", lang, "Children"),
     rooms: getLocalizedContent(content, "rooms", lang, "Rooms"),
+    roomPrice: getLocalizedContent(
+      content,
+      "roomPrice",
+      lang,
+      lang === "zh" ? "房间价格" : "Room price",
+    ),
     notes: getLocalizedContent(content, "notes", lang, "Details"),
     notesHint: getLocalizedContent(content, "notesHint", lang, "Let us know about any special requirements."),
     continue: getLocalizedContent(content, "continue", lang, "Continue to review"),
@@ -270,7 +287,7 @@ export function TourBookingPage({
                   <div className={styles.reviewRow}><dt>{text.package}</dt><dd>{title}</dd></div>
                   <div className={styles.reviewRow}><dt>{text.departure}</dt><dd>{form.departureDate}</dd></div>
                   <div className={styles.reviewRow}><dt>{text.party}</dt><dd>{partySummary}</dd></div>
-                  {form.rooms.trim() ? <div className={styles.reviewRow}><dt>{text.rooms}</dt><dd>{form.rooms}</dd></div> : null}
+                  {form.rooms.trim() ? <div className={styles.reviewRow}><dt>{text.rooms}</dt><dd>{form.rooms} × {formatCadCents(roomPriceCents)}</dd></div> : null}
                   <div className={styles.reviewRow}><dt>{text.email}</dt><dd>{form.customerEmail}</dd></div>
                 </dl>
                 <div className={styles.totalRow}>
@@ -278,6 +295,7 @@ export function TourBookingPage({
                   <span className={styles.totalAmount}>{fare ? formatCadPrice(fare.price) : ""}</span>
                 </div>
                 <div className={styles.taxRow}><span>Tax on tour fare (13%)</span><span>{formatCadCents(tourTaxCents)}</span></div>
+                {roomTotalCents > 0 ? <div className={styles.taxRow}><span>{text.roomPrice}</span><span>{formatCadCents(roomTotalCents)}</span></div> : null}
                 </div>
                 {addOns.length > 0 ? <section className={styles.addOnSection} aria-labelledby="add-ons-title">
                   <h2 id="add-ons-title" className={styles.addOnTitle}>Optional Activities, Meals &amp; Service Fee</h2>

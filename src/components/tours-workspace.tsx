@@ -31,12 +31,13 @@ import { replaceTourEditorRecord, validateTourEditorRecord } from "@/lib/tour-ed
 import { getTourTypeOptions } from "@/lib/tour-type-state";
 import { getTourStatusCounts } from "@/lib/workspace-view-models";
 import { moveTourRecordToPosition } from "@/lib/tour-order";
-import type { TourRecord } from "@/types/cms";
+import type { HomeModuleRecord, TourRecord } from "@/types/cms";
 
 type ToursWorkspaceProps = {
   tours: TourRecord[];
   destinationCategories?: DestinationCategory[];
   onToursChange?: (tours: TourRecord[]) => void;
+  onLinkedModulesChange?: (modules: HomeModuleRecord[]) => void;
 };
 
 type TourWorkspaceState = {
@@ -48,6 +49,7 @@ export function ToursWorkspace({
   tours,
   destinationCategories = destinationCategorySeeds,
   onToursChange,
+  onLinkedModulesChange,
 }: ToursWorkspaceProps) {
   const { message } = App.useApp();
   const [tourState, setTourState] = useState<TourWorkspaceState>(() =>
@@ -172,7 +174,9 @@ export function ToursWorkspace({
     if (!current) return;
 
     try {
-      const saved = await persistTour({ ...current, tourType: resolved.tourType });
+      const result = await persistTour({ ...current, tourType: resolved.tourType });
+      const saved = result.tour;
+      onLinkedModulesChange?.(result.linkedModules);
       const nextCustomTypes =
         resolved.isNew && !tourState.customTypes.includes(resolved.tourType)
           ? [...tourState.customTypes, resolved.tourType]
@@ -202,10 +206,11 @@ export function ToursWorkspace({
     const updatedRecord = {
       ...validation.value,
       tourType: resolved.tourType,
-      updatedAt: new Date().toISOString(),
     };
     try {
-      const saved = await persistTour(updatedRecord);
+      const result = await persistTour(updatedRecord);
+      const saved = result.tour;
+      onLinkedModulesChange?.(result.linkedModules);
       const nextCustomTypes =
         resolved.isNew && !tourState.customTypes.includes(resolved.tourType)
           ? [...tourState.customTypes, resolved.tourType]
@@ -218,14 +223,19 @@ export function ToursWorkspace({
     }
   }
 
-  async function persistTour(record: TourRecord): Promise<TourRecord> {
+  async function persistTour(record: TourRecord): Promise<{
+    tour: TourRecord;
+    linkedModules: HomeModuleRecord[];
+  }> {
     const response = await fetch(`/api/admin/tours/${record.slug}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ tour: record }),
     });
-    const payload = await readApiResponse<{ tour: TourRecord }>(response);
-    return payload.tour;
+    return readApiResponse<{
+      tour: TourRecord;
+      linkedModules: HomeModuleRecord[];
+    }>(response);
   }
 
   async function moveTour(slug: string, position: number) {

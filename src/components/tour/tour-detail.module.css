@@ -490,3 +490,43 @@
     right: 12px;
   }
 }
+.hotSaleOffer {
+  display: grid;
+  gap: 6px;
+  border-bottom: 1px solid var(--border);
+  background: #fff7e8;
+  padding: 16px 24px;
+  color: var(--ink);
+}
+
+.hotSaleLabel {
+  color: var(--terra);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hotSalePrices {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hotSalePrices del {
+  color: var(--ink-muted);
+  font-size: 0.82rem;
+}
+
+.hotSalePrices span {
+  color: var(--terra);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.hotSaleNormalPrice {
+  font-size: 0.9rem;
+  font-weight: 600;
+}

@@ -152,13 +152,19 @@ export function AdminShell({
       const response = await fetch(`/api/admin/home-modules/${activeModule.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "save", module: activeModule }),
+        body: JSON.stringify({
+          action: "save",
+          module: activeModule,
+          expectedUpdatedAt: activeModule.updatedAt,
+        }),
       });
       const payload = await readApiResponse<{
         module: HomeModuleRecord;
+        tours?: TourRecord[];
         settings?: SiteSettings;
         linkedModules?: HomeModuleRecord[];
       }>(response);
+      if (payload.tours) setTours(payload.tours);
       setState((current) => {
         let next = applyPersistedHomeModule(current, payload.module, submittedData);
         for (const linked of payload.linkedModules ?? []) {
@@ -186,13 +192,18 @@ export function AdminShell({
       const response = await fetch(`/api/admin/home-modules/${activeModule.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "publish" }),
+        body: JSON.stringify({
+          action: "publish",
+          expectedUpdatedAt: activeModule.updatedAt,
+        }),
       });
       const payload = await readApiResponse<{
         module: HomeModuleRecord;
+        tours?: TourRecord[];
         settings?: SiteSettings;
         linkedModules?: HomeModuleRecord[];
       }>(response);
+      if (payload.tours) setTours(payload.tours);
       setState((current) => {
         let next = applyPersistedHomeModule(current, payload.module, submittedData);
         for (const linked of payload.linkedModules ?? []) {
@@ -422,6 +433,9 @@ export function AdminShell({
           onTestimonialsChange: setTestimonials,
           onBookingsChange: setBookings,
           onToursChange: setTours,
+          onHomeModulesChange: (modules) => {
+            setState((current) => mergeLoadedHomeModules(current, modules));
+          },
           onViewBooking: (bookingId) => {
             setState((current) => openBooking(current, bookingId));
           },
@@ -564,6 +578,7 @@ function renderWorkspace(
     onTestimonialsChange: (testimonials: Testimonial[]) => void;
     onBookingsChange: (bookings: BookingRecord[]) => void;
     onToursChange: (tours: TourRecord[]) => void;
+    onHomeModulesChange: (modules: HomeModuleRecord[]) => void;
     onViewBooking: (bookingId: string) => void;
     onViewPayment: (paymentId: string) => void;
     onFocusHandled: () => void;
@@ -595,6 +610,7 @@ function renderWorkspace(
         tours={handlers.tours}
         destinationCategories={handlers.destinationCategories}
         onToursChange={handlers.onToursChange}
+        onLinkedModulesChange={handlers.onHomeModulesChange}
       />
     );
   }

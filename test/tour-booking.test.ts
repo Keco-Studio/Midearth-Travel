@@ -186,3 +186,28 @@ test("routes Stripe checkout through the payment result flow", () => {
   assert.match(route, /success_url:\s*returnUrls\.successUrl/);
   assert.match(route, /cancel_url:\s*returnUrls\.cancelUrl/);
 });
+
+test("shows the per-room price and includes requested rooms in the checkout total", () => {
+  const component = readFileSync(
+    new URL("../src/components/tour/tour-booking-page.tsx", import.meta.url),
+    "utf8",
+  );
+  const route = readFileSync(
+    new URL("../src/app/api/checkout/route.ts", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(component, /roomTotalCents/);
+  assert.match(component, /Room price/);
+  assert.match(route, /loadBookingById/);
+  assert.match(route, /calculateRoomPriceTotal/);
+});
+
+test("keeps the Rooms field compact without a per-room helper line", () => {
+  const component = readFileSync(
+    new URL("../src/components/tour/tour-booking-page.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.doesNotMatch(component, /styles\.fieldHint/);
+});

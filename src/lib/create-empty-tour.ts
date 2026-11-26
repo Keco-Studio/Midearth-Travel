@@ -1,4 +1,5 @@
 import type { TourEssentialFields, TourFareFields, TourRecord } from "../types/cms.ts";
+import { DEFAULT_ROOM_PRICE_CENTS } from "./room-pricing.ts";
 
 export function createEmptyTourRecord(
   existingSlugs: readonly string[] = [],
@@ -46,14 +47,19 @@ export function createEmptyTourRecord(
     localizedNotIncluded: "",
     essentials: emptyEssentials(),
     fares: emptyFares(),
+    roomPriceCents: DEFAULT_ROOM_PRICE_CENTS,
     pdfTitle: "",
     localizedPdfTitle: "",
     pdfFileName: "",
     galleryImages: "",
     specialOffer: false,
     specialDeals: false,
+    salePrice: "",
+    hotSaleDescription: "",
+    localizedHotSaleDescription: "",
     vacationPackage: false,
     travelNewsPackage: false,
+    exploreMonth: "",
     busTourPackage: true,
     destinationCategoryIds: [],
     status: "draft",

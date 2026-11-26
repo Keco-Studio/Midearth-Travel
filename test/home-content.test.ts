@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { homeModuleSeeds } from "../src/data/cms-seed.ts";
+import { tours } from "../src/data/tours.ts";
 import {
   canonicalizeHomeModule,
   canonicalizeHomeModuleForPublish,
@@ -12,6 +13,7 @@ import {
   toHomeModuleRow,
   type HomeModuleRow,
 } from "../src/lib/home-content.ts";
+import { TOP_PICKS_DATA_KEY, parseTopPickSlugs } from "../src/lib/top-picks.ts";
 import {
   HERO_SLIDES_DATA_KEY,
   parseHeroSlides,
@@ -82,6 +84,32 @@ test("seeds the Hero with one CMS-managed background slide", () => {
   assert.equal(slides.length, 1);
   assert.equal(slides[0]?.image, "/hero/hero-coast.jpg");
   assert.equal(slides[0]?.enabled, true);
+});
+
+test("seeds Hot Sales as a dedicated module before Featured Tours", () => {
+  const hotSalesIndex = homeModuleSeeds.findIndex(
+    (module) => module.id === "hotSales",
+  );
+  const featuredIndex = homeModuleSeeds.findIndex(
+    (module) => module.id === "toursSection",
+  );
+  const hotSales = homeModuleSeeds[hotSalesIndex];
+
+  assert.ok(hotSalesIndex >= 0);
+  assert.ok(hotSalesIndex < featuredIndex);
+  assert.equal(hotSales?.name, "Hot Sales");
+  assert.ok(hotSales?.fields.some((field) => field.key === "promotionsData"));
+  assert.equal(hotSales?.data.sectionTitleEn, "Hot Sales");
+});
+
+test("seeds an ordered Our Top Picks selection from featured tours", () => {
+  const topPicks = homeModuleSeeds.find((module) => module.id === "toursSection");
+
+  assert.ok(topPicks?.fields.some((field) => field.key === TOP_PICKS_DATA_KEY));
+  assert.deepEqual(
+    parseTopPickSlugs(topPicks?.data ?? {}),
+    tours.filter((tour) => tour.featured).map((tour) => tour.slug),
+  );
 });
 
 test("migrates a stored legacy Hero using its own background image", () => {
