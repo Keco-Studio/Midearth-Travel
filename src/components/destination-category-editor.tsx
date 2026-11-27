@@ -1,15 +1,19 @@
 "use client";
 
-import { Input, Table, Typography } from "antd";
+import { UploadOutlined } from "@ant-design/icons";
+import { App, Button, Input, Space, Table, Typography, Upload } from "antd";
+import { useState } from "react";
 import { BusToursContentEditor } from "@/components/bus-tours-content-editor";
 import { getBusToursContent } from "@/lib/bus-tours-content";
 import type { DestinationCategory } from "@/lib/destination-categories";
+import { validateInlineImageFile } from "@/lib/inline-image-upload";
 import type { TourRecord } from "@/types/cms";
 
 type DestinationCategoryEditorProps = {
   categories: DestinationCategory[];
   onChange: (categories: DestinationCategory[]) => void;
   onDirtyChange: (dirty: boolean) => void;
+  onImageUpload: (categoryId: string, file: File) => Promise<string>;
   tours: TourRecord[];
 };
 
@@ -19,8 +23,13 @@ export function DestinationCategoryEditor({
   categories,
   onChange,
   onDirtyChange,
+  onImageUpload,
   tours,
 }: DestinationCategoryEditorProps) {
+  const { message } = App.useApp();
+  const [uploadingCategories, setUploadingCategories] = useState<Record<string, boolean>>(
+    {},
+  );
   const busTours = categories.find((category) => category.id === "bus-tours");
 
   function updateField(id: string, key: EditableKey, value: string) {
@@ -36,6 +45,28 @@ export function DestinationCategoryEditor({
           : category,
       ),
     );
+  }
+
+  async function uploadCategoryImage(category: DestinationCategory, file: File) {
+    const validation = validateInlineImageFile(file);
+    if (!validation.ok) {
+      message.error(validation.error);
+      return;
+    }
+
+    setUploadingCategories((current) => ({ ...current, [category.id]: true }));
+    try {
+      const url = await onImageUpload(category.id, file);
+      updateField(category.id, "image", url);
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : "Image upload failed");
+    } finally {
+      setUploadingCategories((current) => {
+        const next = { ...current };
+        delete next[category.id];
+        return next;
+      });
+    }
   }
 
   return (
@@ -107,13 +138,32 @@ export function DestinationCategoryEditor({
           {
             title: "Image URL",
             dataIndex: "image",
-            width: 220,
-            render: (_, record) => (
-              <Input
-                value={record.image}
-                onChange={(event) => updateField(record.id, "image", event.target.value)}
-              />
-            ),
+            width: 240,
+            render: (_, record) => {
+              const uploading = Boolean(uploadingCategories[record.id]);
+
+              return (
+                <Space direction="vertical" size={8} style={{ width: "100%" }}>
+                  <Input
+                    value={record.image}
+                    onChange={(event) => updateField(record.id, "image", event.target.value)}
+                  />
+                  <Upload
+                    accept="image/*"
+                    beforeUpload={(file) => {
+                      void uploadCategoryImage(record, file);
+                      return Upload.LIST_IGNORE;
+                    }}
+                    disabled={uploading}
+                    showUploadList={false}
+                  >
+                    <Button icon={<UploadOutlined />} loading={uploading}>
+                      Upload Image
+                    </Button>
+                  </Upload>
+                </Space>
+              );
+            },
           },
         ]}
       />

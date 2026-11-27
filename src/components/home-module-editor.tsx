@@ -169,6 +169,9 @@ export function HomeModuleEditor({
           categories={destinationCategories}
           onDirtyChange={setSupplementalDirty}
           onChange={onDestinationCategoriesChange}
+          onImageUpload={(categoryId, file) =>
+            onImageUpload(`destination-${categoryId}`, file)
+          }
           tours={tours}
         />
       ) : null}

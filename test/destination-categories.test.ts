@@ -110,6 +110,33 @@ test("Destination names editor falls back when legacy Bus Tours content is absen
   assert.match(source, /getBusToursContent\(busTours\.busContent\)/);
 });
 
+test("Destination names editor offers image upload for each category row", () => {
+  const destinationEditorSource = readFileSync(
+    new URL("../src/components/destination-category-editor.tsx", import.meta.url),
+    "utf8",
+  );
+  const homeEditorSource = readFileSync(
+    new URL("../src/components/home-module-editor.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(destinationEditorSource, /<Upload/);
+  assert.match(destinationEditorSource, /<Button icon=\{<UploadOutlined \/>\}/);
+  assert.match(destinationEditorSource, />\s*Upload Image\s*<\/Button>/);
+  assert.match(
+    destinationEditorSource,
+    /void uploadCategoryImage\(record, file\)/,
+  );
+  assert.match(
+    destinationEditorSource,
+    /const url = await onImageUpload\(category\.id, file\);\s*updateField\(category\.id, "image", url\);/,
+  );
+  assert.match(
+    homeEditorSource,
+    /onImageUpload=\{\(categoryId, file\) =>\s*onImageUpload\(`destination-\$\{categoryId\}`, file\)\s*\}/,
+  );
+});
+
 test("homepage tour cards pass the active language to region badges", () => {
   const source = readFileSync(
     new URL("../src/components/tour-card.tsx", import.meta.url),
