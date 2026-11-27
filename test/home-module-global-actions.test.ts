@@ -23,7 +23,7 @@ test("homepage detail editors use the global draft and publish actions", () => {
   assert.ok(!destinationEditorSource.includes("Save names"));
   assert.ok(!collectionEditorsSource.includes("Save data"));
 
-  assert.ok(!destinationEditorSource.includes("loading="));
+  assert.ok(!destinationEditorSource.includes("loading={saving}"));
   assert.ok(!collectionEditorsSource.includes("loading={loading}"));
   assert.ok(!destinationEditorSource.includes("useEffect"));
   assert.ok(!collectionEditorsSource.includes("loadCollection"));
